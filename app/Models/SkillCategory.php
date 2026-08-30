@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class SkillCategory extends Model
+{
+    protected $fillable = ['name', 'status'];
+
+    protected $casts = [
+        'status' => 'boolean',
+    ];
+
+    public function skillAssessmentAreas()
+    {
+        return $this->hasMany(SkillAssessmentArea::class, 'category_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+}
