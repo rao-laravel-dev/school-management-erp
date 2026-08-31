@@ -5,10 +5,11 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\StaffLeaveSetting;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes; // 👈 1. Soft Delete integration
+use Illuminate\Database\Eloquent\SoftDeletes; //  1. Soft Delete integration
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -18,7 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasRoles, SoftDeletes; // 👈 2. Soft Delete trait active ki
+    use Notifiable, HasRoles, SoftDeletes, HasApiTokens; //  2. Soft Delete trait active ki
 
     protected $dates = ['deleted_at'];
 
