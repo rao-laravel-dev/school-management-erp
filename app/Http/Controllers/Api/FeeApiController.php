@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PayFeeRequest;
+use App\Http\Resources\StudentFeeResource;
 use App\Models\BankAccount;
 use App\Models\StudentFees;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class FeeApiController extends Controller
 {
@@ -24,8 +25,11 @@ class FeeApiController extends Controller
 
         $fees = $query->orderByDesc('due_date')->get();
 
-        return response()->json(['fees' => $fees]);
+        return response()->json([
+            'fees' => StudentFeeResource::collection($fees),
+        ]);
     }
+    // End Method
 
     // Show single fee record detail
     public function show($studentFeeId)
@@ -33,26 +37,17 @@ class FeeApiController extends Controller
         $fee = StudentFees::with('feeType', 'transactions')
             ->findOrFail($studentFeeId);
 
-        return response()->json(['fee' => $fee]);
+        return response()->json([
+            'fee' => new StudentFeeResource($fee),
+        ]);
     }
+    // End Method
 
     // Collect payment against one fee record (same logic as web FeeCollectionController@pay)
-    public function pay(Request $request, $studentFeeId)
+    public function pay(PayFeeRequest $request, $studentFeeId)
     {
         $fee     = StudentFees::findOrFail($studentFeeId);
         $balance = $fee->amount - $fee->discount - $fee->paid_amount;
-
-        $validator = Validator::make($request->all(), [
-            'amount'          => "required|numeric|min:0.01|max:{$balance}",
-            'payment_method'  => 'required|in:cash,cheque,bank_transfer,easypaisa,jazzcash,card',
-            'bank_account_id' => 'required_unless:payment_method,cash|nullable|exists:bank_accounts,id',
-            'reference_no'    => 'nullable|string|max:100',
-            'note'            => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
 
         $transaction = null;
 
@@ -90,6 +85,10 @@ class FeeApiController extends Controller
             }
         });
 
+        if (! $transaction) {
+            return response()->json(['message' => 'Transaction failed.'], 500);
+        }
+
         return response()->json([
             'message'        => 'Payment collected successfully.',
             'paid_amount'    => number_format($fee->paid_amount, 2),
@@ -98,4 +97,5 @@ class FeeApiController extends Controller
             'transaction_id' => $transaction->id,
         ]);
     }
+    // End Method
 }
