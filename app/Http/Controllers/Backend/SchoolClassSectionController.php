@@ -15,21 +15,20 @@ class SchoolClassSectionController extends Controller
      * Display Mapping Form and Table List
      */
     public function index(Request $request)
-    {
-        $selectedClassId = $request->query('class_id');
-        $classes = SchoolClass::where('status', 1)->get();
-        $sections = Section::where('status', 1)->get();
+{
+    $selectedClassId = $request->query('class_id');
+    $classes = SchoolClass::where('status', 1)->get();
+    $sections = Section::where('status', 1)->get();
 
-        // Sahi Tarika:
-        $mapped_classes = SchoolClass::with(['mappedSections' => function ($query) {
-            // Pivot id ki jagah sections table ka 'name' use karein
-            $query->orderBy('sections.name', 'ASC');
-        }])
-            ->orderBy('name', 'ASC') // Class name sort karne ke liye
-            ->get();
+    // Sahi Tarika: Numeric name ke mutabiq sort karein taake 1, 2, 3... 10 sequence wise aayein
+    $mapped_classes = SchoolClass::with(['mappedSections' => function ($query) {
+        $query->orderBy('sections.name', 'ASC');
+    }])
+        ->orderBy('numeric_name', 'ASC') 
+        ->get();
 
-        return view('admin..school_class_section.index', compact('classes', 'sections', 'mapped_classes', 'selectedClassId'));
-    }
+    return view('admin..school_class_section.index', compact('classes', 'sections', 'mapped_classes', 'selectedClassId'));
+}
 
     /**
      * Store / Assign Sections to a Class
