@@ -4,11 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class SchoolClass extends Model
 {
     protected $table = 'school_class';
-    protected $fillable = ['name', 'class_code', 'numeric_name', 'slug', 'description', 'status'];
+    protected $fillable = [
+        'name',
+        'has_subjects',
+        'class_code',
+        'numeric_name',
+        'slug',
+        'description',
+        'status',
+    ];
+
+    protected $casts = [
+        'has_subjects' => 'boolean',
+        'status' => 'boolean',
+    ];
 
     // Accessor for Name (ucwords)
     protected function name(): Attribute
@@ -58,4 +72,12 @@ class SchoolClass extends Model
     {
         return $this->hasMany(ClassTimetable::class, 'school_class_id');
     }
+
+
+// Roll number banane ke liye clean class-code (numeric_name se independent — negative sign ka masla hi khatam)
+public function getRollCodeAttribute(): string
+{
+    // class_code hamesha "CLS-XXX" format mein hota hai
+    return Str::after($this->class_code, 'CLS-'); // "CLS-10" -> "10", "CLS-MONT" -> "MONT"
+}
 }

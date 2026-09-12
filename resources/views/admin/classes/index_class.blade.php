@@ -2,26 +2,16 @@
 
 @section('content')
 
-<!-- Breadcrumb -->
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Academic</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item">
-                    <a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Class Management</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+{{-- Breadcrumb --}}
+<x-breadcrumb :items="[
+    ['label' => 'Academic', 'url' => '#'],
+    ['label' => 'Class Management', 'url' => route('classes.index')],
+]" />
 
-<!-- Status Cards (Classes Summary) -->
+<!-- Status Cards -->
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 mb-3 align-items-center">
-    <!-- Total Classes Card -->
     <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm mb-0">
+        <div class="card border shadow-none radius-10 mb-0">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center">
                     <div>
@@ -36,9 +26,8 @@
         </div>
     </div>
 
-    <!-- Active Classes Card -->
     <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-success shadow-sm mb-0">
+        <div class="card border shadow-none radius-10 mb-0">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center">
                     <div>
@@ -53,9 +42,8 @@
         </div>
     </div>
 
-    <!-- Inactive Classes Card -->
     <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-danger shadow-sm mb-0">
+        <div class="card border shadow-none radius-10 mb-0">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center">
                     <div>
@@ -70,22 +58,18 @@
         </div>
     </div>
 
-    <!-- Add Class Button -->
     <div class="col text-end ms-auto">
-        <a href="{{ route('classes.create') }}" class="btn btn-primary px-4 shadow-sm">
+        <button type="button" class="btn btn-success btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addClassModal">
             <i class='bx bx-plus-circle'></i> Add Class
-        </a>
+        </button>
     </div>
 </div>
 
 <div class="row">
     <div class="col-xl">
-        <div class="card radius-10">
+        <div class="card border shadow-none radius-10">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-                <h5 class="mb-0">
-                    School Classes List
-                </h5>
-
+                <h5 class="mb-0 fw-bold text-primary">School Classes List</h5>
                 <span class="badge bg-primary">Records: {{ $classes->count() }}</span>
             </div>
             <div class="card-body">
@@ -107,27 +91,22 @@
                             @forelse($classes as $key => $item)
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-                                <td>
-                                    <div class="fw-bold text-primary">{{ $item->name }}</div>
-                                </td>
+                                <td><div class="fw-bold text-primary">{{ $item->name }}</div></td>
                                 <td>
                                     @if($item->mappedSections && $item->mappedSections->isNotEmpty())
-                                    @foreach($item->mappedSections as $section)
-                                    <span class="badge bg-success me-1 mb-1">{{ $section->name }}</span>
-                                    @endforeach
+                                        @foreach($item->mappedSections as $section)
+                                        <span class="badge bg-success me-1 mb-1">{{ $section->name }}</span>
+                                        @endforeach
                                     @else
-                                    <span class="text-muted small">No sections</span>
+                                        <span class="text-muted small">No sections</span>
                                     @endif
                                 </td>
                                 <td><span class="badge bg-light-info text-info border border-info px-3">{{ $item->class_code }}</span></td>
                                 <td>{{ $item->numeric_name }}</td>
-                                <td>
-                                    <span class="badge bg-info text-dark">
-                                        {{ $item->enrollments_count }} </span>
-                                </td>
+                                <td><span class="badge bg-info text-dark">{{ $item->enrollments_count }}</span></td>
                                 <td>
                                     <button type="button"
-                                        class="btn btn-sm toggle-status {{ $item->status == 1 ? 'btn-success' : 'btn-danger' }}"
+                                        class="btn btn-sm toggle-status {{ $item->status == 1 ? 'btn-outline-success' : 'btn-outline-danger' }}"
                                         data-url="{{ route('classes.status', $item->id) }}">
                                         {{ $item->status == 1 ? 'Active' : 'Inactive' }}
                                     </button>
@@ -135,17 +114,15 @@
                                 <td>
                                     <div class="d-flex gap-2">
                                         <a href="{{ route('school_class_section.index', ['class_id' => $item->id]) }}"
-                                            class="btn btn-sm btn-info text-white" title="Assign Sections">
+                                            class="btn btn-sm btn-outline-info" title="Assign Sections">
                                             <i class="bx bx-list-check"></i>
                                         </a>
                                         @can('manage-academics')
-                                        {{-- Edit Button --}}
-                                        <a href="{{ route('classes.edit', $item->id) }}" class="btn btn-sm btn-primary" title="Edit">
+                                        <button type="button" class="btn btn-sm btn-outline-primary edit-btn"
+                                            data-url="{{ route('classes.edit', $item->id) }}" title="Edit">
                                             <i class="bx bx-edit"></i>
-                                        </a>
-
-                                        {{-- Delete Button --}}
-                                        <a href="{{ route('classes.delete', $item->id) }}" class="btn btn-sm btn-danger delete-btn" id="delete" title="Delete">
+                                        </button>
+                                        <a href="{{ route('classes.delete', $item->id) }}" class="btn btn-sm btn-outline-danger delete-btn" title="Delete">
                                             <i class="bx bx-trash"></i>
                                         </a>
                                         @endcan
@@ -153,9 +130,7 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted">No Classes Found</td>
-                            </tr>
+                            <tr><td colspan="8" class="text-center text-muted">No Classes Found</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -165,27 +140,114 @@
     </div>
 </div>
 
+@include('admin.classes.modals')
+
 @endsection
 
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // DataTable Initialization
         if (!$.fn.DataTable.isDataTable('#example')) {
-            $('#example').DataTable({
-                "pageLength": 10,
-                "ordering": true
-            });
+            $('#example').DataTable({ "pageLength": 10, "ordering": true });
         }
 
-        // AJAX Status Toggle logic
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "5000"
+        };
+
+        @if(session('message'))
+            toastr.{{ session('alert-type', 'success') }}("{{ session('message') }}");
+        @endif
+
+        // --- ADD CLASS ---
+        $('#addClassForm').on('submit', function(e) {
+            e.preventDefault();
+            let form = $(this);
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function(res) {
+                    toastr.success(res.message);
+                    $('#addClassModal').modal('hide');
+                    setTimeout(() => location.reload(), 800);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let msg = "";
+                        $.each(errors, function(key, val) { msg += "• " + val[0] + "<br>"; });
+                        toastr.error(msg, 'Validation Error!');
+                    } else {
+                        toastr.error('Something went wrong!');
+                    }
+                }
+            });
+        });
+
+        // --- EDIT: load data into modal ---
+        $(document).on('click', '.edit-btn', function() {
+    let url = $(this).data('url');
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+            $('#edit_id').val(data.id);
+            $('#edit_name').val(data.name);
+            $('#edit_numeric_name').val(data.numeric_name);
+            $('#edit_has_subjects').prop('checked', data.has_subjects == 1);
+            $('#edit_description').val(data.description);
+            $('#edit_status').prop('checked', data.status == 1);
+
+            // FIX: route pattern ke mutabiq sahi URL banayein
+            $('#editClassForm').attr('action', "{{ url('classes/update') }}/" + data.id);
+            $('#editClassModal').modal('show');
+        },
+        error: function() {
+            toastr.error('Unable to load class data.');
+        }
+    });
+});
+
+        // --- UPDATE CLASS ---
+        $('#editClassForm').on('submit', function(e) {
+    e.preventDefault();
+    let form = $(this);
+
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),   // <-- '&_method=PUT' hata diya
+        success: function(res) {
+            toastr.success(res.message);
+            $('#editClassModal').modal('hide');
+            setTimeout(() => location.reload(), 800);
+        },
+        error: function(xhr) {
+            if (xhr.status === 422) {
+                let errors = xhr.responseJSON.errors;
+                let msg = "";
+                $.each(errors, function(key, val) { msg += "• " + val[0] + "<br>"; });
+                toastr.error(msg, 'Validation Error!');
+            } else {
+                toastr.error('Something went wrong!');
+            }
+        }
+    });
+});
+
+        // --- STATUS TOGGLE ---
         $(document).on('click', '.toggle-status', function(e) {
             e.preventDefault();
             let btn = $(this);
-            let url = btn.data('url');
 
             $.ajax({
-                url: url,
+                url: btn.data('url'),
                 type: 'GET',
                 success: function(response) {
                     let activeCount = parseInt($('#active-count').text());
@@ -200,21 +262,19 @@
                         btn.removeClass('btn-success').addClass('btn-danger').text('Inactive');
                         $('#active-count').text(Math.max(0, activeCount - 1));
                         $('#inactive-count').text(inactiveCount + 1);
-                        // Using toastr.error for Inactive as per your requirement
                         toastr.error(response.message);
                     }
                 },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
+                error: function() {
                     toastr.error('Internal Server Error!');
                 }
             });
         });
 
-        // SweetAlert2 for Delete Confirmation
-        $(document).on('click', '#delete', function(e) {
+        // --- DELETE ---
+        $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
-            var link = $(this).attr("href");
+            let link = $(this).attr("href");
 
             Swal.fire({
                 title: 'Are you sure?',
@@ -225,9 +285,7 @@
                 cancelButtonColor: '#d33',
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = link;
-                }
+                if (result.isConfirmed) window.location.href = link;
             });
         });
     });

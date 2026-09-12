@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('school_class', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Class 10
+            $table->boolean('has_subjects')->default(1); // Name ke foran baad rakh diya hai
             $table->string('class_code')->unique(); // CLS-10
             $table->integer('numeric_name')->nullable(); // 10
             $table->string('slug')->unique();
