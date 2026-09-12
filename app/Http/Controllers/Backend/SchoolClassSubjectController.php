@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Models\SchoolClass;
 use App\Models\Subject;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SchoolClassSubjectController extends Controller
 {
@@ -83,57 +84,98 @@ class SchoolClassSubjectController extends Controller
 }
     // End Method
 
-    // Edit form
-    public function editClassSubjectsMapping($id)
-    {
-        $class = SchoolClass::with('subjects')->findOrFail($id);
-        $subjects = Subject::all();
+   public function editClassSubjectsMapping(Request $request, $id)
+{
+    $class    = SchoolClass::with('subjects')->findOrFail($id);
+    $subjects = Subject::where('status', 1)->get();
+    $classes  = SchoolClass::where('status', 1)->get();
+    $groups   = class_exists('App\Models\Group') ? Group::where('status', 1)->get() : collect();
 
-        // YEH LINE ADD KI HAI: Saari classes fetch karne ke liye
-        $classes = SchoolClass::all();
-
-        // Pehle se assigned subjects ki sirf IDs nikalne k liye taake checkbox checked ho sakein
-        $assignedSubjects = $class->subjects->pluck('id')->toArray();
-
-        // compact me 'classes' variable ko lazmi pass kiya hai
-        return view('admin.school_class_subject.edit_sch_cls_sub', compact('class', 'subjects', 'assignedSubjects', 'classes'));
+    // Query string se na milay to seedha pivot table se is class ka actual group_id nikal lein
+    $groupId = $request->get('group_id');
+    if (is_null($groupId)) {
+        $groupId = DB::table('class_subject')->where('class_id', $id)->value('group_id');
     }
+
+    $query = $class->subjects();
+    if ($groupId) {
+        $query->wherePivot('group_id', $groupId);
+    } else {
+        $query->wherePivotNull('group_id');
+    }
+    $assignedSubjects = $query->pluck('subjects.id')->toArray();
+
+    $affectedClassesQuery = DB::table('class_subject')
+        ->join('school_class', 'school_class.id', '=', 'class_subject.class_id')
+        ->select('school_class.id', 'school_class.name')
+        ->distinct();
+
+    if ($groupId) {
+        $affectedClassesQuery->where('class_subject.group_id', $groupId);
+    } else {
+        $affectedClassesQuery->whereNull('class_subject.group_id');
+    }
+    $affectedClasses = $affectedClassesQuery->get();
+
+    return view('admin.school_class_subject.edit_sch_cls_sub', compact(
+        'class', 'subjects', 'assignedSubjects', 'classes', 'groups', 'groupId', 'affectedClasses'
+    ));
+}
     // End Method
 
     public function updateClassSubjectsMapping(Request $request, $id)
 {
-    // 1. Validation
     $request->validate([
         'subject_ids' => 'required|array',
         'group_id'    => 'nullable|exists:groups,id',
     ]);
 
-    $class = SchoolClass::findOrFail($id);
+    $groupId = $request->filled('group_id') ? $request->group_id : null;
 
-    // 2. Pivot Extra Fields Format (Subjects ko group_id ke sath map karna)
-    $syncData = [];
-    foreach ($request->subject_ids as $subjectId) {
-        $syncData[$subjectId] = [
-            'group_id'   => $request->group_id ?? null,
-            'full_marks' => 100, 
-            'pass_marks' => 33,
-            'updated_at' => now(),
-        ];
+    // 1. Is group ke andar is waqt jitni bhi classes assigned hain, unki IDs nikalo
+    $query = DB::table('class_subject');
+    if ($groupId !== null) {
+        $query->where('group_id', $groupId);
+    } else {
+        $query->whereNull('group_id');
+    }
+    $classIds = $query->distinct()->pluck('class_id');
+
+    // 2. Current class ($id) bhi list mein zaroor shamil ho (naye group ke case mein)
+    $classIds = $classIds->push($id)->unique();
+
+    // 3. Har class pe wahi update apply karo
+    foreach ($classIds as $classId) {
+        $class = SchoolClass::find($classId);
+        if (!$class) continue;
+
+        $q = $class->subjects();
+        if ($groupId !== null) {
+            $q->wherePivot('group_id', $groupId);
+        } else {
+            $q->wherePivotNull('group_id');
+        }
+        $q->detach();
+
+        $syncData = [];
+        foreach ($request->subject_ids as $subjectId) {
+            $syncData[$subjectId] = [
+                'group_id'   => $groupId,
+                'full_marks' => 100,
+                'pass_marks' => 33,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        $class->subjects()->attach($syncData);
     }
 
-    // 3. Perfect Logic: 
-    // Pehle us class ke us specific group ke purane subjects hatao (Detach)
-    $class->subjects()->wherePivot('group_id', $request->group_id)->detach();
-
-    // Phir naye subjects ko us group ke sath attach karo (Attach)
-    $class->subjects()->attach($syncData);
-
     return redirect()->route('school-class-subjects.index')->with([
-        'message'    => 'Subjects mapping updated successfully!',
+        'message'    => 'Subjects mapping updated for all classes in this group!',
         'alert-type' => 'success'
     ]);
 }
-// End Method
+    // End Method
 
 
     public function ClassSubjectStatus($id)

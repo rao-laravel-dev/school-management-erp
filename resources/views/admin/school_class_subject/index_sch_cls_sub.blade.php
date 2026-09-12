@@ -17,13 +17,12 @@
 
 <!-- Status Cards & Add Button Row -->
 <div class="row g-3 mb-4 align-items-center">
-
     <div class="col-12 col-md-4 col-xl-3">
         <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm mb-0">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary small">Total Assignments</p>
+                        <p class="mb-0 text-secondary small">Total Configurations</p>
                         <h5 class="my-0 text-primary fw-bold">{{ $classes->count() }}</h5>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-light-primary text-primary ms-auto" style="width: 45px; height: 45px; line-height: 45px;">
@@ -39,7 +38,7 @@
             <div class="card-body p-3">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary small">Active Classes</p>
+                        <p class="mb-0 text-secondary small">Active Status</p>
                         <h5 class="my-0 text-success fw-bold" id="active-count">{{ $classes->where('status', 1)->count() }}</h5>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-light-success text-success ms-auto" style="width: 45px; height: 45px; line-height: 45px;">
@@ -55,7 +54,7 @@
             <div class="card-body p-3">
                 <div class="d-flex align-items-center">
                     <div>
-                        <p class="mb-0 text-secondary small">Inactive Classes</p>
+                        <p class="mb-0 text-secondary small">Inactive Status</p>
                         <h5 class="my-0 text-danger fw-bold" id="inactive-count">{{ $classes->where('status', 0)->count() }}</h5>
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-light-danger text-danger ms-auto" style="width: 45px; height: 45px; line-height: 45px;">
@@ -71,7 +70,6 @@
             <i class='bx bx-plus'></i> Assign Subjects
         </a>
     </div>
-
 </div>
 
 <div class="row">
@@ -79,7 +77,7 @@
         <div class="card radius-10">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
                 <h5 class="mb-0">Class-Wise Subjects List</h5>
-                <span class="badge bg-primary">Classes Configured: {{ $classes->count() }}</span>
+                <span class="badge bg-primary">Configured: {{ $classes->count() }}</span>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -97,29 +95,23 @@
                             @forelse($classes as $key => $item)
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-
-                                <!-- Class Name Display -->
                                 <td>
-                                    <div>{{ $item->name }}</div>
+                                    <div class="fw-bold text-dark">{{ $item->name }}</div>
                                 </td>
-
-                                <!-- Assigned Subjects (Many-to-Many Pivot collection) -->
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
                                         @if($item->subjects->isNotEmpty())
-                                        @foreach($item->subjects as $subject)
-                                        <span class="badge bg-light-info text-info border border-info px-2">
-                                            {{ $subject->name }}
-                                            <small class="text-secondary">({{ $subject->type }})</small>
-                                        </span>
-                                        @endforeach
+                                            @foreach($item->subjects as $subject)
+                                            <span class="badge bg-light-info text-info border border-info px-2 py-1">
+                                                {{ $subject->name }} 
+                                                <small class="text-secondary">({{ $subject->type }})</small>
+                                            </span>
+                                            @endforeach
                                         @else
-                                        <span class="text-muted small italic">No Subjects Linked</span>
+                                            <span class="text-muted small fst-italic">No Subjects Linked</span>
                                         @endif
                                     </div>
                                 </td>
-
-                                <!-- Toggle Mapping Status -->
                                 <td>
                                     <a href="javascript:void(0);"
                                         class="btn btn-sm toggle-status {{ $item->status == 1 ? 'btn-outline-success' : 'btn-outline-danger' }}"
@@ -127,8 +119,6 @@
                                         {{ $item->status == 1 ? 'Active' : 'Inactive' }}
                                     </a>
                                 </td>
-
-                                <!-- Edit/Delete Actions -->
                                 <td>
                                     <div class="d-flex gap-2">
                                         <a href="{{ route('school-class-subjects.edit', $item->id) }}" class="btn btn-sm btn-outline-primary" title="Edit Assignment">
@@ -157,6 +147,7 @@
 </div>
 
 @endsection
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -168,7 +159,7 @@
             });
         }
 
-        // AJAX Status Toggle for Class Mapping (Fully Safe)
+        // AJAX Status Toggle
         $(document).on('click', '.toggle-status', function(e) {
             e.preventDefault();
             let btn = $(this);
@@ -180,21 +171,16 @@
                     let activeElem = $('#active-count');
                     let inactiveElem = $('#inactive-count');
                     
-                    // Fallback to 0 if text is not clear/empty
                     let activeCount = parseInt(activeElem.text()) || 0;
                     let inactiveCount = parseInt(inactiveElem.text()) || 0;
 
                     if (res.status == 1) {
-                        btn.removeClass('btn-danger').addClass('btn-success').text('Active');
-                        
-                        // Counter Calculation Updates
+                        btn.removeClass('btn-outline-danger btn-danger').addClass('btn-outline-success').text('Active');
                         activeElem.text(activeCount + 1);
                         inactiveElem.text(Math.max(0, inactiveCount - 1));
                         toastr.success(res.message);
                     } else {
-                        btn.removeClass('btn-success').addClass('btn-danger').text('Inactive');
-                        
-                        // Counter Calculation Updates
+                        btn.removeClass('btn-outline-success btn-success').addClass('btn-outline-danger').text('Inactive');
                         activeElem.text(Math.max(0, activeCount - 1));
                         inactiveElem.text(inactiveCount + 1);
                         toastr.error(res.message);
@@ -206,7 +192,7 @@
             });
         });
 
-        // SweetAlert Delete Mapping Context Confirmation
+        // SweetAlert Delete Confirmation
         $(document).on('click', '#delete', function(e) {
             e.preventDefault();
             let link = $(this).attr("href");
