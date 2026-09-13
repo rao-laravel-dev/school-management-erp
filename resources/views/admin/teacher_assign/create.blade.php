@@ -230,32 +230,41 @@
 
         // --- 4. FUNCTION: LOAD SUBJECTS ---
         function loadSubjects(classId, selectedSubjectId = null) {
-            var subjectDropdown = $('#class_subject_id');
-            subjectDropdown.html('<option value="">Loading...</option>');
+    var subjectDropdown = $('#class_subject_id');
+    var subjectWrapper = subjectDropdown.closest('.mb-3'); // poora field block
 
-            if (classId) {
-                $.ajax({
-                    url: "{{ route('teacher.assign.get-subjects-by-class') }}",
-                    type: "GET",
-                    data: {
-                        class_id: classId
-                    },
-                    dataType: "json",
-                    success: function(data) {
-                        subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
-                        $.each(data, function(key, value) {
-                            var selected = (selectedSubjectId == value.id) ? 'selected' : '';
-                            subjectDropdown.append('<option value="' + value.id + '" ' + selected + '>' + value.name + '</option>');
-                        });
-                    },
-                    error: function() {
-                        subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
-                    }
-                });
-            } else {
+    if (classId) {
+        $.ajax({
+            url: "{{ route('teacher.assign.get-subjects-by-class') }}",
+            type: "GET",
+            data: { class_id: classId },
+            dataType: "json",
+            success: function(response) {
+                if (!response.has_subjects) {
+                    // Whole-class: dropdown hide + force "no subject"
+                    subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
+                    subjectDropdown.val('').prop('required', false);
+                    subjectWrapper.hide();
+                } else {
+                    // Subject-wise: dropdown show + required
+                    subjectWrapper.show();
+                    subjectDropdown.html('<option value="">Select Subject</option>');
+                    $.each(response.subjects, function(key, value) {
+                        var selected = (selectedSubjectId == value.id) ? 'selected' : '';
+                        subjectDropdown.append('<option value="' + value.id + '" ' + selected + '>' + value.name + '</option>');
+                    });
+                    subjectDropdown.prop('required', true);
+                }
+            },
+            error: function() {
                 subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
             }
-        }
+        });
+    } else {
+        subjectWrapper.hide();
+        subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
+    }
+}
 
         // --- 5. EVENT: ON CLASS CHANGE ---
         $('#class_id').on('change', function() {
