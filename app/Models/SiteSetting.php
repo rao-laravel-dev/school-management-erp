@@ -16,6 +16,7 @@ class SiteSetting extends Model
         'website',
         'registration_no',
         'established_year',
+        'admission_prefix',
         'header_note',
         'footer_note',
     ];

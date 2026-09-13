@@ -31,6 +31,7 @@ class SiteSettingController extends Controller
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
             'registration_no' => 'nullable|string|max:100',
+            'admission_prefix' => 'required|string|max:10|alpha_num', // 👈 NAYA
             'established_year' => 'nullable|digits:4|max:10',
             'header_note' => 'nullable|string|max:255',
             'footer_note' => 'nullable|string|max:255',
@@ -40,6 +41,8 @@ class SiteSettingController extends Controller
             'phone.regex' => 'Phone number format is invalid.',
             'website.url' => 'Website must be a valid URL (e.g. https://example.com).',
             'established_year.digits' => 'Established Year must be a 4-digit year (e.g. 2010).',
+            'admission_prefix.required' => 'Admission Prefix is required (e.g. APS, SSS).',
+            'admission_prefix.alpha_num' => 'Admission Prefix should only contain letters and numbers (no spaces or dashes).',
         ]);
 
         $setting = SiteSetting::current();
@@ -51,6 +54,7 @@ class SiteSettingController extends Controller
             'email',
             'website',
             'registration_no',
+            'admission_prefix',   // 👈 NAYA
             'established_year',
             'header_note',
             'footer_note',

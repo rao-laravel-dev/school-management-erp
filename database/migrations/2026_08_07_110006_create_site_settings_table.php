@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('website')->nullable();
             $table->string('registration_no')->nullable();
             $table->string('established_year')->nullable();
+            $table->string('admission_prefix', 10)->nullable()->default('SCH'); // New Field Added
             $table->string('header_note')->nullable();
             $table->string('footer_note')->nullable();
             $table->timestamps();

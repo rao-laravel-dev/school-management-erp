@@ -36,6 +36,20 @@
                     @enderror
                 </div>
 
+                {{-- 👇 NAYA FIELD YAHAN ADD KAREIN --}}
+                <div class="col-md-6">
+                    <label for="admission_prefix" class="form-label">Admission No. Prefix <span class="text-danger">*</span></label>
+                    <input type="text" name="admission_prefix" id="admission_prefix"
+                        placeholder="e.g. APS, SSS"
+                        maxlength="10"
+                        class="form-control form-control-sm @error('admission_prefix') is-invalid @enderror"
+                        value="{{ old('admission_prefix', $setting->admission_prefix) }}">
+                    <small class="text-muted">Used in student Admission Numbers, e.g. APS-2026-0001</small>
+                    @error('admission_prefix')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="col-md-6">
                     <label for="phone" class="form-label">Phone</label>
                     <input type="text" name="phone" id="phone"
@@ -80,7 +94,7 @@
                     @enderror
                 </div>
 
-                <div class="col-12">
+                <div class="col-md-6">
                     <label for="address" class="form-label">Address</label>
                     <input type="text" name="address" id="address"
                         placeholder="e.g. 110 Kings Street, Lahore"
