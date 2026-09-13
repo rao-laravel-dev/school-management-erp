@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\Enrollment;
 use App\Models\QrCode;
 use App\Models\SchoolClass;
+use App\Models\SchoolTiming;
 use App\Models\Section;
 use App\Models\StaffAttendance;
 use App\Models\Student;
@@ -16,6 +17,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -438,6 +440,12 @@ class AttendanceController extends Controller
     }
     // End Method
 
+    public function GetLatestScan()
+    {
+        return response()->json(Cache::get('kiosk_latest_scan', []));
+    }
+    // End Method
+
     public function StoreScanAttendance(Request $request)
     {
         $request->validate([
@@ -514,7 +522,14 @@ class AttendanceController extends Controller
             ->first();
 
         if (!$enrollment) {
-            return response()->json(['status' => 'error', 'message' => "{$student->first_name}'s active enrollment not found for this session."], 404);
+            $data = [
+                'status'  => 'error',
+                'message' => "{$student->first_name}'s active enrollment not found for this session.",
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+            return response()->json($data, 404);
         }
 
         $studentInfo = [
@@ -548,33 +563,45 @@ class AttendanceController extends Controller
                 'scanned_at'      => $now,
             ]);
 
-            return response()->json([
+            $data = [
                 'status'    => 'success',
                 'scan_type' => 'checkin',
                 'message'   => $status === Attendance::STATUS_LATE
                     ? "Welcome, {$student->first_name}! (Marked Late)"
                     : "Welcome, {$student->first_name}!",
                 'student'   => $studentInfo,
-            ]);
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+            return response()->json($data);
         }
 
         if (is_null($existing->time_out)) {
             $existing->update(['time_out' => now()->format('H:i:s')]);
 
-            return response()->json([
+            $data = [
                 'status'    => 'success',
                 'scan_type' => 'checkout',
                 'message'   => "Good Bye, {$student->first_name}!",
                 'student'   => $studentInfo,
-            ]);
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+            return response()->json($data);
         }
 
-        return response()->json([
+        $data = [
             'status'    => 'info',
             'scan_type' => 'already_done',
             'message'   => "{$student->first_name} already checked out at " . Carbon::parse($existing->time_out)->format('h:i A'),
             'student'   => $studentInfo,
-        ]);
+        ];
+        $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+        Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+        return response()->json($data);
     }
 
     // ==========================================
@@ -610,33 +637,45 @@ class AttendanceController extends Controller
                 'marked_at'  => $now,
             ]);
 
-            return response()->json([
+            $data = [
                 'status'    => 'success',
                 'scan_type' => 'checkin',
                 'message'   => $status === 'late'
                     ? "Welcome, {$staffUser->name}! (Marked Late)"
                     : "Welcome, {$staffUser->name}!",
                 'student'   => $staffInfo, // frontend key wahi rakha, taake existing UI bina change ke chale
-            ]);
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+            return response()->json($data);
         }
 
         if (is_null($existing->time_out)) {
             $existing->update(['time_out' => now()->format('H:i:s')]);
 
-            return response()->json([
+            $data = [
                 'status'    => 'success',
                 'scan_type' => 'checkout',
                 'message'   => "Good Bye, {$staffUser->name}!",
                 'student'   => $staffInfo,
-            ]);
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+            return response()->json($data);
         }
 
-        return response()->json([
+        $data = [
             'status'    => 'info',
             'scan_type' => 'already_done',
             'message'   => "{$staffUser->name} already checked out at " . Carbon::parse($existing->time_out)->format('h:i A'),
             'student'   => $staffInfo,
-        ]);
+        ];
+        $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+        Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+        return response()->json($data);
     }
     // End Method
 
