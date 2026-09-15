@@ -12,6 +12,7 @@ use App\Models\Group;
 use App\Models\ParentProfile;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Models\SiteSetting;
 use App\Models\Student;
 use App\Models\StudentDiscount;
 use App\Models\StudentFees;
@@ -234,57 +235,30 @@ class StudentController extends Controller
             return response()->json(['success' => false, 'message' => 'No active academic year configured.']);
         }
 
-        // 1. EXTRACT 2-DIGIT YEAR PREFIX (e.g., "2026-2027" -> "26")
-        $sessionName = trim($activeYear->name);
-        $startYear = explode('-', $sessionName)[0];
-        $sessionDigit = substr(trim($startYear), -2); // e.g., 26
-
-        // 2. CLASS 2-DIGIT MATRIX ENFORCEMENT (01 se 15)
-        // 1. Class model dhundhein
         $classModel = SchoolClass::find($classId);
-
-        // 2. Safety check (agar class na mile to wahi se ruk jaye)
         if (!$classModel) {
             return response()->json(['success' => false, 'message' => 'Class configuration not found.']);
         }
 
-        // 3. Digit generation (ab numeric_name use ho raha hai)
-        $classDigit = str_pad($classModel->numeric_name, 2, '0', STR_PAD_LEFT);
-
-        // 3. SECTION DIGIT CONVERSION ENGINE (A->11, B->12, C->13)
         $sectionModel = Section::find($sectionId);
-        $sectionChar  = $sectionModel ? strtoupper(substr(trim($sectionModel->name), 0, 1)) : 'A';
+        $groupModel   = Group::find($groupId);
+        $sessionName  = trim($activeYear->name);
 
-        $asciiVal = ord($sectionChar);
-        if ($asciiVal >= 65 && $asciiVal <= 90) {
-            $sectionDigit = $asciiVal - 54; // A=11, B=12, C=13...
-        } else {
-            $sectionDigit = 11;
-        }
+        // --- Admission No preview ---
+        [$prefix, $yearPart, $admMaxSeq] = $this->buildAdmissionSequence($sessionName);
+        $admission_no = $prefix . '-' . $yearPart . '-' . str_pad($admMaxSeq + 1, 4, '0', STR_PAD_LEFT);
 
-        // 4. SEQUENCE COUNT FOR CUSTOM REALTIME COUNTER (Updated Logic)
-        $lastRoll = Enrollment::where('class_id', $classId)
-            ->where('section_id', $sectionId)
-            ->where('academic_year_id', $activeYear->id) // Yahan $activeYear->id use karein
-            ->orderBy('id', 'DESC')
-            ->first();
-
-        $lastSequence = $lastRoll ? (int)substr((string)$lastRoll->roll_no, -2) : 0;
-        $uniqueIncrement = $lastSequence + 1;
-        $rollSequenceDigit = str_pad($uniqueIncrement, 2, '0', STR_PAD_LEFT);
-
-        // 🔥 GENERATE PURE NUMERIC CUSTOM ROLL NUMBER (e.g., 26011101)
-        $customNumericRollNo = $sessionDigit . $classDigit . $sectionDigit . $rollSequenceDigit;
-
-        // Standard Admission Number Pattern for Background Track
-        $groupModel = Group::find($groupId);
-        $groupCode  = $groupModel ? strtoupper(trim($groupModel->group_code ?? ($groupModel->code ?? $groupModel->name))) : 'GEN';
-        $admission_no = "ADM-" . $sessionName . "-" . $classDigit . $sectionChar . "-" . $groupCode . "-" . str_pad($uniqueIncrement, 5, '0', STR_PAD_LEFT);
+        // --- Roll No preview ---
+        [$classCode, $sectionChar, $groupCode, $rollMaxSeq] = $this->buildRollSequence($classModel, $sectionModel, $groupModel, $activeYear->id);
+        $seqStr = str_pad($rollMaxSeq + 1, 2, '0', STR_PAD_LEFT);
+        $roll_no = $groupCode
+            ? "{$classCode}-{$groupCode}-{$sectionChar}-{$seqStr}"
+            : "{$classCode}-{$sectionChar}-{$seqStr}";
 
         return response()->json([
             'success'      => true,
             'admission_no' => $admission_no,
-            'roll_no'      => $customNumericRollNo // 🔥 Ab input field me exact "26011101" load hoga!
+            'roll_no'      => $roll_no,
         ]);
     }
 
@@ -309,56 +283,47 @@ class StudentController extends Controller
             $groupId   = $request->group_id;
             $sessionName = trim($activeYear->name);
 
-            $startYear = explode('-', $sessionName)[0];
-            $sessionDigit = substr(trim($startYear), -2);
-
             $classModel = SchoolClass::find($classId);
             if (!$classModel) {
                 return response()->json(['success' => false, 'message' => 'Class configuration not found.']);
             }
-            $classDigit = str_pad($classModel->numeric_name, 2, '0', STR_PAD_LEFT);
-
             $sectionModel = Section::find($sectionId);
-            $sectionChar  = $sectionModel ? strtoupper(substr(trim($sectionModel->name), 0, 1)) : 'A';
+            $groupModel   = Group::find($groupId);
 
-            $asciiVal = ord($sectionChar);
-            if ($asciiVal >= 65 && $asciiVal <= 90) {
-                $sectionDigit = $asciiVal - 54;
-            } else {
-                $sectionDigit = 11;
-            }
+            // --- Admission No base ---
+            [$prefix, $yearPart, $admMaxSeq] = $this->buildAdmissionSequence($sessionName);
+            $admissionIncrement = $admMaxSeq + 1;
 
-            // SEQUENCE BASE — MAX sequence for class/section/year (ek hi query)
-            $maxSeq = Enrollment::where('class_id', $classId)
-                ->where('section_id', $sectionId)
-                ->where('academic_year_id', $academic_year_id)
-                ->selectRaw('MAX(CAST(SUBSTRING(roll_no, -2) AS UNSIGNED)) as max_seq')
-                ->value('max_seq') ?? 0;
-
-            $uniqueIncrement = $maxSeq + 1;
-
-            $groupModel = Group::find($groupId);
-            $groupCode  = $groupModel ? strtoupper(trim($groupModel->group_code ?? ($groupModel->code ?? $groupModel->name))) : 'GEN';
+            // --- Roll No base ---
+            [$classCode, $sectionChar, $groupCode, $rollMaxSeq] = $this->buildRollSequence($classModel, $sectionModel, $groupModel, $academic_year_id);
+            $rollIncrement = $rollMaxSeq + 1;
 
             // RETRY-GUARD — clash hone par khud agla number try karta hai
             $maxAttempts = 50;
             $attempt = 0;
-            $customNumericRollNo = null;
             $admission_no = null;
+            $customNumericRollNo = null;
 
             do {
-                $rollSequenceDigit   = str_pad($uniqueIncrement, 2, '0', STR_PAD_LEFT);
-                $customNumericRollNo = $sessionDigit . $classDigit . $sectionDigit . $rollSequenceDigit;
-                $admission_no         = "ADM-" . $sessionName . "-" . $classDigit . $sectionChar . "-" . $groupCode . "-" . str_pad($uniqueIncrement, 5, '0', STR_PAD_LEFT);
+                $admission_no = $prefix . '-' . $yearPart . '-' . str_pad($admissionIncrement, 4, '0', STR_PAD_LEFT);
 
-                $usernameTaken  = User::where('username', $customNumericRollNo)->exists();
+                $seqStr = str_pad($rollIncrement, 2, '0', STR_PAD_LEFT);
+                $customNumericRollNo = $groupCode
+                    ? "{$classCode}-{$groupCode}-{$sectionChar}-{$seqStr}"
+                    : "{$classCode}-{$sectionChar}-{$seqStr}";
+
+                $usernameTaken  = User::where('username', $admission_no)->exists();   // 👈 admission_no check
                 $admissionTaken = Student::where('admission_no', $admission_no)->exists();
+                $rollTaken      = Enrollment::where('roll_no', $customNumericRollNo)
+                    ->where('academic_year_id', $academic_year_id)
+                    ->exists();
 
-                if (!$usernameTaken && !$admissionTaken) {
+                if (!$usernameTaken && !$admissionTaken && !$rollTaken) {
                     break;
                 }
 
-                $uniqueIncrement++;
+                if ($usernameTaken || $admissionTaken) $admissionIncrement++;   // 👈 dono checks se increment
+                if ($rollTaken) $rollIncrement++;
                 $attempt++;
             } while ($attempt < $maxAttempts);
 
@@ -432,7 +397,7 @@ class StudentController extends Controller
             // CREATE STUDENT AUTH ACCOUNT
             $studentUser = User::create([
                 'name'     => $request->first_name . ' ' . $request->last_name,
-                'username' => $customNumericRollNo,
+                'username' => $admission_no,
                 'email'    => null,   // student ka email form me nahi hai — hamesha null
                 'password' => Hash::make($request->password),
                 'role_id'  => 8,
@@ -550,7 +515,7 @@ class StudentController extends Controller
             DB::commit();
 
             return redirect()->route('students.index')
-                ->with('toastr-success', 'Enrollment successful! Numeric Login ID Allocated: ' . $customNumericRollNo);
+                ->with('toastr-success', "Enrollment successful! Login ID: {$admission_no} | Roll No: {$customNumericRollNo}");
         } catch (Exception $e) {
             DB::rollback();
             return redirect()->back()
@@ -1133,5 +1098,49 @@ class StudentController extends Controller
             return redirect()->route('students.trash')
                 ->with('toastr-error', 'Something went wrong: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Admission No generate karta hai: {PREFIX}-{YEAR}-{SEQUENCE}
+     * Ye poore school ka global sequence hai (class/section se independent),
+     * aur hamesha permanent rehta hai — kabhi dobara generate/reset nahi hota.
+     */
+    private function buildAdmissionSequence(string $sessionName): array
+    {
+        $siteSetting = SiteSetting::first();
+        $prefix = $siteSetting->admission_prefix ?? 'SCH';
+        $yearPart = explode('-', trim($sessionName))[0]; // "2026-2027" -> "2026"
+
+        $maxSeq = Student::where('admission_no', 'like', $prefix . '-' . $yearPart . '-%')
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(admission_no, '-', -1) AS UNSIGNED)) as max_seq")
+            ->value('max_seq') ?? 0;
+
+        return [$prefix, $yearPart, $maxSeq];
+    }
+
+    /**
+     * Roll No generate karta hai: {ClassCode}-[{GroupCode}-]{SectionChar}-{Sequence}
+     * Sequence hamesha class+section+group+session ke combination ke andar hi unique hai —
+     * naye session mein automatically 1 se restart ho jata hai (kyun ke academic_year_id filter lagta hai).
+     */
+    private function buildRollSequence($classModel, $sectionModel, $groupModel, $academicYearId): array
+    {
+        $classCode = $classModel->roll_code; // e.g. "10", "MONT", "KG1"
+        $sectionChar = $sectionModel ? strtoupper(substr(trim($sectionModel->name), 0, 1)) : 'A';
+        $groupCode = $groupModel ? strtoupper(trim($groupModel->group_code ?? $groupModel->name)) : null;
+
+        // Prefix pattern jis se maxSeq nikalna hai (group ke sath ya bina)
+        $pattern = $groupCode
+            ? $classCode . '-' . $groupCode . '-' . $sectionChar . '-%'
+            : $classCode . '-' . $sectionChar . '-%';
+
+        $maxSeq = Enrollment::where('class_id', $classModel->id)
+            ->where('section_id', $sectionModel->id ?? null)
+            ->where('academic_year_id', $academicYearId)
+            ->where('roll_no', 'like', $pattern)
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(roll_no, '-', -1) AS UNSIGNED)) as max_seq")
+            ->value('max_seq') ?? 0;
+
+        return [$classCode, $sectionChar, $groupCode, $maxSeq];
     }
 }
