@@ -179,6 +179,10 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
             Route::get('/exam-schedule', 'myExamSchedule')->name('exam_schedule.index');
         });
 
+        Route::middleware('can:access-my-syllabus-status')->group(function () {
+            Route::get('/syllabus-status', 'mySyllabusStatus')->name('syllabus_status.index');
+        });
+
         Route::middleware('can:access-my-salary-slips')->group(function () {
             Route::get('/salary-slips', 'mySalarySlips')->name('salary_slips.index');
         });
@@ -460,7 +464,6 @@ Route::middleware(['auth'])->group(function () {
         // ==========================================
         Route::controller(ClassController::class)->group(function () {
             Route::get('/classes', 'AllClass')->name('classes.index');
-            Route::get('/classes/create', 'AddClass')->name('classes.create');
             Route::post('/classes/store', 'StoreClass')->name('classes.store');
             Route::get('/classes/edit/{id}', 'EditClass')->name('classes.edit');
             Route::post('/classes/update/{id}', 'UpdateClass')->name('classes.update');
@@ -662,6 +665,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/edit/{id}', 'EditAttendance')->name('edit');
                 Route::post('/update/{id}', 'UpdateAttendance')->name('update');
                 Route::get('/scan', 'ScanAttendance')->name('scan');
+                Route::get('/scan-latest', 'GetLatestScan')->name('scan.latest');
                 Route::post('/scan-store', 'StoreScanAttendance')->name('scan.store');
                 Route::get('/my-class-attendance', 'myClassAttendanceReport')->name('report');
             });
