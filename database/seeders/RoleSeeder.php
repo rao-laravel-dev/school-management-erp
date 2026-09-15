@@ -253,7 +253,7 @@ class RoleSeeder extends Seeder
             'access-lesson-plans',
             'access-my-lesson-plan',        // web.php Teacher view only permission
             'access-copy-old-lessons',
-            'access-syllabus-status',
+            'access-my-syllabus-status',    // web.php Teacher view only permission
             'access-exam-types',
             'access-exams',
             'access-exam-schedules',

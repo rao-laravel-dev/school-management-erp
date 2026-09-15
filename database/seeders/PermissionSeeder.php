@@ -30,6 +30,7 @@ class PermissionSeeder extends Seeder
             'manage-copy-old-lessons',
             'access-syllabus-status',
             'manage-syllabus-status',
+            'access-my-syllabus-status',    // web.php Teacher view only permission
             'access-exam-types',
             'manage-exam-types',
             'access-exams',
