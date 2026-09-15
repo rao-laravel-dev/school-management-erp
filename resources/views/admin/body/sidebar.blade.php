@@ -109,7 +109,7 @@
                 <div class="menu-title">Academics</div>
             </a>
             <ul>
-                <li><a href="{{ route('classes.create') }}"><i class='bx bx-radio-circle'></i>Manage Class</a></li>
+                <li><a href="{{ route('classes.index') }}"><i class='bx bx-radio-circle'></i>Manage Class</a></li>
                 <li><a href="{{ route('sections.create') }}"><i class='bx bx-radio-circle'></i>Manage Section</a></li>
                 <li><a href="{{ route('groups.create') }}"><i class='bx bx-radio-circle'></i>Manage Group</a></li>
                 <li><a href="{{ route('subjects.create') }}"><i class='bx bx-radio-circle'></i>Manage Subject</a></li>

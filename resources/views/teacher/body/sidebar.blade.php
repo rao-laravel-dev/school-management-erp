@@ -76,6 +76,22 @@
 			</a>
 		</li>
 		@endcan
+		{{-- Syllabus Status --}}
+		@can('access-my-syllabus-status')
+		<li>
+			<a href="javascript:;" class="has-arrow">
+				<div class="parent-icon"><i class="bx bx-check-shield"></i></div>
+				<div class="menu-title">Syllabus Status</div>
+			</a>
+			<ul>
+				<li>
+					<a href="{{ route('teacher.syllabus_status.index') }}">
+						<i class='bx bx-radio-circle'></i>My Syllabus Status
+					</a>
+				</li>
+			</ul>
+		</li>
+		@endcan
 		{{-- Examination --}}
 		@can('access-my-exam-schedule')
 		<li>

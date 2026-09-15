@@ -128,6 +128,7 @@
     </script>
 
     {{-- Custom scripts dynamically pushed from views will land here securely --}}
+    
     @stack('scripts')
 
 </body>
