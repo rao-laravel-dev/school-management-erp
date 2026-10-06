@@ -31,8 +31,9 @@ Thumbs.db
 !/storage/framework/testing/.gitignore
 !/storage/framework/views/.gitignore
 
-# Local backups
+# Local backups and database dumps
 *.bak
+*.sql
 
 # AI assistant instructions (local only)
 /CLAUDE.md
