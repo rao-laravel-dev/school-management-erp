@@ -8,6 +8,7 @@ use App\Models\AcademicYear;
 use App\Models\EventType;
 use App\Models\StaffAttendance;
 use App\Models\User;
+use App\Services\OffDays;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -322,15 +323,10 @@ class StaffAttendanceController extends Controller
     // ==========================================
     protected function isHoliday($date)
     {
-        return AcademicCalendar::whereHas('eventType', function ($q) {
-            $q->where('name', 'Holiday');
-        })
-            ->where('status', 1)
-            ->whereDate('start_date', '<=', $date)
-            ->where(function ($q) use ($date) {
-                $q->whereDate('end_date', '>=', $date)->orWhereNull('end_date');
-            })
-            ->exists();
+        // Calendar off-day (status = 1, event type is_off_day = 1); weekly off yahan shamil nahi
+        $day = \Carbon\Carbon::parse($date);
+
+        return isset(OffDays::dates($day, $day)[$day->toDateString()]);
     }
 
     // ==========================================
@@ -351,10 +347,23 @@ class StaffAttendanceController extends Controller
         }
 
         try {
+            // Pehle se off day ho to dobara entry nahi banti
+            if ($this->isHoliday($request->date)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'This date is already a holiday.',
+                ]);
+            }
+
             $eventType = EventType::firstOrCreate(
                 ['name' => 'Holiday'],
-                ['color' => '#dc3545', 'status' => 1]
+                ['color' => '#dc3545', 'status' => 1, 'is_off_day' => true]
             );
+
+            // "Holiday" naam ka type hamesha off day hona chahiye
+            if (!$eventType->is_off_day) {
+                $eventType->update(['is_off_day' => true]);
+            }
 
             $currentYear = AcademicYear::where('is_current', 1)->first();
 

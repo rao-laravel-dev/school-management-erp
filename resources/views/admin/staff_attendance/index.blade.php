@@ -127,6 +127,17 @@
 <script>
     $(document).ready(function() {
         $('#staffIndexTable').DataTable();
+
+        // Save/update ke baad redirect par session flash toastr se dikhayen
+        @if(session('success'))
+        toastr.success(@json(session('success')));
+        @endif
+        @if(session('error'))
+        toastr.error(@json(session('error')));
+        @endif
+        @if(session('info'))
+        toastr.info(@json(session('info')));
+        @endif
     });
 </script>
 @endpush
