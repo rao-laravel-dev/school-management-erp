@@ -9,7 +9,7 @@ use App\Models\Exam;
 use App\Models\ExamSchedule;
 use App\Models\MarkSheet;
 use App\Models\SchoolClass;
-use App\Models\TeacherAssignment;
+use App\Models\ClassTimetable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -54,15 +54,12 @@ class MarkSheetController extends Controller
             // ===== Teacher access check (Admin bypasses this) =====
             $user = Auth::user();
             if ($user->teacher) {
-                $hasAccess = TeacherAssignment::where('teacher_id', $user->teacher->id)
-                    ->where('class_id', $selectedClassId)
+                // Marks ka haq class_timetables se (teacher + class + section + subject)
+                $hasAccess = ClassTimetable::where('academic_year_id', $exam->academic_year_id)
+                    ->where('teacher_id', $user->teacher->id)
+                    ->where('school_class_id', $selectedClassId)
                     ->where('section_id', $selectedSectionId)
-                    ->where(function ($q) use ($selectedSubjectId) {
-                        $q->whereNull('class_subject_id') // whole-class teacher
-                            ->orWhereHas('classSubject', function ($q2) use ($selectedSubjectId) {
-                                $q2->where('subject_id', $selectedSubjectId);
-                            });
-                    })
+                    ->where('subject_id', $selectedSubjectId)
                     ->exists();
             }
 
@@ -163,15 +160,12 @@ class MarkSheetController extends Controller
         // ===== Teacher access re-check (server-side, don't trust the UI) =====
         $user = Auth::user();
         if ($user->teacher) {
-            $hasAccess = TeacherAssignment::where('teacher_id', $user->teacher->id)
-                ->where('class_id', $request->class_id)
+            // Marks ka haq class_timetables se (teacher + class + section + subject)
+            $hasAccess = ClassTimetable::where('academic_year_id', $exam->academic_year_id)
+                ->where('teacher_id', $user->teacher->id)
+                ->where('school_class_id', $request->class_id)
                 ->where('section_id', $request->section_id)
-                ->where(function ($q) use ($request) {
-                    $q->whereNull('class_subject_id')
-                        ->orWhereHas('classSubject', function ($q2) use ($request) {
-                            $q2->where('subject_id', $request->subject_id);
-                        });
-                })
+                ->where('subject_id', $request->subject_id)
                 ->exists();
 
             if (!$hasAccess) {
