@@ -137,6 +137,23 @@
                         @enderror
                     </div>
 
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary fw-semibold">Weekly Off Days</label>
+                        <input type="hidden" name="weekly_off_days_present" value="1">
+                        <div class="d-flex flex-wrap gap-3">
+                            @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $d)
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input weekly-off-check" name="weekly_off_days[]" id="weekly_off_{{ $d }}" value="{{ $d }}"
+                                    {{ in_array($d, old('weekly_off_days', $d === 'Sunday' ? ['Sunday'] : [])) ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="weekly_off_{{ $d }}">{{ substr($d, 0, 3) }}</label>
+                            </div>
+                            @endforeach
+                        </div>
+                        @error('weekly_off_days.*')
+                        <div class="text-danger small">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="col-md-12 mt-4 pt-2 border-top">
                         <div class="d-flex align-items-center gap-2 justify-content-end">
                             <button type="button" class="btn btn-secondary px-3 d-none" id="reset-form-btn">Cancel Edit</button>
@@ -208,6 +225,7 @@
                                             data-name="{{ $item->name }}"
                                             data-start="{{ $item->start_date ? \Carbon\Carbon::parse($item->start_date)->format('Y-m-d') : '' }}"
                                             data-end="{{ $item->end_date ? \Carbon\Carbon::parse($item->end_date)->format('Y-m-d') : '' }}"
+                                            data-weekly-off='@json($item->weekly_off_days ?: [])'
                                             data-update-url="{{ route('academic_years.update', $item->id) }}">
                                             <i class="bx bx-edit"></i>
                                         </button>
@@ -318,6 +336,12 @@
             // Format fallback configuration matching HTML date inputs safely
             if (trigger.data('start')) $('#start_date').val(trigger.data('start'));
             if (trigger.data('end')) $('#end_date').val(trigger.data('end'));
+
+            // Weekly off checkboxes (jQuery .data JSON ko khud array bana deta hai)
+            let weeklyOff = trigger.data('weekly-off') || [];
+            $('.weekly-off-check').each(function() {
+                $(this).prop('checked', weeklyOff.indexOf($(this).val()) !== -1);
+            });
 
             // Swap Form Strategy from Create to Update Context
             $('#academic-year-form').attr('action', trigger.data('update-url'));

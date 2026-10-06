@@ -35,6 +35,11 @@ public function store(Request $request)
             'max:20'
         ],
 
+        'is_off_day' => [
+            'nullable',
+            'boolean'
+        ],
+
         'status' => [
             'required',
             'boolean'
@@ -58,6 +63,7 @@ public function store(Request $request)
 
 
     $data['status'] = $request->boolean('status');
+    $data['is_off_day'] = $request->boolean('is_off_day'); // unchecked checkbox request mein nahi aata
 
 
     EventType::create($data);
@@ -95,6 +101,11 @@ public function update(Request $request, EventType $eventType)
             'max:20'
         ],
 
+        'is_off_day' => [
+            'nullable',
+            'boolean'
+        ],
+
         'status' => [
             'required',
             'boolean'
@@ -122,6 +133,7 @@ public function update(Request $request, EventType $eventType)
 
 
     $data['status'] = $request->boolean('status');
+    $data['is_off_day'] = $request->boolean('is_off_day'); // unchecked checkbox request mein nahi aata
 
 
 

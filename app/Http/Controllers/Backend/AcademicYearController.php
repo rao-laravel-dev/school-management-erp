@@ -28,15 +28,23 @@ class AcademicYearController extends Controller
             'name'       => 'required|string|unique:academic_years,name',
             'start_date' => 'required|date',
             'end_date'   => 'required|date|after:start_date',
+            'weekly_off_days' => 'nullable|array',
+            'weekly_off_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
         ], [
             'name.unique' => 'This Academic Year / Session is already registered.',
         ]);
+
+        // Form ne checkboxes render kiye hon to jo tick hain wahi (khali bhi ho sakta hai), warna default Sunday
+        $weeklyOff = $request->has('weekly_off_days_present')
+            ? $request->input('weekly_off_days', [])
+            : ['Sunday'];
 
         AcademicYear::create([
             'name'       => $request->name,
             'start_date' => $request->start_date,
             'end_date'   => $request->end_date,
             'status'     => $request->status ?? 1,
+            'weekly_off_days' => $weeklyOff,
         ]);
         
 
@@ -67,6 +75,8 @@ class AcademicYearController extends Controller
             'name'       => 'required|string|unique:academic_years,name,' . $id,
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'weekly_off_days' => 'nullable|array',
+            'weekly_off_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
         ], [
             'name.unique' => 'This Academic Year / Session name is already taken.',
         ]);
@@ -75,6 +85,8 @@ class AcademicYearController extends Controller
             'name'       => $request->name,
             'start_date' => $request->start_date,
             'end_date'   => $request->end_date,
+            // Unchecked checkbox request mein nahi aate, is liye sab untick = khali array
+            'weekly_off_days' => $request->input('weekly_off_days', []),
         ]);
 
         return redirect()->route('academic_years.index')->with([

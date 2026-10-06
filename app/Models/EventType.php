@@ -9,10 +9,11 @@ class EventType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'color', 'status'];
+    protected $fillable = ['name', 'color', 'is_off_day', 'status'];
 
     protected $casts = [
         'status' => 'boolean',
+        'is_off_day' => 'boolean',
     ];
 
     public function academicCalendars()

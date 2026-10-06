@@ -13,13 +13,20 @@ class AcademicYear extends Model
         'start_date',
         'end_date',
         'is_current',
-        'status'
+        'status',
+        'weekly_off_days'
+    ];
+
+    // Seeder/tinker se bane records NULL na hon: default weekly off Sunday
+    protected $attributes = [
+        'weekly_off_days' => '["Sunday"]',
     ];
 
     // 🛠️ FIX: Dates ko proper Carbon instances mein cast karne ke liye array add kiya
     protected $casts = [
         'start_date' => 'date',
         'end_date'   => 'date',
+        'weekly_off_days' => 'array',
     ];
 
     // Name Accessor - Output letay waqt hamesha UpperCase aur clean format mein mile

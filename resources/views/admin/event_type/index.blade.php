@@ -37,6 +37,11 @@
                         <input type="color" name="color" id="color" class="form-control form-control-color">
                     </div>
 
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="is_off_day" id="is_off_day" value="1">
+                        <label class="form-check-label" for="is_off_day">Off Day (timetable mein "Not Scheduled")</label>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Status</label>
                         <select name="status" id="status" class="form-select">
@@ -66,6 +71,7 @@
                                 <th style="width: 50px;">#</th>
                                 <th>Name</th>
                                 <th>Color</th>
+                                <th>Off Day</th>
                                 <th>Status</th>
                                 <th style="width: 120px;">Action</th>
                             </tr>
@@ -91,6 +97,11 @@
                                     <span class="ms-2 align-middle">{{ $row->color }}</span>
                                 </td>
                                 <td>
+                                    @if($row->is_off_day)
+                                    <span class="badge rounded-pill bg-light-warning text-warning px-3">Off Day</span>
+                                    @endif
+                                </td>
+                                <td>
                                     @if($row->status)
                                     <span class="badge rounded-pill bg-light-success text-success px-3">Active</span>
                                     @else
@@ -104,6 +115,7 @@
                                         data-name="{{ $row->name }}"
                                         data-color="{{ $row->color }}"
                                         data-status="{{ $row->status }}"
+                                        data-is-off-day="{{ (int) $row->is_off_day }}"
                                         data-url="{{ route('event_type.update', $row->id) }}">
                                         <i class="bx bx-edit"></i>
                                     </button>
@@ -142,6 +154,7 @@
                 $('#name').val($(this).data('name'));
                 $('#color').val($(this).data('color'));
                 $('#status').val($(this).data('status'));
+                $('#is_off_day').prop('checked', $(this).data('is-off-day') == 1);
                 $('#method').val('POST');   // ✅ PUT ki jagah POST
                 $('#eventForm').attr('action', $(this).data('url')); // ✅ correct URL from route()
             });
