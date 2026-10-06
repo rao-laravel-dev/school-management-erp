@@ -165,6 +165,14 @@ class SalarySlipController extends Controller
  
         $grossSalary = $slip->basic_salary + $request->allowance;
         $totalDeduction = $request->manual_deduction + $slip->attendance_deduction + $slip->advance_deduction;
+
+        // Total deductions gross se zyada nahi ho sakti (net negative nahi), save nahi hota
+        if (round($totalDeduction, 2) > round($grossSalary, 2)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'manual_deduction' => 'Total deductions cannot exceed gross salary',
+            ]);
+        }
+
         $netSalary = $grossSalary - $totalDeduction;
  
         $slip->update([

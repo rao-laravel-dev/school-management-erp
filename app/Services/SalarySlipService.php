@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\AcademicCalendar;
-use App\Models\EventType;
 use App\Models\SalarySlip;
 use App\Models\StaffAttendance;
 use App\Models\Transaction;
@@ -40,22 +38,25 @@ class SalarySlipService
             ? round($salaryStructure->basic_salary / $attendance['total_days'], 2)
             : 0;
 
-        $attendanceDeduction = round(
-            ($attendance['absent_days'] * $perDayRate) +
-                ($attendance['half_days'] * ($perDayRate / 2)),
-            2
-        );
-
-        $manualDeduction = $salaryStructure->deduction ?? 0;
-
-        // Advance recovery: deduct from current advance_balance, cap at balance available
-        $advanceDeduction = 0;
-        if ($salaryStructure->advance_balance > 0) {
-            $advanceDeduction = $salaryStructure->advance_balance;
-        }
+        // Deduction rounded per_day_rate se nahi (error multiply hota hai): basic * days / total_days, ek baar round
+        $deductibleDays = $attendance['absent_days'] + ($attendance['half_days'] * 0.5);
+        $attendanceDeduction = $attendance['total_days'] > 0
+            ? round($salaryStructure->basic_salary * $deductibleDays / $attendance['total_days'], 2)
+            : 0;
 
         $grossSalary = $salaryStructure->basic_salary + $salaryStructure->allowance;
-        $totalDeduction = $manualDeduction + $attendanceDeduction + $advanceDeduction;
+
+        // Total deduction gross se zyada nahi (net kabhi < 0 nahi). Priority: attendance > manual > advance
+        $attendanceDeduction = min($attendanceDeduction, $grossSalary);
+        $manualDeduction = max(min($salaryStructure->deduction ?? 0, $grossSalary - $attendanceDeduction), 0);
+
+        // Advance recovery: balance aur bachi hui jagah, dono mein se kam. Jo recover na ho wo balance mein rehta hai
+        $advanceDeduction = 0;
+        if ($salaryStructure->advance_balance > 0) {
+            $advanceDeduction = max(min($salaryStructure->advance_balance, $grossSalary - $attendanceDeduction - $manualDeduction), 0);
+        }
+
+        $totalDeduction = round($manualDeduction + $attendanceDeduction + $advanceDeduction, 2);
         $netSalary = round($grossSalary - $totalDeduction, 2);
 
         return DB::transaction(function () use (
@@ -189,6 +190,14 @@ class SalarySlipService
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->get();
 
+        // Sirf working days ki rows gino (weekly off / calendar off-day ki rows nahi): getWorkingDays() wala hi rule
+        $holidayDates = OffDays::dates($start, $end);
+        $weeklyOff    = OffDays::weeklyOffDays($start);
+        $records = $records->reject(function ($row) use ($holidayDates, $weeklyOff) {
+            $day = Carbon::parse($row->date);
+            return in_array($day->englishDayOfWeek, $weeklyOff, true) || isset($holidayDates[$day->toDateString()]);
+        });
+
         $presentDays = $records->where('status', 'present')->count();
         $absentDays  = $records->where('status', 'absent')->count();
         $halfDays    = $records->where('status', 'half_day')->count();
@@ -209,28 +218,21 @@ class SalarySlipService
     }
 
     /**
-     * Working days = calendar days - Sundays - declared holidays (academic_calendars)
+     * Working days = calendar days - weekly off days - off-day holidays (is_off_day = 1 calendar entries)
+     * Weekly off: month ko cover karne wale academic year ka weekly_off_days (na ho to ['Sunday'])
      */
     private function getWorkingDays(Carbon $start, Carbon $end): int
     {
         $workingDays = 0;
 
-        $holidayEventType = EventType::where('name', 'Holiday')->first();
-
-        $holidayDates = [];
-        if ($holidayEventType) {
-            $holidayDates = AcademicCalendar::where('event_type_id', $holidayEventType->id)
-                ->whereBetween('start_date', [$start->toDateString(), $end->toDateString()])
-                ->pluck('start_date')
-                ->map(fn($d) => Carbon::parse($d)->toDateString())
-                ->toArray();
-        }
+        $holidayDates = OffDays::dates($start, $end);
+        $weeklyOff    = OffDays::weeklyOffDays($start);
 
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-            if ($date->isSunday()) {
+            if (in_array($date->englishDayOfWeek, $weeklyOff, true)) {
                 continue;
             }
-            if (in_array($date->toDateString(), $holidayDates)) {
+            if (isset($holidayDates[$date->toDateString()])) {
                 continue;
             }
             $workingDays++;
