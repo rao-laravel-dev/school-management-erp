@@ -130,6 +130,10 @@
                 </li>
                 @endif
 
+                @can('access-rooms')
+                <li><a href="{{ route('rooms.index') }}"><i class='bx bx-radio-circle'></i>Manage Room</a></li>
+                @endcan
+
                 <li>
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Academic Calendar</a>
                     <ul>

@@ -31,6 +31,7 @@ use App\Http\Controllers\Backend\PrintMarksheetController;
 use App\Http\Controllers\Backend\PrintStaffIdCardController;
 use App\Http\Controllers\Backend\ResultController;
 use App\Http\Controllers\Backend\SalarySlipController;
+use App\Http\Controllers\Backend\RoomController;
 use App\Http\Controllers\Backend\SiteSettingController;
 use App\Http\Controllers\Backend\StaffAttendanceController;
 use App\Http\Controllers\Backend\StaffIdCardTemplateController;
@@ -581,6 +582,26 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/save', 'save')->name('save');
                 Route::delete('/delete/{id}', 'destroy')->name('delete');
+            });
+        });
+    });
+
+    // ==========================================
+    // ROOMS (MASTER)
+    // ==========================================
+    Route::prefix('rooms')->name('rooms.')->group(function () {
+        Route::middleware('can:access-rooms')->group(function () {
+            Route::controller(RoomController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
+            });
+        });
+        Route::middleware('can:manage-rooms')->group(function () {
+            Route::controller(RoomController::class)->group(function () {
+                Route::post('/', 'store')->name('store');
+                Route::put('/{room}', 'update')->name('update');
+                Route::delete('/{room}', 'destroy')->name('delete');
+                Route::post('/{room}/toggle-status', 'toggleStatus')->name('toggle-status');
             });
         });
     });

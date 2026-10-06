@@ -17,6 +17,8 @@ class PermissionSeeder extends Seeder
             'manage-home-works',
             'access-class-timetable',
             'manage-class-timetable',
+            'access-rooms',
+            'manage-rooms',
             'access-teacher-timetable',
             'access-my-timetable',          // web.php Teacher view only permission
             'access-lessons',
