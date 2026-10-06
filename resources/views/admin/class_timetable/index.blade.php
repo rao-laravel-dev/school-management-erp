@@ -120,6 +120,13 @@
         margin-bottom: 4px;
     }
 
+    .tt-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
     .tt-day-header {
         font-weight: 600;
         font-size: 13px;
@@ -149,6 +156,16 @@
         'Saturday': '#0dcaf0',
         'Sunday': '#6c757d'
     };
+
+    // Manage permission (button sirf UI ke liye; asli rok route middleware `can:manage-class-timetable` hai)
+    @can('manage-class-timetable')
+    const canManageTT = true;
+    @else
+    const canManageTT = false;
+    @endcan
+    const editBaseUrl = "{{ route('class_timetable.create') }}";
+    const deleteUrlTpl = "{{ route('class_timetable.delete', ':id') }}";
+    let currentWeek = ''; // abhi dikhaya ja raha hafta (delete ke baad usi par refresh)
 
     function clearErrors() {
         $('.form-select').removeClass('is-invalid');
@@ -211,18 +228,72 @@
             return;
         }
 
+        loadClassWeek(classId, sectionId, '');
+    });
+
+    // Prev / This Week / Next buttons (week = us hafte ki koi bhi date, khali = aaj)
+    $(document).on('click', '.tt-week-nav', function() {
+        loadClassWeek($('#class_id').val(), $('#section_id').val(), $(this).data('week') || '');
+    });
+
+    // Period delete: SweetAlert confirm, phir usi hafte ka card refresh
+    $(document).on('click', '.tt-delete', function() {
+        let id = $(this).data('id');
+        let day = $(this).data('day');
+        let classId = $('#class_id').val();
+        let sectionId = $('#section_id').val();
+
+        Swal.fire({
+            title: 'Delete this period?',
+            text: `Delete this period from the ${day} timetable? It will be removed from EVERY ${day}, not only this date. Linked lesson plans will lose their timetable link.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+
+            $.ajax({
+                url: deleteUrlTpl.replace(':id', id),
+                type: 'DELETE'
+            }).done(function(res) {
+                toastr.success(res.message || 'Period deleted');
+                loadClassWeek(classId, sectionId, currentWeek);
+            }).fail(function(xhr) {
+                toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Failed to delete period');
+                // 404 (kisi aur ne pehle hi delete kar diya) par bhi card taza karo
+                loadClassWeek(classId, sectionId, currentWeek);
+            });
+        });
+    });
+
+    function loadClassWeek(classId, sectionId, week) {
+        currentWeek = week || '';
         $.get(`/class-timetable/get-data`, {
                 school_class_id: classId,
-                section_id: sectionId
+                section_id: sectionId,
+                week: week || '{{ now()->toDateString() }}'
             })
-            .done(function(res) {
+            .done(function(data) {
+                let res = data.timetable || {};
+                let dayStatus = data.day_status || {};
+                let wk = data.week || {};
                 let hasAny = Object.keys(res).length > 0;
+                // Class/Section ka naam selected dropdown se (escaped)
+                let className = $('<div>').text($('#class_id option:selected').text()).html();
+                let sectionName = $('<div>').text($('#section_id option:selected').text()).html();
 
                 let cardHtml = `<div class="card"><div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0">Timetable Result</h6>
-                    <a href="/class-timetable/create?class_id=${classId}&section_id=${sectionId}" class="btn btn-warning btn-sm">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="${wk.prev}"><i class='bx bx-chevron-left'></i></button>
+                        <span class="small fw-bold">${wk.label}</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="">This Week</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="${wk.next}"><i class='bx bx-chevron-right'></i></button>
+                    </div>
+                    ${canManageTT ? `<a href="/class-timetable/create?class_id=${classId}&section_id=${sectionId}" class="btn btn-warning btn-sm">
                         <i class='bx bx-edit'></i> Edit Timetable
-                    </a>
+                    </a>` : ''}
                 </div><div class="card-body">`;
 
                 if (!hasAny) {
@@ -234,18 +305,27 @@
                     cardHtml += `<div class="tt-week-wrapper">`;
                     ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].forEach(day => {
                         let color = dayColors[day];
+                        let st = dayStatus[day] || {};
                         cardHtml += `<div class="tt-day-col" style="--tt-day-color:${color}">
-                            <div class="tt-day-header">${day}</div>
+                            <div class="tt-day-header">${day} <small class="fw-normal">${st.date_label || ''}</small></div>
                             <div>`;
 
-                        if (res[day] && res[day].length > 0) {
+                        if (st.status === 'periods' && res[day] && res[day].length > 0) {
                             res[day].forEach(item => {
-                                let room = item.room_no ?? item.room_number ?? item.room ?? '-';
+                                let room = item.assigned_room_no || '-';
                                 cardHtml += `
                             <div class="tt-card">
                                 <div class="tt-subject">
                                     <i class='bx bx-book-content'></i>
                                     <span>${item.subject.name}</span>
+                                </div>
+                                <div class="tt-meta">
+                                    <i class='bx bx-chalkboard'></i>
+                                    <span>Class: ${className}</span>
+                                </div>
+                                <div class="tt-meta">
+                                    <i class='bx bx-collection'></i>
+                                    <span>Section: ${sectionName}</span>
                                 </div>
                                 <div class="tt-meta">
                                     <i class='bx bx-time-five'></i>
@@ -259,9 +339,13 @@
                                     <i class='bx bx-door-open'></i>
                                     <span>Room No.: ${room}</span>
                                 </div>
+                                ${canManageTT ? `<div class="tt-actions">
+                                    <a href="${editBaseUrl}?class_id=${encodeURIComponent(classId)}&section_id=${encodeURIComponent(sectionId)}&day=${encodeURIComponent(day)}" class="btn btn-outline-warning btn-sm" title="Edit ${day} timetable"><i class='bx bx-edit'></i></a>
+                                    <button type="button" class="btn btn-outline-danger btn-sm tt-delete" data-id="${parseInt(item.id, 10)}" data-day="${day}" title="Delete period"><i class='bx bx-trash'></i></button>
+                                </div>` : ''}
                             </div>`;
                             });
-                        } else if (day === 'Sunday') {
+                        } else if (st.status === 'weekly_off') {
                             cardHtml += `
                             <div class="tt-not-scheduled" style="border-color:#6c757d;color:#6c757d;background:#f8f9fa;">
                                 <i class='bx bx-moon'></i>
@@ -272,6 +356,7 @@
                             <div class="tt-not-scheduled">
                                 <i class='bx bx-x-circle'></i>
                                 Not Scheduled
+                                ${st.label ? '<div class="small">' + $('<div>').text(st.label).html() + '</div>' : ''}
                             </div>`;
                         }
 
@@ -286,6 +371,6 @@
             .fail(function() {
                 toastr.error('Failed to load timetable');
             });
-    });
+    }
 </script>
 @endpush

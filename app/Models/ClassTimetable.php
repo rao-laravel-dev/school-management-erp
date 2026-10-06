@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class ClassTimetable extends Model
 {
     protected $fillable = [
+        'academic_year_id',
         'school_class_id',
         'section_id',
         'subject_id',
         'teacher_id',
+        'room_id',
         'day',
         'time_from',
         'time_to',
@@ -52,5 +54,15 @@ class ClassTimetable extends Model
     public function teacher()
     {
         return $this->belongsTo(Teacher::class, 'teacher_id');
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
     }
 }

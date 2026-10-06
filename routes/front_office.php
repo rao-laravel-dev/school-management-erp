@@ -582,6 +582,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/save', 'save')->name('save');
                 Route::delete('/delete/{id}', 'destroy')->name('delete');
+                Route::get('/teacher-availability', 'teacherAvailability')->name('teacher_availability'); // NEW 04-10-26
+                Route::get('/busy-teachers', 'busyTeachers')->name('busy_teachers'); // NEW 05-10-26
             });
         });
     });
