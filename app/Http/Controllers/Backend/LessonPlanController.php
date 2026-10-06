@@ -35,6 +35,7 @@ class LessonPlanController extends Controller
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         $timetables = ClassTimetable::with(['schoolClass:id,name', 'section:id,name', 'subject:id,name'])
+            ->where('academic_year_id', $this->getActiveSessionId())
             ->where('teacher_id', $teacherId)
             ->get()
             ->groupBy('day');
