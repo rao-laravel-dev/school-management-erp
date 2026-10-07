@@ -12,18 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('teacher_assignments', function (Blueprint $table) {
-            $table->id();
+        $table->id();
 
-            // NEW: Direct School Class Foreign Key mapping
-            $table->foreignId('class_id')->constrained('school_class')->onDelete('cascade');
+        $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+        $table->foreignId('class_id')->constrained('school_class')->onDelete('cascade');
+        $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
+        $table->foreignId('teacher_id')->constrained('teachers')->onDelete('cascade');
 
-            $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
-            $table->foreignId('class_subject_id')->nullable()->constrained('class_subject')->onDelete('cascade');
-            $table->foreignId('teacher_id')->constrained('teachers')->onDelete('cascade');
-            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+        $table->timestamps();
 
-            $table->timestamps();
-        });
+        $table->unique(['academic_year_id', 'class_id', 'section_id'], 'class_teacher_unique');
+    });
     }
 
     /**

@@ -295,7 +295,6 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['can:access-teacher-assignment'])->group(function () {
             Route::get('/', 'AllTeacherClass')->name('index');
             Route::get('/get-sections-by-class', 'getSectionsByClass')->name('get-sections-by-class');
-            Route::get('/get-subjects-by-class', 'getSubjectsByClass')->name('get-subjects-by-class');
             Route::get('/create', 'AddTeacherClass')->name('create');
             Route::post('/store', 'StoreTeacherClass')->name('store');
             Route::get('/edit/{id}', 'EditTeacherClass')->name('edit');

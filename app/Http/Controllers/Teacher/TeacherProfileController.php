@@ -107,13 +107,16 @@ class TeacherProfileController extends Controller
     public function mySyllabusStatus()
     {
         $teacher = Auth::user()->teacher;
+        if (!$teacher) {
+            abort(404, 'Teacher profile not found.');
+        }
         // $userId  = Auth::id(); // ClassTimetable.teacher_id -> users.id
 
         // ============================================
         // SECTION 1: Homeroom class overview (poori class ka syllabus)
         // ============================================
+        // teacher_assignments ki har row = Class Teacher (class_subject_id column ab nahi)
         $homeroomAssignments = $teacher->assignments()
-            ->whereNull('class_subject_id')
             ->with(['schoolClass', 'section'])
             ->get();
 
@@ -141,6 +144,7 @@ class TeacherProfileController extends Controller
         // SECTION 2: Subjects jo wo khud padhati hai (Timetable se)
         // ============================================
         $combos = ClassTimetable::with(['schoolClass', 'section', 'subject'])
+            ->where('academic_year_id', $this->getActiveSessionId())
             ->where('teacher_id', $teacher->id)
             ->get()
             ->unique(function ($row) {

@@ -51,8 +51,7 @@
                             <option value="">Select Section</option>
                             @if(isset($sections) && $sections->count() > 0)
                             @foreach($sections as $section)
-                            <option value="{{ $section->id }}"
-                                {{ (isset($editData) && $editData->section_id == $section->id) ? 'selected' : '' }}>
+                            <option value="{{ $section->id }}" {{ (isset($editData) && $editData->section_id == $section->id) ? 'selected' : '' }}>
                                 {{ $section->name }}
                             </option>
                             @endforeach
@@ -61,32 +60,18 @@
                         @error('section_id') <span class="text-danger small">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label for="class_subject_id" class="form-label text-secondary small fw-bold">Subject (optional)</label>
-                        <select name="class_subject_id" id="class_subject_id" class="form-select form-select-sm">
-                            <option value="">Whole Class (No specific subject)</option>
-                            @if(isset($subjects) && $subjects->count() > 0)
-                            @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}"
-                                {{ (isset($editData) && $editData->class_subject_id == $subject->id) ? 'selected' : '' }}>
-                                {{ $subject->name }}
-                            </option>
-                            @endforeach
-                            @endif
-                        </select>
-                    </div>
+
 
                     <div class="mb-4">
-                        <label class="form-label text-secondary small fw-bold d-block mb-2">Class Teacher *</label>
-                        <div class="p-1" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee;">
+                        <label for="teacher_id" class="form-label text-secondary small fw-bold">Class Teacher *</label>
+                        <select name="teacher_id" id="teacher_id" class="form-select form-select-sm @error('teacher_id') is-invalid @enderror">
+                            <option value="">Select Teacher</option>
                             @foreach($teachers as $teacher)
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="teacher_id[]" value="{{ $teacher->id }}" id="teacher_{{ $teacher->id }}"
-                                    {{ (isset($editData) && $editData->teacher_id == $teacher->id) ? 'checked' : '' }}>
-                                <label class="form-check-label small" for="teacher_{{ $teacher->id }}">{{ $teacher->first_name }} {{ $teacher->last_name }}</label>
-                            </div>
+                            <option value="{{ $teacher->id }}" {{ old('teacher_id', $editData->teacher_id ?? '') == $teacher->id ? 'selected' : '' }}>
+                                {{ $teacher->first_name }} {{ $teacher->last_name }}
+                            </option>
                             @endforeach
-                        </div>
+                        </select>
                         @error('teacher_id') <span class="text-danger small">{{ $message }}</span> @enderror
                     </div>
 
@@ -170,32 +155,28 @@
     $(document).ready(function() {
         // --- 1. TOASTR CONFIGURATION ---
         toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "timeOut": "5000"
+            "closeButton": true
+            , "progressBar": true
+            , "positionClass": "toast-top-right"
+            , "timeOut": "5000"
         };
 
         @if($errors->any())
-            let errorHtml = "";
-            @foreach($errors->all() as $error)
-                errorHtml += "• {{ $error }}<br>";
-            @endforeach
-            toastr.error(errorHtml, 'Validation Error!');
+        toastr.error(@json(implode('<br>', $errors->all())), 'Validation Error!');
         @endif
 
         @if(session('success'))
-            toastr.success("{{ session('success') }}", 'Success!');
+        toastr.success(@json(session('success')), 'Success!');
         @endif
 
         @if(session('error'))
-            toastr.error("{{ session('error') }}", 'Error!');
+        toastr.error(@json(session('error')), 'Error!');
         @endif
 
         // --- 2. DATATABLE INITIALIZATION ---
         $('#assignmentTable').DataTable({
-            "pageLength": 10,
-            "ordering": true
+            "pageLength": 10
+            , "ordering": true
         });
 
         // --- 3. FUNCTION: LOAD SECTIONS ---
@@ -205,20 +186,20 @@
 
             if (classId) {
                 $.ajax({
-                    url: "{{ route('teacher.assign.get-sections-by-class') }}",
-                    type: "GET",
-                    data: {
+                    url: "{{ route('teacher.assign.get-sections-by-class') }}"
+                    , type: "GET"
+                    , data: {
                         class_id: classId
-                    },
-                    dataType: "json",
-                    success: function(data) {
+                    }
+                    , dataType: "json"
+                    , success: function(data) {
                         sectionDropdown.html('<option value="">Select Section</option>');
                         $.each(data, function(key, value) {
                             var selected = (selectedSectionId == value.id) ? 'selected' : '';
                             sectionDropdown.append('<option value="' + value.id + '" ' + selected + '>' + value.name + '</option>');
                         });
-                    },
-                    error: function() {
+                    }
+                    , error: function() {
                         toastr.error("Could not load sections.");
                         sectionDropdown.html('<option value="">Select Section</option>');
                     }
@@ -229,54 +210,16 @@
         }
 
         // --- 4. FUNCTION: LOAD SUBJECTS ---
-        function loadSubjects(classId, selectedSubjectId = null) {
-    var subjectDropdown = $('#class_subject_id');
-    var subjectWrapper = subjectDropdown.closest('.mb-3'); // poora field block
 
-    if (classId) {
-        $.ajax({
-            url: "{{ route('teacher.assign.get-subjects-by-class') }}",
-            type: "GET",
-            data: { class_id: classId },
-            dataType: "json",
-            success: function(response) {
-                if (!response.has_subjects) {
-                    // Whole-class: dropdown hide + force "no subject"
-                    subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
-                    subjectDropdown.val('').prop('required', false);
-                    subjectWrapper.hide();
-                } else {
-                    // Subject-wise: dropdown show + required
-                    subjectWrapper.show();
-                    subjectDropdown.html('<option value="">Select Subject</option>');
-                    $.each(response.subjects, function(key, value) {
-                        var selected = (selectedSubjectId == value.id) ? 'selected' : '';
-                        subjectDropdown.append('<option value="' + value.id + '" ' + selected + '>' + value.name + '</option>');
-                    });
-                    subjectDropdown.prop('required', true);
-                }
-            },
-            error: function() {
-                subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
-            }
-        });
-    } else {
-        subjectWrapper.hide();
-        subjectDropdown.html('<option value="">Whole Class (No specific subject)</option>');
-    }
-}
 
         // --- 5. EVENT: ON CLASS CHANGE ---
         $('#class_id').on('change', function() {
-            var classId = $(this).val();
-            loadSections(classId);
-            loadSubjects(classId);
+            loadSections($(this).val());
         });
 
         // --- 6. EDIT MODE: AUTO LOAD ---
         @if(isset($editData))
-            loadSections("{{ $editData->class_id }}", "{{ $editData->section_id }}");
-            loadSubjects("{{ $editData->class_id }}", "{{ $editData->class_subject_id }}");
+        loadSections("{{ $editData->class_id }}", "{{ $editData->section_id }}");
         @endif
 
         // --- 7. SWEETALERT DELETE CONFIRMATION ---
@@ -285,13 +228,13 @@
             var form = $(this).closest('form');
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: "This record will be deleted permanently!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
+                title: 'Are you sure?'
+                , text: "This record will be deleted permanently!"
+                , icon: 'warning'
+                , showCancelButton: true
+                , confirmButtonColor: '#d33'
+                , cancelButtonColor: '#3085d6'
+                , confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -299,5 +242,6 @@
             });
         });
     });
+
 </script>
 @endpush
