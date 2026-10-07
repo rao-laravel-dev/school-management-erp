@@ -337,7 +337,33 @@ class ClassTimetableController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request, $classId, $sectionId, $day, $yearId) {
+        $clashRow = DB::transaction(function () use ($request, $classId, $sectionId, $day, $yearId) {
+            // Concurrency: in teachers ki rows lock (sorted order, deadlock se bachne ke liye), taake same teacher
+            // wali doosri save commit hone tak yahin ruke. Ye transaction ka pehla statement hi rehna chahiye.
+            $teacherIds = collect($request->periods)->pluck('teacher_id')
+                ->map(fn ($id) => (int) $id)->unique()->sort()->values()->all();
+            Teacher::withTrashed()->whereIn('id', $teacherIds)->orderBy('id')->lockForUpdate()->pluck('id');
+
+            // Lock ke baad teacher clash dobara (beech mein kisi aur ne commit kiya ho to ab nazar aayega)
+            foreach ($request->periods as $row) {
+                $teacherClash = ClassTimetable::where('academic_year_id', $yearId)
+                    ->where('teacher_id', $row['teacher_id'])
+                    ->where('day', $day)
+                    ->where(function ($q) use ($row) {
+                        $q->where('time_from', '<', $row['time_to'])
+                            ->where('time_to', '>', $row['time_from']);
+                    })
+                    ->where(function ($q) use ($classId, $sectionId) {
+                        $q->where('school_class_id', '!=', $classId)
+                            ->orWhere('section_id', '!=', $sectionId);
+                    })
+                    ->exists();
+
+                if ($teacherClash) {
+                    return $row; // abhi kuch likha nahi, khali commit
+                }
+            }
+
             // Sirf isi din ki purani entries hata ke fresh insert (baaqi dinon ko haath nahi lagana)
             ClassTimetable::where('academic_year_id', $yearId)
                 ->where('school_class_id', $classId)
@@ -357,7 +383,16 @@ class ClassTimetableController extends Controller
                     'time_to' => $row['time_to'],
                 ]);
             }
+
+            return null;
         });
+
+        if ($clashRow) {
+            return response()->json([
+                'success' => false,
+                'message' => "Teacher already assigned elsewhere on {$day} at {$clashRow['time_from']} - {$clashRow['time_to']}",
+            ], 422);
+        }
 
         return response()->json(['success' => true, 'message' => "{$day} timetable saved successfully"]);
     }

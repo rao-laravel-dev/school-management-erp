@@ -154,6 +154,9 @@ class AcademicYearController extends Controller
             ]);
         });
 
+        // Naya current year foran lagu ho: AcademicYear::getActiveSessionId() ki 1 ghanta cache clear
+        cache()->forget('active_session_id');
+
         return response()->json([
             'success' => true,
             'message' => 'System context successfully shifted to the selected academic cycle!'
