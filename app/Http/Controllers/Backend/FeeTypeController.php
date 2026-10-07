@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\FeeType;
+use App\Traits\Exportable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class FeeTypeController extends Controller
 {
+    use Exportable;
     /**
      * Display a listing of fee types.
      */
@@ -108,5 +110,63 @@ class FeeTypeController extends Controller
         $feeType->delete();
 
         return response()->json(['message' => 'Fee type deleted successfully.']);
+    }
+
+    /**
+     * Export Fee Types as Excel
+     */
+    public function exportExcel()
+    {
+        $feeTypes = FeeType::latest()->get();
+
+        $headings = ['#', 'Name', 'Frequency', 'Discountable', 'Description'];
+
+        $rows = $feeTypes->map(function ($fee, $index) {
+            return [
+                $index + 1,
+                $fee->name,
+                ucfirst(str_replace('_', ' ', $fee->frequency)),
+                $fee->discountable ? 'Yes' : 'No',
+                $fee->description ?? '-',
+            ];
+        })->toArray();
+
+        return $this->exportToExcel(
+            $rows,
+            $headings,
+            'Fee Types Directory',
+            'fee_types',
+            ['A' => 6, 'B' => 22, 'C' => 15, 'D' => 15, 'E' => 45]
+        );
+    }
+    // End Method
+
+    /**
+     * Export Fee Types as PDF
+     */
+    public function exportPdf()
+    {
+        $feeTypes = FeeType::latest()->get();
+
+        $headings = ['#', 'Name', 'Frequency', 'Discountable', 'Description'];
+
+        $rows = $feeTypes->map(function ($fee, $index) {
+            return [
+                $index + 1,
+                $fee->name,
+                ucfirst(str_replace('_', ' ', $fee->frequency)),
+                $fee->discountable ? 'Yes' : 'No',
+                $fee->description ?? '-',
+            ];
+        })->toArray();
+
+        return $this->exportToPdf(
+            $rows,
+            $headings,
+            'Fee Types Directory',
+            'fee_types',
+            '',
+            'portrait'   // ye table chhota hai, portrait theek rahega
+        );
     }
 }

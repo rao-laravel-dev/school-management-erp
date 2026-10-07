@@ -182,6 +182,8 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['can:access-fee-types'])->group(function () {
             Route::controller(FeeTypeController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
+                Route::get('/export-excel', 'exportExcel')->name('export_excel');
+                Route::get('/export-pdf', 'exportPdf')->name('export_pdf');
             });
         });
 

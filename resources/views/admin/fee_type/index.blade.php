@@ -3,29 +3,31 @@
 @section('content')
 
 {{-- Breadcrumb --}}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Fees Collection</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
-                <li class="breadcrumb-item active" aria-current="page">Fee Types</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+<x-breadcrumb :items="[
+    ['label' => 'Fees Collection', 'url' => '#'],
+    ['label' => 'Fee Types', 'url' => route('fee_types.index')],
+]" />
 
 <div class="row">
     <div class="col-xl">
         <div class="card radius-10">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
-                <h5 class="mb-0 text-primary">Fee Types Directory</h5>
-                @can('manage-fee-types')
-                <button type="button" class="btn btn-success btn-sm shadow-sm px-5" id="btnAddFeeType" data-bs-toggle="modal" data-bs-target="#feeTypeModal">
-                    Add
-                </button>
-                @endcan
-            </div>
+            <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 bg-transparent py-3">
+    <h5 class="mb-0 text-primary">Fee Types Directory</h5>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('fee_types.export_excel') }}" class="btn btn-success btn-sm shadow-sm" title="Export Excel">
+            <i class="fas fa-file-excel"></i> <span class="d-none d-sm-inline">Excel</span>
+        </a>
+        <a href="{{ route('fee_types.export_pdf') }}" class="btn btn-danger btn-sm shadow-sm" title="Download PDF">
+            <i class="fas fa-file-pdf"></i> <span class="d-none d-sm-inline">PDF</span>
+        </a>
+        @can('manage-fee-types')
+        <button type="button" class="btn btn-success btn-sm shadow-sm px-md-5" id="btnAddFeeType" data-bs-toggle="modal" data-bs-target="#feeTypeModal">
+            <span class="d-none d-sm-inline">Add</span>
+            <i class="bx bx-plus d-sm-none"></i>
+        </button>
+        @endcan
+    </div>
+</div>
 
             <div class="card-body">
                 <div class="table-responsive">
