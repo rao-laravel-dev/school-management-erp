@@ -60,6 +60,8 @@ class PermissionSeeder extends Seeder
             'manage-results',
             'access-site-settings',             
             'manage-site-settings',
+            'access-student-import',
+            'manage-student-import',
             'access-school-timing',             // web.php          
             'manage-school-timing',             // web.php
             'access-id-card-templates',

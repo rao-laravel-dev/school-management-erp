@@ -37,6 +37,7 @@ use App\Http\Controllers\Backend\StaffAttendanceController;
 use App\Http\Controllers\Backend\StaffIdCardTemplateController;
 use App\Http\Controllers\Backend\StudentCategoryController;
 use App\Http\Controllers\Backend\StudentHouseController;
+use App\Http\Controllers\Backend\StudentImportController;
 use App\Http\Controllers\Backend\SyllabusStatusController;
 use App\Http\Controllers\Backend\TeacherTimetableController;
 use App\Http\Controllers\Backend\TopicController;
@@ -897,6 +898,25 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('can:manage-site-settings')->group(function () {
             Route::controller(SiteSettingController::class)->group(function () {
                 Route::post('/', 'update')->name('update');
+            });
+        });
+    });
+
+    // ==========================================
+    // STUDENT BULK IMPORT
+    // ==========================================
+    Route::prefix('student-import')->name('student_import.')->group(function () {
+
+        Route::middleware('can:access-student-import')->group(function () {
+            Route::controller(StudentImportController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/download-template', 'downloadTemplate')->name('download_template');
+            });
+        });
+
+        Route::middleware('can:manage-student-import')->group(function () {
+            Route::controller(StudentImportController::class)->group(function () {
+                Route::post('/store', 'store')->name('store');
             });
         });
     });

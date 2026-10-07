@@ -41,7 +41,8 @@
         </li>
         @endif
 
-        @if(auth()->user()->can('access-students') || auth()->user()->can('access-student-categories') || auth()->user()->can('access-student-houses'))
+        {{-- Student Information Section --}}
+        @if(auth()->user()->can('access-students') || auth()->user()->can('access-student-categories') || auth()->user()->can('access-student-houses') || auth()->user()->can('access-student-import'))
         <li>
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-user-pin"></i></div>
@@ -51,6 +52,10 @@
                 @can('access-students')
                 <li><a href="{{ route('students.index') }}"><i class="bx bx-radio-circle"></i>All Students</a></li>
                 <li><a href="{{ route('students.create') }}"><i class="bx bx-radio-circle"></i>Student Admission</a></li>
+                @endcan
+
+                @can('access-student-import')
+                <li><a href="{{ route('student_import.index') }}"><i class="bx bx-radio-circle"></i>Bulk Import</a></li>
                 @endcan
 
                 @can('access-student-categories')
@@ -64,6 +69,7 @@
         </li>
         @endif
 
+        {{-- Teacher Management Section --}}
         @if(auth()->user()->can('access-teacher') || auth()->user()->can('access-teacher-assignment'))
         <li>
             <a href="javascript:;" class="has-arrow">
@@ -102,6 +108,7 @@
         </li>
         @endif
 
+        {{-- Academic Management Section --}}
         @can('access-academics')
         <li>
             <a href="javascript:;" class="has-arrow">
@@ -145,6 +152,7 @@
         </li>
         @endcan
 
+        {{-- Home-Work Management Section --}}
         @if(auth()->user()->can('access-home-works'))
         <li>
             <a href="javascript:;" class="has-arrow">
@@ -157,6 +165,7 @@
         </li>
         @endif
 
+        {{-- Lesson Plan Section --}}
         @if(auth()->user()->can('access-lessons') || auth()->user()->can('access-topics') || auth()->user()->can('access-lesson-plans') || auth()->user()->can('access-copy-old-lessons') || auth()->user()->can('access-syllabus-status'))
         <li>
             <a href="javascript:;" class="has-arrow">
@@ -264,6 +273,7 @@
         </li>
         @endif
 
+        {{-- Attendance Management Section --}}
         @if(auth()->user()->can('access-attendance') || auth()->user()->can('access-staff-attendance'))
         <li>
             <a href="javascript:;" class="has-arrow">
