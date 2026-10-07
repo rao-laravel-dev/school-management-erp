@@ -1,14 +1,6 @@
 @extends('admin.layout.app')
 @section('content')
 
-<!-- Page Title -->
-<h3>{{ ucfirst(auth()->user()->roles->first()->name) }} Dashboard</h3>
-{{-- Debugging --}}
-<div style="background: red; color: white;">
-    User: {{ auth()->user()->name }} <br>
-    Has Role: {{ auth()->user()->getRoleNames() }} <br>
-    Has Permission (access-receptionist): {{ auth()->user()->can('access-receptionist') ? 'Yes' : 'No' }}
-</div>
 
 <!-- Cards Row -->
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">

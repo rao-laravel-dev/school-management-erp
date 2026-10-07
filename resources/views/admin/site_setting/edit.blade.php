@@ -136,7 +136,7 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     @if($setting->logo)
-                    <div><img src="{{ asset('uploads/site_setting/' . $setting->logo) }}" class="mt-2" style="max-height:60px;" alt="Current Logo"></div>
+                    <div><img src="{{ asset('storage/uploads/site_setting/' . $setting->logo) }}" class="mt-2" style="max-height:60px;" alt="Current Logo"></div>
                     @endif
                 </div>
 
@@ -149,7 +149,7 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     @if($setting->principal_signature)
-                    <div><img src="{{ asset('uploads/site_setting/' . $setting->principal_signature) }}" class="mt-2" style="max-height:60px;" alt="Current Signature"></div>
+                    <div><img src="{{ asset('storage/uploads/site_setting/' . $setting->principal_signature) }}" class="mt-2" style="max-height:60px;" alt="Current Signature"></div>
                     @endif
                 </div>
             </div>
