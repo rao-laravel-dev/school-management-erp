@@ -102,4 +102,25 @@ class Teacher extends Model
             get: fn() => trim("{$this->first_name} {$this->last_name}"),
         );
     }
+
+    // Photo URL Accessor — Checks storage/teacher_images, uploads, and falls back to no_image.jpg
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if ($this->photo) {
+                    if (\Storage::disk('public')->exists('teacher_images/' . $this->photo)) {
+                        return asset('storage/teacher_images/' . $this->photo);
+                    }
+                    if (file_exists(public_path('uploads/teacher_images/' . $this->photo))) {
+                        return asset('uploads/teacher_images/' . $this->photo);
+                    }
+                    if (file_exists(public_path('uploads/teachers/' . $this->photo))) {
+                        return asset('uploads/teachers/' . $this->photo);
+                    }
+                }
+                return asset('uploads/no_image.jpg');
+            }
+        );
+    }
 }

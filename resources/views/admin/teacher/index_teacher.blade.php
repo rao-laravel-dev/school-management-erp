@@ -132,10 +132,21 @@
             "timeOut": "6000"
         };
 
-        @if(session('toastr-success')) toastr.success("{{ session('toastr-success') }}", "Success");
-        @endif
-        @if(session('toastr-error')) toastr.error("{{ session('toastr-error') }}", "Error");
-        @endif
+        @if(session('success'))
+toastr.success(@json(session('success')), 'Success!');
+@endif
+
+@if(session('error'))
+toastr.error(@json(session('error')), 'Error!');
+@endif
+
+@if(session('toastr-success'))
+toastr.success(@json(session('toastr-success')), 'Success!');
+@endif
+
+@if(session('toastr-error'))
+toastr.error(@json(session('toastr-error')), 'Error!');
+@endif
 
         // --- 1. DATATABLE INITIALIZATION ---
         $('#teacherTable').DataTable({

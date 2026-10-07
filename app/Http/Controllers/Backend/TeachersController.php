@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassTimetable;
 use App\Models\StaffBankDetail;
 use App\Models\StaffLeaveSetting;
 use App\Models\StaffSalary;
@@ -82,7 +83,7 @@ class TeachersController extends Controller
         // Agar first_name khali hai, toh default 'TCH' prefix rakhein (NEW hata dein)
         $prefix = !empty($firstName) ? strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName)) : 'TCH';
 
-        $lastTeacher = Teacher::latest('id')->first();
+        $lastTeacher = Teacher::withTrashed()->latest('id')->first();
 
         $number = 1;
         if ($lastTeacher && !empty($lastTeacher->teacher_id)) {
@@ -98,15 +99,9 @@ class TeachersController extends Controller
     public function getGeneratedId(Request $request)
     {
         $firstName = $request->input('first_name');
-        $prefix = strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName));
 
-        // DEBUG: Check karein ki kya server ko koi record mil raha hai?
-        $lastTeacher = Teacher::where('teacher_id', 'like', $prefix . '%')->latest('id')->first();
-
-        // Response mein ye status bhejein
         return response()->json([
             'teacher_id' => $this->generateTeacherId($firstName),
-            'debug_found' => $lastTeacher ? $lastTeacher->teacher_id : 'None'
         ]);
     }
 
@@ -384,12 +379,24 @@ class TeachersController extends Controller
         return view('admin.teacher.trash', compact('trashedTeachers'));
     }
 
-    // 2. Soft Delete (Jo aapka pehle se tha)
-    public function TeacherDestroy($id)
-    {
-        Teacher::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Teacher moved to trash.');
+        // 2. Soft Delete (assigned teacher block)
+public function TeacherDestroy($id)
+{
+    $teacher = Teacher::findOrFail($id);
+
+    $isAssigned = $teacher->assignments()->exists()
+        || ClassTimetable::where('teacher_id', $teacher->id)->exists();
+
+    if ($isAssigned) {
+        return redirect()->back()
+            ->with('error', 'This teacher is assigned as a Class Teacher or has timetable periods. Please remove the assignment first.');
     }
+
+    $teacher->delete();
+
+    return redirect()->back()->with('success', 'Teacher moved to trash successfully.');
+}
+// End Method
 
     // 3. Restore (Trash se wapis lane ke liye)
     public function TeacherRestore($id)
