@@ -110,7 +110,6 @@
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Classes</a>
                     <ul>
                         <li><a href="{{ route('classes.index') }}"><i class='bx bx-right-arrow-alt'></i>Classes List</a></li>
-                        <li><a href="{{ route('classes.create') }}"><i class='bx bx-right-arrow-alt'></i>Add Class</a></li>
                     </ul>
                 </li>
 

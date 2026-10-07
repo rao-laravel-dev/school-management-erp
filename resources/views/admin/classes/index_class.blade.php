@@ -58,19 +58,27 @@
         </div>
     </div>
 
-    <div class="col text-end ms-auto">
-        <button type="button" class="btn btn-success btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addClassModal">
-            <i class='bx bx-plus-circle'></i> Add Class
+    <div class="col text-end ms-auto d-flex justify-content-end gap-2">
+        @can('manage-academics')
+        <button type="button" class="btn btn-sm btn-success px-3" data-bs-toggle="modal" data-bs-target="#addClassModal" title="Add Class">
+            <i class='bx bx-plus-circle'></i><span class="btn-text ms-1">Add Class</span>
         </button>
+        @endcan
     </div>
 </div>
 
 <div class="row">
     <div class="col-xl">
         <div class="card border shadow-none radius-10">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 bg-transparent">
                 <h5 class="mb-0 fw-bold text-primary">School Classes List</h5>
-                <span class="badge bg-primary">Records: {{ $classes->count() }}</span>
+
+                <div class="d-flex align-items-center gap-2">
+                    <x-table-actions
+                        :excelRoute="route('classes.export_excel')"
+                        :pdfRoute="route('classes.export_pdf')"
+                        :importModal="auth()->user()->can('manage-academics') ? '#importClassModal' : null" />
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -91,14 +99,16 @@
                             @forelse($classes as $key => $item)
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-                                <td><div class="fw-bold text-primary">{{ $item->name }}</div></td>
+                                <td>
+                                    <div class="fw-bold text-primary">{{ $item->name }}</div>
+                                </td>
                                 <td>
                                     @if($item->mappedSections && $item->mappedSections->isNotEmpty())
-                                        @foreach($item->mappedSections as $section)
-                                        <span class="badge bg-success me-1 mb-1">{{ $section->name }}</span>
-                                        @endforeach
+                                    @foreach($item->mappedSections as $section)
+                                    <span class="badge bg-success me-1 mb-1">{{ $section->name }}</span>
+                                    @endforeach
                                     @else
-                                        <span class="text-muted small">No sections</span>
+                                    <span class="text-muted small">No sections</span>
                                     @endif
                                 </td>
                                 <td><span class="badge bg-light-info text-info border border-info px-3">{{ $item->class_code }}</span></td>
@@ -130,7 +140,9 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="8" class="text-center text-muted">No Classes Found</td></tr>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">No Classes Found</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -140,6 +152,14 @@
     </div>
 </div>
 
+@can('manage-academics')
+<x-import-modal
+    id="importClassModal"
+    title="Import Classes"
+    :templateRoute="route('classes.import_template')"
+    :actionRoute="route('classes.import_excel')" />
+@endcan
+
 @include('admin.classes.modals')
 
 @endsection
@@ -148,7 +168,14 @@
 <script>
     $(document).ready(function() {
         if (!$.fn.DataTable.isDataTable('#example')) {
-            $('#example').DataTable({ "pageLength": 10, "ordering": true });
+            $('#example').DataTable({
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'All']
+                ],
+                ordering: true
+            });
         }
 
         toastr.options = {
@@ -159,7 +186,12 @@
         };
 
         @if(session('message'))
-            toastr.{{ session('alert-type', 'success') }}("{{ session('message') }}");
+        toastr[@json(session('alert-type', 'success'))](@json(session('message')));
+        @endif
+
+
+        @if(session('toastr-success'))
+        toastr.success(@json(session('toastr-success')));
         @endif
 
         // --- ADD CLASS ---
@@ -180,7 +212,9 @@
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
                         let msg = "";
-                        $.each(errors, function(key, val) { msg += "• " + val[0] + "<br>"; });
+                        $.each(errors, function(key, val) {
+                            msg += "• " + val[0] + "<br>";
+                        });
                         toastr.error(msg, 'Validation Error!');
                     } else {
                         toastr.error('Something went wrong!');
@@ -191,55 +225,57 @@
 
         // --- EDIT: load data into modal ---
         $(document).on('click', '.edit-btn', function() {
-    let url = $(this).data('url');
+            let url = $(this).data('url');
 
-    $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(data) {
-            $('#edit_id').val(data.id);
-            $('#edit_name').val(data.name);
-            $('#edit_numeric_name').val(data.numeric_name);
-            $('#edit_has_subjects').prop('checked', data.has_subjects == 1);
-            $('#edit_description').val(data.description);
-            $('#edit_status').prop('checked', data.status == 1);
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(data) {
+                    $('#edit_id').val(data.id);
+                    $('#edit_name').val(data.name);
+                    $('#edit_numeric_name').val(data.numeric_name);
+                    $('#edit_has_subjects').prop('checked', data.has_subjects == 1);
+                    $('#edit_description').val(data.description);
+                    $('#edit_status').prop('checked', data.status == 1);
 
-            // FIX: route pattern ke mutabiq sahi URL banayein
-            $('#editClassForm').attr('action', "{{ url('classes/update') }}/" + data.id);
-            $('#editClassModal').modal('show');
-        },
-        error: function() {
-            toastr.error('Unable to load class data.');
-        }
-    });
-});
+                    // FIX: route pattern ke mutabiq sahi URL banayein
+                    $('#editClassForm').attr('action', "{{ url('classes/update') }}/" + data.id);
+                    $('#editClassModal').modal('show');
+                },
+                error: function() {
+                    toastr.error('Unable to load class data.');
+                }
+            });
+        });
 
         // --- UPDATE CLASS ---
         $('#editClassForm').on('submit', function(e) {
-    e.preventDefault();
-    let form = $(this);
+            e.preventDefault();
+            let form = $(this);
 
-    $.ajax({
-        url: form.attr('action'),
-        type: 'POST',
-        data: form.serialize(),   // <-- '&_method=PUT' hata diya
-        success: function(res) {
-            toastr.success(res.message);
-            $('#editClassModal').modal('hide');
-            setTimeout(() => location.reload(), 800);
-        },
-        error: function(xhr) {
-            if (xhr.status === 422) {
-                let errors = xhr.responseJSON.errors;
-                let msg = "";
-                $.each(errors, function(key, val) { msg += "• " + val[0] + "<br>"; });
-                toastr.error(msg, 'Validation Error!');
-            } else {
-                toastr.error('Something went wrong!');
-            }
-        }
-    });
-});
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(), // <-- '&_method=PUT' hata diya
+                success: function(res) {
+                    toastr.success(res.message);
+                    $('#editClassModal').modal('hide');
+                    setTimeout(() => location.reload(), 800);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        let msg = "";
+                        $.each(errors, function(key, val) {
+                            msg += "• " + val[0] + "<br>";
+                        });
+                        toastr.error(msg, 'Validation Error!');
+                    } else {
+                        toastr.error('Something went wrong!');
+                    }
+                }
+            });
+        });
 
         // --- STATUS TOGGLE ---
         $(document).on('click', '.toggle-status', function(e) {

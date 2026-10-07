@@ -467,6 +467,10 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/classes/store', 'StoreClass')->name('classes.store');
             Route::get('/classes/edit/{id}', 'EditClass')->name('classes.edit');
             Route::post('/classes/update/{id}', 'UpdateClass')->name('classes.update');
+
+            // Export
+            Route::get('/classes/export/excel', 'ExportExcel')->middleware('throttle:20,1')->name('classes.export_excel');
+            Route::get('/classes/export/pdf', 'ExportPdf')->middleware('throttle:20,1')->name('classes.export_pdf');
         });
 
         // ==========================================
@@ -576,9 +580,12 @@ Route::middleware(['auth'])->group(function () {
         // CLASS ALL ROUTES
         // ==========================================
         Route::controller(ClassController::class)->group(function () {
-
             Route::get('/classes/status/{id}', 'UpdateClassStatus')->name('classes.status');
             Route::get('/classes/delete/{id}', 'ClassDestroy')->name('classes.delete');
+
+            // Import
+            Route::get('/classes/import/template', 'ImportTemplate')->name('classes.import_template');
+            Route::post('/classes/import', 'ImportExcel')->middleware('throttle:10,1')->name('classes.import_excel');
         });
 
         // ==========================================
