@@ -35,23 +35,27 @@
     <div class="card-body">
         <div class="row align-items-center">
             <div class="col-auto">
-                <img id="ti_photo" src="" class="rounded-circle" width="70" height="70" style="object-fit:cover;">
+                <img id="ti_photo" src="" class="rounded-circle" width="70" height="70" style="object-fit:cover;" onerror="this.onerror=null;this.src='{{ asset('backend/assets/images/avatars/avatar-1.png') }}';">
             </div>
             <div class="col">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-muted d-block">Name</small>
                         <span id="ti_name" class="fw-semi-bold"></span>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-muted d-block">Father Name</small>
                         <span id="ti_father_name" class="fw-semi-bold"></span>
                     </div>
                     <div class="col-md-3">
-                        <small class="text-muted d-block">Assigned Class</small>
-                        <span id="ti_class" class="fw-semi-bold"></span>
+                        <small class="text-muted d-block">Class Teacher Of</small>
+                        <span id="ti_class_teacher_of" class="fw-semi-bold"></span>
                     </div>
                     <div class="col-md-3">
+                        <small class="text-muted d-block">Teaching Classes</small>
+                        <span id="ti_classes" class="fw-semi-bold"></span>
+                    </div>
+                    <div class="col-md-2">
                         <small class="text-muted d-block">Phone</small>
                         <span id="ti_phone" class="fw-semi-bold"></span>
                     </div>
@@ -140,26 +144,27 @@
         border-bottom: 2px solid var(--tt-day-color, #6c757d);
         color: var(--tt-day-color, #6c757d);
     }
+
 </style>
 @endpush
 
 @push('scripts')
 <script>
     toastr.options = {
-        closeButton: true,
-        progressBar: true,
-        positionClass: "toast-top-right",
-        timeOut: 3000
+        closeButton: true
+        , progressBar: true
+        , positionClass: "toast-top-right"
+        , timeOut: 3000
     };
 
     const dayColors = {
-        'Monday': '#0d6efd',
-        'Tuesday': '#198754',
-        'Wednesday': '#fd7e14',
-        'Thursday': '#6610f2',
-        'Friday': '#dc3545',
-        'Saturday': '#0dcaf0',
-        'Sunday': '#6c757d'
+        'Monday': '#0d6efd'
+        , 'Tuesday': '#198754'
+        , 'Wednesday': '#fd7e14'
+        , 'Thursday': '#6610f2'
+        , 'Friday': '#dc3545'
+        , 'Saturday': '#0dcaf0'
+        , 'Sunday': '#6c757d'
     };
 
     function clearErrors() {
@@ -172,14 +177,30 @@
         $(`#err_${id}`).text(msg);
     }
 
-    function loadTimetable(teacherId) {
+    // Prev / This Week / Next buttons (week = us hafte ki koi bhi date, khali = aaj)
+    $(document).on('click', '.tt-week-nav', function() {
+        loadTimetable($('#teacher_id').val(), $(this).data('week') || '');
+    });
+
+    function loadTimetable(teacherId, week) {
         let url = "{{ route('teacher_timetable.get_data', ':id') }}";
         url = url.replace(':id', teacherId);
 
-        $.get(url)
-            .done(function(res) {
+        $.get(url, {
+                week: week || '{{ now()->toDateString() }}'
+            })
+            .done(function(data) {
+                let res = data.timetable || {};
+                let dayStatus = data.day_status || {};
+                let wk = data.week || {};
                 let hasAny = Object.keys(res).length > 0;
-                let cardHtml = `<div class="card"><div class="card-header"><h6 class="mb-0">Timetable Result</h6></div><div class="card-body">`;
+                let cardHtml = `<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h6 class="mb-0">Timetable Result</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="${wk.prev}"><i class='bx bx-chevron-left'></i></button>
+                        <span class="small fw-bold">${wk.label}</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="">This Week</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="${wk.next}"><i class='bx bx-chevron-right'></i></button>
+                    </div></div><div class="card-body">`;
 
                 if (!hasAny) {
                     cardHtml += `
@@ -190,13 +211,14 @@
                     cardHtml += `<div class="tt-week-wrapper">`;
                     ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].forEach(day => {
                         let color = dayColors[day];
+                        let st = dayStatus[day] || {};
                         cardHtml += `<div class="tt-day-col" style="--tt-day-color:${color}">
-                        <div class="tt-day-header">${day}</div>
+                        <div class="tt-day-header">${day} <small class="fw-normal">${st.date_label || ''}</small></div>
                         <div>`;
 
-                        if (res[day] && res[day].length > 0) {
+                        if (st.status === 'periods' && res[day] && res[day].length > 0) {
                             res[day].forEach(item => {
-                                let room = item.room_no ?? item.room_number ?? item.room ?? '-';
+                                let room = item.assigned_room_no || '-';
                                 cardHtml += `
                                 <div class="tt-card">
                                     <div class="tt-subject">
@@ -221,7 +243,7 @@
                                     </div>
                                 </div>`;
                             });
-                        } else if (day === 'Sunday') {
+                        } else if (st.status === 'weekly_off') {
                             cardHtml += `
                             <div class="tt-not-scheduled" style="border-color:#6c757d;color:#6c757d;background:#f8f9fa;">
                                 <i class='bx bx-moon'></i>
@@ -232,6 +254,7 @@
                             <div class="tt-not-scheduled">
                                 <i class='bx bx-x-circle'></i>
                                 Not Scheduled
+                                ${st.label ? '<div class="small">' + $('<div>').text(st.label).html() + '</div>' : ''}
                             </div>`;
                         }
 
@@ -261,7 +284,8 @@
                 $('#ti_name').text(info.name || '-');
                 $('#ti_father_name').text(info.father_name || '-');
                 $('#ti_phone').text(info.phone || '-');
-                $('#ti_class').text(info.classes && info.classes.length ? info.classes.join(', ') : '-');
+                $('#ti_class_teacher_of').text(info.class_teacher_of && info.class_teacher_of.length ? info.class_teacher_of.join(', ') : '-');
+                $('#ti_classes').text(info.classes && info.classes.length ? info.classes.join(', ') : '-');
                 $('#teacherInfoCard').show();
             })
             .fail(function() {
@@ -280,5 +304,6 @@
         }
         loadTimetable(teacherId);
     });
+
 </script>
 @endpush

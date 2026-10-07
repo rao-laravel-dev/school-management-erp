@@ -107,14 +107,30 @@
         'Sunday': '#6c757d'
     };
 
-    function loadTimetable(teacherId) {
+    // Prev / This Week / Next buttons (week = us hafte ki koi bhi date, khali = aaj)
+    $(document).on('click', '.tt-week-nav', function() {
+        loadTimetable("{{ $ownTeacherId }}", $(this).data('week') || '');
+    });
+
+    function loadTimetable(teacherId, week) {
         let url = "{{ route('teacher.timetable.get_data', ':id') }}";
         url = url.replace(':id', teacherId);
 
-        $.get(url)
-            .done(function(res) {
+        $.get(url, {
+                week: week || '{{ now()->toDateString() }}'
+            })
+            .done(function(data) {
+                let res = data.timetable || {};
+                let dayStatus = data.day_status || {};
+                let wk = data.week || {};
                 let hasAny = Object.keys(res).length > 0;
-                let cardHtml = `<div class="card"><div class="card-header"><h6 class="mb-0">Timetable Result</h6></div><div class="card-body">`;
+                let cardHtml = `<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h6 class="mb-0">Timetable Result</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="${wk.prev}"><i class='bx bx-chevron-left'></i></button>
+                        <span class="small fw-bold">${wk.label}</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="">This Week</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm tt-week-nav" data-week="${wk.next}"><i class='bx bx-chevron-right'></i></button>
+                    </div></div><div class="card-body">`;
 
                 if (!hasAny) {
                     cardHtml += `
@@ -125,13 +141,14 @@
                     cardHtml += `<div class="tt-week-wrapper">`;
                     ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].forEach(day => {
                         let color = dayColors[day];
+                        let st = dayStatus[day] || {};
                         cardHtml += `<div class="tt-day-col" style="--tt-day-color:${color}">
-                        <div class="tt-day-header">${day}</div>
+                        <div class="tt-day-header">${day} <small class="fw-normal">${st.date_label || ''}</small></div>
                         <div>`;
 
-                        if (res[day] && res[day].length > 0) {
+                        if (st.status === 'periods' && res[day] && res[day].length > 0) {
                             res[day].forEach(item => {
-                                let room = item.room_no ?? item.room_number ?? item.room ?? '-';
+                                let room = item.assigned_room_no || '-';
                                 cardHtml += `
                                 <div class="tt-card">
                                     <div class="tt-subject">
@@ -156,11 +173,18 @@
                                     </div>
                                 </div>`;
                             });
+                        } else if (st.status === 'weekly_off') {
+                            cardHtml += `
+                            <div class="tt-not-scheduled" style="border-color:#6c757d;color:#6c757d;background:#f8f9fa;">
+                                <i class='bx bx-moon'></i>
+                                Weekly Off
+                            </div>`;
                         } else {
                             cardHtml += `
                             <div class="tt-not-scheduled">
                                 <i class='bx bx-x-circle'></i>
                                 Not Scheduled
+                                ${st.label ? '<div class="small">' + $('<div>').text(st.label).html() + '</div>' : ''}
                             </div>`;
                         }
 
