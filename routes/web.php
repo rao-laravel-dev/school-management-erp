@@ -433,6 +433,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/students/get-sections/{class_id}', 'getSectionsByClass')->name('students.get_sections');
             Route::get('/students/get-groups/{class_id}', 'getGroupsByClass')->name('students.get_groups');
             Route::get('/students/filter', 'FilterStudents')->name('students.filter');
+            Route::get('/students/export-excel', 'ExportExcel')->name('students.export_excel');
+            Route::get('/students/export-pdf', 'ExportPdf')->name('students.export_pdf');
             Route::get('/students/get-identifiers', 'GetNextAcademicIdentifiers')->name('students.get_identifiers');
             Route::get('/students/get-fee-structure', 'getFeeStructure')->name('students.get_fee_structure');
             Route::get('/students/get-details/{id}', 'getStudentDetails')->name('students.get_details');

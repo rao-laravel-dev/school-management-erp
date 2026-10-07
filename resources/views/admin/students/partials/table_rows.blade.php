@@ -3,8 +3,8 @@
     <td class="text-center align-middle">{{ $loop->iteration }}</td>
     <td class="text-center align-middle">
         {{-- FIXED: Yahan $student ke bajaye $enrollment->student use karein --}}
-        @if(!empty($enrollment->student->photo) && file_exists(public_path('uploads/students/'.$enrollment->student->photo)))
-        <img src="{{ url('uploads/students/'.$enrollment->student->photo) }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Student">
+        @if(!empty($enrollment->student->photo) && file_exists(public_path('storage/uploads/students/'.$enrollment->student->photo)))
+        <img src="{{ url('storage/uploads/students/'.$enrollment->student->photo) }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Student">
         @else
         <img src="{{ url('uploads/no_image.jpg') }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="No Image">
         @endif
@@ -75,24 +75,24 @@
     </td>
 
     <td class="text-center align-middle">
-    <div class="d-flex justify-content-center gap-1">
-        {{-- Edit Button --}}
-        @can('manage-students')
-            <a href="{{ route('students.edit', $enrollment->student->id) }}" 
-               class="btn btn-sm btn-outline-primary px-2" title="Edit">
+        <div class="d-flex justify-content-center gap-1">
+            {{-- Edit Button --}}
+            @can('manage-students')
+            <a href="{{ route('students.edit', $enrollment->student->id) }}"
+                class="btn btn-sm btn-outline-primary px-2" title="Edit">
                 <i class="bx bx-edit"></i>
             </a>
-        @endcan
+            @endcan
 
-        {{-- Delete Button --}}
-        @can('manage-students')
-            <a href="{{ route('students.delete', $enrollment->student->id) }}" 
-               class="btn btn-sm btn-outline-danger px-2 delete-btn" title="Delete">
+            {{-- Delete Button --}}
+            @can('manage-students')
+            <a href="{{ route('students.delete', $enrollment->student->id) }}"
+                class="btn btn-sm btn-outline-danger px-2 delete-btn" title="Delete">
                 <i class="bx bx-trash"></i>
             </a>
-        @endcan
-    </div>
-</td>
+            @endcan
+        </div>
+    </td>
 </tr>
 @empty
 <tr>

@@ -67,17 +67,38 @@
 <div class="row">
     <div class="col-xl">
         <div class="card radius-10">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+            <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 bg-transparent">
                 {{-- Title --}}
                 <h5 class="mb-0 text-primary">Student Directory</h5>
 
                 {{-- Right Side Actions --}}
-                <div class="d-flex gap-2 align-items-center">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+
+                    {{-- Bulk Import Button: le jayega Bulk Import page pe, filters se independent --}}
+                    @can('access-student-import')
+                    <a href="{{ route('student_import.index') }}" class="btn btn-info btn-sm" title="Import Students">
+                        <i class="bx bx-import"></i> <span class="d-none d-sm-inline">Import</span>
+                    </a>
+                    @endcan
+
+                    {{-- Export Excel Button: JS current filters URL mein attach karke navigate karega --}}
+                    @can('access-students')
+                    <button type="button" id="btn-export-excel" class="btn btn-success btn-sm" title="Export Excel">
+                        <i class="bx bx-file"></i> <span class="d-none d-sm-inline">Export Excel</span>
+                    </button>
+                    @endcan
+
+                    {{-- Download PDF Button: same filtered data, dompdf se PDF generate hoga --}}
+                    @can('access-students')
+                    <button type="button" id="btn-export-pdf" class="btn btn-danger btn-sm" title="Download PDF">
+                        <i class="bx bxs-file-pdf"></i> <span class="d-none d-sm-inline">Download PDF</span>
+                    </button>
+                    @endcan
 
                     {{-- Trash Bin Button (Protected by permission) --}}
                     @can('manage-students')
-                    <a href="{{ route('students.trash') }}" class="btn btn-danger btn-sm">
-                        <i class="bx bx-trash"></i> Trash Bin
+                    <a href="{{ route('students.trash') }}" class="btn btn-danger btn-sm" title="Trash Bin">
+                        <i class="bx bx-trash"></i> <span class="d-none d-sm-inline">Trash Bin</span>
                     </a>
                     @endcan
 
@@ -253,6 +274,24 @@
                 }
             });
         }
+
+        // --- EXPORT / PDF: build URL with current filters, then navigate ---
+        function buildFilterQuery() {
+            return $.param({
+                class_id: $('#filter-class').val(),
+                section_id: $('#filter-section').val(),
+                group_id: $('#filter-group').val(),
+                keyword: $('#filter-keyword').val()
+            });
+        }
+
+        $('#btn-export-excel').on('click', function() {
+            window.location.href = "{{ route('students.export_excel') }}?" + buildFilterQuery();
+        });
+
+        $('#btn-export-pdf').on('click', function() {
+            window.location.href = "{{ route('students.export_pdf') }}?" + buildFilterQuery();
+        });
 
         // --- NAYA: KEYWORD SEARCH INPUT PAR DEBOUNCE (500ms) ---
         let searchTimer;

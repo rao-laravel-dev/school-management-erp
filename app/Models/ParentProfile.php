@@ -106,4 +106,35 @@ class ParentProfile extends Model
     {
         return $this->hasMany(Student::class, 'parent_id');
     }
+
+    public function getFatherPhotoUrlAttribute(): string
+    {
+        return $this->resolvePhoto($this->father_photo);
+    }
+
+    public function getMotherPhotoUrlAttribute(): string
+    {
+        return $this->resolvePhoto($this->mother_photo);
+    }
+
+    public function getGuardianPhotoUrlAttribute(): string
+    {
+        return $this->resolvePhoto($this->guardian_photo);
+    }
+
+    private function resolvePhoto(?string $filename): string
+    {
+        if ($filename) {
+            $dirs = ['uploads/parents', 'uploads/parent_images', 'uploads/students', 'parents', 'students'];
+            foreach ($dirs as $dir) {
+                if (\Storage::disk('public')->exists($dir . '/' . $filename)) {
+                    return asset('storage/' . $dir . '/' . $filename);
+                }
+                if (file_exists(public_path($dir . '/' . $filename))) {
+                    return asset($dir . '/' . $filename);
+                }
+            }
+        }
+        return asset('uploads/no_image.jpg');
+    }
 }

@@ -16,6 +16,7 @@ class Student extends Model
     use SoftDeletes; // 👈 Soft Delete trait active ki
 
     protected $dates = ['deleted_at'];
+    protected $appends = ['photo_url'];
 
     protected $fillable = [
         'user_id',
@@ -187,5 +188,21 @@ class Student extends Model
         }
 
         return $qr->code;
+    }
+
+    public function getPhotoUrlAttribute(): string
+    {
+        if ($this->photo) {
+            if (\Storage::disk('public')->exists('uploads/students/' . $this->photo)) {
+                return asset('storage/uploads/students/' . $this->photo);
+            }
+            if (\Storage::disk('public')->exists('students/' . $this->photo)) {
+                return asset('storage/students/' . $this->photo);
+            }
+            if (file_exists(public_path('uploads/students/' . $this->photo))) {
+                return asset('uploads/students/' . $this->photo);
+            }
+        }
+        return asset('uploads/no_image.jpg');
     }
 }

@@ -26,6 +26,21 @@
                         <div class="accordion-body">
                             <div class="row g-3">
 
+                                <div class="col-md-12">
+                                    <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 p-2 px-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input type="checkbox" name="is_existing_student" id="is_existing_student" value="1" style="width: 16px; height: 16px; margin: 0;" {{ old('is_existing_student') ? 'checked' : '' }}>
+                                            <label class="fw-bold mb-0" for="is_existing_student" style="cursor: pointer;">
+                                                <i class="bx bx-archive-in me-1"></i> Existing Student (Migrating from old school records) — Admission No manually enter karein
+                                            </label>
+                                        </div>
+
+                                        <a href="{{ route('student_import.index') }}" class="btn btn-warning btn-sm">
+                                            <i class="bx bx-upload me-1"></i> Import Student
+                                        </a>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-3">
                                     <label class="form-label" for="admission_no">Admission No <span class="text-danger">*</span></label>
                                     <input type="text" name="admission_no" id="admission_no" class="form-control form-control-sm bg-light fw-bold text-success" value="{{ old('admission_no') }}" placeholder="Select Class & Section to Generate..." readonly>
@@ -448,7 +463,7 @@
             </div>
 
             <div class="mt-3 text-end">
-                <button type="submit" class="btn btn-primary px-4">
+                <button type="submit" class="btn btn-success btn-sm px-4">
                     <i class="bx bx-save me-1"></i> Complete Enrollment
                 </button>
             </div>
@@ -552,7 +567,9 @@ $validationErrorsJson = json_encode($errors->all());
                     },
                     success: function(res) {
                         if (res.success) {
-                            $("#admission_no").val(res.admission_no);
+                            if (!$('#is_existing_student').is(':checked')) { // 👈 naya check
+                                $("#admission_no").val(res.admission_no);
+                            }
                             $("#roll_number").val(res.roll_no);
                         }
                     },
@@ -794,7 +811,32 @@ $validationErrorsJson = json_encode($errors->all());
             this.submit();
         });
 
-        // --- 10. AUTO SELECT DISCOUNT (CATEGORY BASED) ---
+        // --- 10: EXISTING STUDENT TOGGLE ---
+        $('#is_existing_student').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#admission_no')
+                    .prop('readonly', false)
+                    .removeClass('bg-light text-success')
+                    .addClass('bg-white')
+                    .val('')
+                    .attr('placeholder', 'Enter existing Admission No manually...');
+                toastr.info("Existing Student mode ON — Admission No ab manually enter kar sakte hain.");
+            } else {
+                $('#admission_no')
+                    .prop('readonly', true)
+                    .removeClass('bg-white')
+                    .addClass('bg-light text-success')
+                    .val('')
+                    .attr('placeholder', 'Select Class & Section to Generate...');
+
+                // agar class/section pehle se selected hain to fresh auto-generated Adm No le aayein
+                if ($("select[name='class_id']").val() && $("select[name='section_id']").val()) {
+                    $("select[name='class_id'], select[name='section_id'], select[name='group_id']").first().trigger('change');
+                }
+            }
+        });
+
+        // --- 11. AUTO SELECT DISCOUNT (CATEGORY BASED) ---
         $('#category_id').on('change', function() {
             let selectedCategoryId = $(this).val();
 

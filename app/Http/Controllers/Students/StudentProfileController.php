@@ -131,6 +131,10 @@ class StudentProfileController extends Controller
 
         $user->update($data);
 
+        if (isset($data['photo']) && $user->studentProfile) {
+            $user->studentProfile->update(['photo' => $data['photo']]);
+        }
+
         return redirect()->back()->with([
             'message' => 'Student Profile Updated Successfully',
             'alert-type' => 'success'

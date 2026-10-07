@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend;
 
+use App\Exports\StudentsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentRequest;
 use App\Models\AcademicYear;
@@ -20,10 +21,14 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\DiscountService;
 use App\Services\ImageService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
@@ -216,6 +221,93 @@ class StudentController extends Controller
             'count' => $enrollments->count()
         ]);
     }
+    // End Method
+
+    /**
+     * 5. EXPORT (Excel): honors current class/section/group/keyword filters
+     */
+    public function ExportExcel(Request $request)
+    {
+        $siteSetting = SiteSetting::current();
+        $logoPath = null;
+
+        if ($siteSetting->logo) {
+            $webpPath = storage_path('app/public/uploads/site_setting/' . $siteSetting->logo);
+
+            if (file_exists($webpPath)) {
+                $tempPngPath = storage_path('app/public/temp_excel_logo.png');
+                $manager = new ImageManager(new Driver());
+                $manager->read($webpPath)->toPng()->save($tempPngPath);
+                $logoPath = $tempPngPath;
+            }
+        }
+
+        return Excel::download(
+            new StudentsExport(
+                $request->class_id,
+                $request->section_id,
+                $request->group_id,
+                $request->keyword,
+                $siteSetting,
+                $logoPath
+            ),
+            'students_' . now()->format('Y-m-d_His') . '.xlsx'
+        );
+    }
+
+    /**
+     * 6. EXPORT (PDF): same filters, rendered via dompdf, with school logo/name
+     */
+    public function ExportPdf(Request $request)
+    {
+        $query = Enrollment::with(['student.user', 'student.parent', 'schoolClass', 'section', 'group']);
+
+        if ($request->filled('class_id')) {
+            $query->where('class_id', $request->class_id);
+        }
+        if ($request->filled('section_id')) {
+            $query->where('section_id', $request->section_id);
+        }
+        if ($request->filled('group_id')) {
+            $query->where('group_id', $request->group_id);
+        }
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->whereHas('student', function ($q) use ($keyword) {
+                $q->where('first_name', 'like', "%{$keyword}%")
+                    ->orWhere('last_name', 'like', "%{$keyword}%")
+                    ->orWhere('admission_no', 'like', "%{$keyword}%");
+            });
+        }
+
+        $enrollments = $query->latest()->get();
+
+        $classLabel = $request->filled('class_id')
+            ? optional(SchoolClass::find($request->class_id))->name
+            : 'All Classes';
+
+        // Site Setting se school name + logo (agar exist karta hai)
+        $siteSetting = SiteSetting::current();
+        $logoPath = null;
+
+        if ($siteSetting->logo) {
+            $webpPath = storage_path('app/public/uploads/site_setting/' . $siteSetting->logo);
+
+            if (file_exists($webpPath)) {
+                // dompdf WebP reliably render nahi karta — temp PNG banate hain
+                $tempPngPath = storage_path('app/public/temp_pdf_logo.png');
+                $manager = new ImageManager(new Driver());
+                $manager->read($webpPath)->toPng()->save($tempPngPath);
+                $logoPath = $tempPngPath;
+            }
+        }
+
+        $pdf = Pdf::loadView('admin.students.pdf', compact('enrollments', 'classLabel', 'siteSetting', 'logoPath'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('students_' . now()->format('Y-m-d_His') . '.pdf');
+    }
+// End Method
 
     /**
      * 5. SMART LOGIC: Live AJAX Generation Layer for Unique Identifiers
@@ -290,22 +382,37 @@ class StudentController extends Controller
             $sectionModel = Section::find($sectionId);
             $groupModel   = Group::find($groupId);
 
-            // --- Admission No base ---
-            [$prefix, $yearPart, $admMaxSeq] = $this->buildAdmissionSequence($sessionName);
-            $admissionIncrement = $admMaxSeq + 1;
+            // 👇 NAYA — Existing Student mode check (Adm No manual vs auto-generated)
+            $isExistingStudent = $request->boolean('is_existing_student');
 
-            // --- Roll No base ---
+            if ($isExistingStudent) {
+                // Existing student: Admission No form se manually diya gaya hai (permanent, purane school record se)
+                $admission_no = trim($request->admission_no);
+
+                // Race-condition safety re-check (FormRequest unique rule already validate kar chuka hai)
+                if (User::where('username', $admission_no)->exists() || Student::where('admission_no', $admission_no)->exists()) {
+                    throw new Exception("This Admission No ('{$admission_no}') is already allocated to another student entity.");
+                }
+            } else {
+                // --- Admission No base (naya student — auto-generate) ---
+                [$prefix, $yearPart, $admMaxSeq] = $this->buildAdmissionSequence($sessionName);
+                $admissionIncrement = $admMaxSeq + 1;
+                $admission_no = null; // retry-loop ke andar generate hoga
+            }
+
+            // --- Roll No base (hamesha auto-generate, existing student ke liye bhi) ---
             [$classCode, $sectionChar, $groupCode, $rollMaxSeq] = $this->buildRollSequence($classModel, $sectionModel, $groupModel, $academic_year_id);
             $rollIncrement = $rollMaxSeq + 1;
 
             // RETRY-GUARD — clash hone par khud agla number try karta hai
             $maxAttempts = 50;
             $attempt = 0;
-            $admission_no = null;
             $customNumericRollNo = null;
 
             do {
-                $admission_no = $prefix . '-' . $yearPart . '-' . str_pad($admissionIncrement, 4, '0', STR_PAD_LEFT);
+                if (!$isExistingStudent) {
+                    $admission_no = $prefix . '-' . $yearPart . '-' . str_pad($admissionIncrement, 4, '0', STR_PAD_LEFT);
+                }
 
                 $seqStr = str_pad($rollIncrement, 2, '0', STR_PAD_LEFT);
                 $customNumericRollNo = $groupCode
@@ -318,12 +425,21 @@ class StudentController extends Controller
                     ->where('academic_year_id', $academic_year_id)
                     ->exists();
 
-                if (!$usernameTaken && !$admissionTaken && !$rollTaken) {
-                    break;
+                if ($isExistingStudent) {
+                    // 👇 NAYA — Admission No fixed hai (manual), sirf Roll No ka clash resolve karna hai
+                    if (!$rollTaken) {
+                        break;
+                    }
+                    $rollIncrement++;
+                } else {
+                    if (!$usernameTaken && !$admissionTaken && !$rollTaken) {
+                        break;
+                    }
+
+                    if ($usernameTaken || $admissionTaken) $admissionIncrement++;   // 👈 dono checks se increment
+                    if ($rollTaken) $rollIncrement++;
                 }
 
-                if ($usernameTaken || $admissionTaken) $admissionIncrement++;   // 👈 dono checks se increment
-                if ($rollTaken) $rollIncrement++;
                 $attempt++;
             } while ($attempt < $maxAttempts);
 
@@ -853,7 +969,7 @@ class StudentController extends Controller
             // =================================================================
             $studentUserUpdateData = [
                 'name'     => $request->first_name . ' ' . $request->last_name,
-                'username' => $customNumericRollNo,
+                'username' => $admission_no,
                 // email intentionally untouched — student has no email field on the form,
                 // matching Store's behaviour (always null, never fabricated)
             ];

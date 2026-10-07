@@ -21,7 +21,8 @@ class StoreStudentRequest extends FormRequest
     {
         return [
             // 🎓 Academic Details
-            'admission_no'       => 'nullable|string',
+            'is_existing_student' => 'nullable|boolean',
+            'admission_no'         => ['nullable', 'required_if:is_existing_student,1', 'string', 'max:50', 'unique:students,admission_no'],
             'roll_number'        => 'nullable|string',
             'admission_date'     => 'required|date',
             'class_id'           => 'required|integer|exists:school_class,id',
@@ -83,6 +84,8 @@ class StoreStudentRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'admission_no.required_if' => 'Existing student ke liye Admission No dena zaroori hai.',
+            'admission_no.unique'      => 'Yeh Admission No pehle se kisi aur student ko allot ho chuka hai.',
             'class_id.required'          => 'Please select a valid class from the dropdown.',
             'section_id.required'        => 'Please select a valid section from the dropdown.',
             'first_name.required'        => 'Student first name field is required.',
