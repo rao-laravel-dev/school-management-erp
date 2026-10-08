@@ -44,3 +44,5 @@ Thumbs.db
 *.md
 # Seeder with demo passwords (local only)
 /database/seeders/UserSeeder.php
+# User uploads (never in git)
+/public/uploads/
