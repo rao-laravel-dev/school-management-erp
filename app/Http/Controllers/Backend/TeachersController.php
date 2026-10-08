@@ -83,14 +83,15 @@ class TeachersController extends Controller
         // Agar first_name khali hai, toh default 'TCH' prefix rakhein (NEW hata dein)
         $prefix = !empty($firstName) ? strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName)) : 'TCH';
 
-        $lastTeacher = Teacher::withTrashed()->latest('id')->first();
+        // Max existing number nikalen (withTrashed) takki delete ke baad bhi ID duplicate na ho
+        $maxNumber = Teacher::withTrashed()
+            ->get(['teacher_id'])
+            ->map(function ($t) {
+                return preg_match('/^[A-Z]+(\d+)$/', $t->teacher_id, $m) ? (int) $m[1] : 0;
+            })
+            ->max();
 
-        $number = 1;
-        if ($lastTeacher && !empty($lastTeacher->teacher_id)) {
-            // Sirf numbers nikalen
-            $lastId = $lastTeacher->teacher_id;
-            $number = (int)preg_replace('/[^0-9]/', '', $lastId) + 1;
-        }
+        $number = $maxNumber + 1;
 
         return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
     }

@@ -29,7 +29,7 @@ class ClassTimetableController extends Controller
     public function create()
 {
     $classes = SchoolClass::where('status', 1)->get();
-    $teachers = Teacher::orderBy('first_name')->get();
+    $teachers = Teacher::whereHas('user', fn ($q) => $q->where('status', 1))->orderBy('first_name')->get();
     $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     // Active year ke weekly off din (Copy Day modal ke hint ke liye, read-only). Year na ho to khali
@@ -300,6 +300,21 @@ class ClassTimetableController extends Controller
         $classId = $request->school_class_id;
         $sectionId = $request->section_id;
         $day = $request->day;
+
+        // Subject isi class ka ho (class_subject: kisi bhi group ka ya common). UI already filter karta hai, ye backend guard hai
+        $allowedSubjectIds = ClassSubject::where('class_id', $classId)
+            ->pluck('subject_id')->map(fn ($id) => (int) $id)->unique()->all();
+
+        $subjectErrors = [];
+        foreach ($request->periods as $i => $row) {
+            if (!in_array((int) $row['subject_id'], $allowedSubjectIds, true)) {
+                $subjectErrors["periods.{$i}.subject_id"] = ['is invalid'];
+            }
+        }
+
+        if ($subjectErrors) {
+            return response()->json(['success' => false, 'errors' => $subjectErrors], 422);
+        }
 
         // --- Clash checking ---
         foreach ($request->periods as $row) {

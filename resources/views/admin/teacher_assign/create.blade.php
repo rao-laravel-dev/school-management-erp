@@ -68,15 +68,18 @@
                             <option value="">Select Teacher</option>
                             @foreach($teachers as $teacher)
                             <option value="{{ $teacher->id }}" {{ old('teacher_id', $editData->teacher_id ?? '') == $teacher->id ? 'selected' : '' }}>
-                                {{ $teacher->first_name }} {{ $teacher->last_name }}
+                                {{ $teacher->first_name }} {{ $teacher->last_name }}{{ $teacher->relationLoaded('user') && $teacher->user && $teacher->user->status != 1 ? ' (Inactive)' : '' }}
                             </option>
                             @endforeach
                         </select>
                         @error('teacher_id') <span class="text-danger small">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="bx bx-save"></i> {{ isset($editData) ? 'Update' : 'Save' }} Assignment</button>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn {{ isset($editData) ? 'btn-success' : 'btn-primary' }} btn-sm"><i class="bx bx-save"></i> {{ isset($editData) ? 'Update' : 'Save' }} Assignment</button>
+                        @if(isset($editData))
+                        <a href="{{ route('teacher.assign.create') }}" class="btn btn-danger btn-sm"><i class="bx bx-x"></i> Cancel</a>
+                        @endif
                     </div>
                 </form>
             </div>
@@ -124,7 +127,7 @@
                                 <td>
                                     <span class="text-success"><i class="bx bx-star me-1"></i></span>
                                     <span class="text-secondary fw-bold">
-                                        {{ $row->teacher->first_name ?? 'N/A' }} {{ $row->teacher->last_name ?? '' }}
+                                        {{ $row->teacher->first_name ?? 'N/A' }} {{ $row->teacher->last_name ?? '' }}{{ $row->teacher && $row->teacher->relationLoaded('user') && $row->teacher->user && $row->teacher->user->status != 1 ? ' (Inactive)' : '' }}
                                     </span>
                                 </td>
                                 <td>

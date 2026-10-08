@@ -13,7 +13,7 @@ use Illuminate\Validation\Rule;
 
 class TeacherAssignmentController extends Controller
 {
-    private const RELATIONS = ['teacher', 'schoolClass', 'section', 'academicYear'];
+    private const RELATIONS = ['teacher.user', 'schoolClass', 'section', 'academicYear'];
 
     public function AllTeacherClass()
     {
@@ -24,7 +24,7 @@ class TeacherAssignmentController extends Controller
 
     public function AddTeacherClass()
     {
-        $teachers      = Teacher::all();
+        $teachers      = Teacher::whereHas('user', fn ($q) => $q->where('status', 1))->get();
         $academicYears = AcademicYear::where('status', 1)->get();
         $classes       = SchoolClass::where('status', 1)->get();
         $sections      = collect();
@@ -98,7 +98,11 @@ class TeacherAssignmentController extends Controller
     public function EditTeacherClass($id)
     {
         $editData      = TeacherAssignment::findOrFail($id);
-        $teachers      = Teacher::all();
+        // Active teachers + current assigned teacher (inactive ho to bhi selected rahe)
+        $teachers      = Teacher::with('user')
+            ->where(fn ($q) => $q->whereHas('user', fn ($u) => $u->where('status', 1))
+                ->orWhere('id', $editData->teacher_id))
+            ->get();
         $academicYears = AcademicYear::where('status', 1)->get();
         $classes       = SchoolClass::where('status', 1)->get();
 

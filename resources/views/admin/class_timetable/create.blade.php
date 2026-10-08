@@ -466,6 +466,7 @@
                         time_from: r.time_from,
                         time_to: r.time_to,
                         teacher_id: r.teacher_id,
+                        teacher_name: r.teacher ? (r.teacher.first_name + ' ' + (r.teacher.last_name || '')).trim() : '',
                     }));
                 });
                 $('#formSection').show();
@@ -580,6 +581,12 @@
             $row.find('.input-group').replaceWith(`<input type="text" class="form-control form-control-sm teacher_id" value="-" readonly>`);
         } else {
             $row.find('.subject_id').html(subjectOptionsHtml(data.subject_id, data.subject_name));
+            // saved teacher inactive ho (list mein na ho) to bhi option dikhao, value lost na ho
+            const $tSel = $row.find('select.teacher_id');
+            if (data.teacher_id && !$tSel.find('option').filter(function () { return String(this.value) === String(data.teacher_id); }).length) {
+                const tName = data.teacher_name || ('Teacher #' + data.teacher_id);
+                $tSel.append($('<option>').val(data.teacher_id).attr('data-inactive-name', tName).text(tName + ' (Inactive)'));
+            }
             $row.find('.teacher_id').val(data.teacher_id || '');
             // Copy Day ke baad jis row ka teacher us din busy ho
             if (data.busy_flag) {
@@ -664,6 +671,7 @@
                 time_from: $row.find('.time_from').val(),
                 time_to: $row.find('.time_to').val(),
                 teacher_id: $row.find('.teacher_id').val(),
+                teacher_name: $row.find('select.teacher_id option:selected').attr('data-inactive-name') || '',
             });
         });
         return rows;

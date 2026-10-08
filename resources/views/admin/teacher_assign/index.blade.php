@@ -54,7 +54,7 @@
                         <td>
                             <span class="text-dark fw-bold">
                                 <i class="bx bxs-star me-1 text-success"></i>
-                                {{ $row->teacher->first_name ?? '' }} {{ $row->teacher->last_name ?? '' }}
+                                {{ $row->teacher->first_name ?? '' }} {{ $row->teacher->last_name ?? '' }}{{ $row->teacher && $row->teacher->relationLoaded('user') && $row->teacher->user && $row->teacher->user->status != 1 ? ' (Inactive)' : '' }}
                             </span>
                         </td>
                         <td>{{ $row->created_at ? $row->created_at->format('d M, Y') : 'N/A' }}</td>
