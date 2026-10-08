@@ -39,3 +39,6 @@ Thumbs.db
 /CLAUDE.md
 /AGENTS.md
 /docs/ai/
+
+# Markdown docs (local only)
+*.md
