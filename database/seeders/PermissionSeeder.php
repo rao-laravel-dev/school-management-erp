@@ -105,7 +105,8 @@ class PermissionSeeder extends Seeder
             'manage-expenses',
             'access-salary-slips',
             'manage-salary-slips',
-            'access-my-salary-slips',       // web.php Only for Teacher this permission.
+            'access-my-salary-slips',       // web.php All staff (my.salary_slips.*) + teacher.salary_slips.index
+            'access-my-attendance',         // web.php All staff (my.attendance.index)
             'access-finance-report',
             'access-staff-attendance',
             'manage-staff-attendance',

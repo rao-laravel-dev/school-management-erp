@@ -15,6 +15,7 @@ use App\Http\Controllers\Backend\PrintReportCardController;
 use App\Http\Controllers\Backend\ReceptionController;
 use App\Http\Controllers\Backend\ReportCardTemplateController;
 use App\Http\Controllers\Backend\RoleController;
+use App\Http\Controllers\Backend\SalarySlipController;
 use App\Http\Controllers\Backend\SchoolClassSectionController;
 use App\Http\Controllers\Backend\SchoolClassSubjectController;
 use App\Http\Controllers\Backend\SchoolTimingController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Backend\SectionController;
 use App\Http\Controllers\Backend\SkillAssessmentAreaController;
 use App\Http\Controllers\Backend\SkillAssessmentEntryController;
 use App\Http\Controllers\Backend\SkillCategoryController;
+use App\Http\Controllers\Backend\StaffAttendanceController;
 use App\Http\Controllers\Backend\StaffLeaveApplicationController;
 use App\Http\Controllers\Backend\StaffLeaveSettingController;
 use App\Http\Controllers\Backend\StudentController;
@@ -344,6 +346,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/staffleaveapp/{id}', 'update')->name('staffleaveapp.update');
 
             Route::get('/staffleaveapp/{id}', 'show')->name('staffleaveapp.show');
+            Route::delete('/staffleaveapp/{id}', 'destroy')->name('staffleaveapp.destroy'); // NEW 07-10-26 (owner + pending check controller mein)
 
             // Helpers (AJAX calls)
             Route::get('/staffleaveapp/get-leave-types/{user_id}', 'getLeaveTypes')->name('staffleaveapp.getLeaveTypes');
@@ -354,7 +357,19 @@ Route::middleware(['auth'])->group(function () {
         // Permission: 'manage-leave-application'
         Route::middleware(['can:manage-leave-application'])->group(function () {
             Route::post('/staffleaveapp/status/{id}', 'updateStatus')->name('staffleaveapp.updateStatus');
-            Route::delete('/staffleaveapp/{id}', 'destroy')->name('staffleaveapp.destroy');
+        });
+    });
+
+    // ==========================================
+    // MY (SELF-SERVICE) — har staff role ki apni salary slips + attendance (read-only)
+    // ==========================================
+    Route::prefix('my')->name('my.')->group(function () { // NEW 07-10-26
+        Route::middleware(['can:access-my-salary-slips'])->controller(SalarySlipController::class)->group(function () {
+            Route::get('/salary-slips', 'myIndex')->name('salary_slips.index');
+            Route::get('/salary-slips/{id}', 'myShow')->whereNumber('id')->name('salary_slips.show'); // owner check controller mein
+        });
+        Route::middleware(['can:access-my-attendance'])->controller(StaffAttendanceController::class)->group(function () {
+            Route::get('/attendance', 'myAttendance')->name('attendance.index');
         });
     });
 

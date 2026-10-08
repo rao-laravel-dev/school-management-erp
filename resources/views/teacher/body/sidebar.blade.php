@@ -133,30 +133,34 @@
 						<i class='bx bx-radio-circle'></i>View/Manage Leaves
 					</a>
 				</li>
-				<li>
-					<a href="{{ route('staffleaveapp.create') }}">
-						<i class='bx bx-radio-circle'></i>Create/Request Leave
-					</a>
-				</li>
 			</ul>
 		</li>
 		@endcan
-		{{-- Salary --}}
-		@can('access-my-salary-slips')
+		{{-- Reports: logged-in user ki apni reports (purana Salary block yahan merge, aage aur links aayenge) --}}
+		@canany(['access-my-attendance', 'access-my-salary-slips'])
 		<li>
 			<a href="javascript:;" class="has-arrow">
-				<div class="parent-icon"><i class="bx bx-money"></i></div>
-				<div class="menu-title">Salary</div>
+				<div class="parent-icon"><i class="bx bx-file"></i></div>
+				<div class="menu-title">Reports</div>
 			</a>
 			<ul>
+				@can('access-my-attendance')
 				<li>
-					<a href="{{ route('teacher.salary_slips.index') }}">
-						<i class='bx bx-radio-circle'></i>Salary Details
+					<a href="{{ route('my.attendance.index') }}">
+						<i class='bx bx-radio-circle'></i>My Attendance
 					</a>
 				</li>
+				@endcan
+				@can('access-my-salary-slips')
+				<li>
+					<a href="{{ route('my.salary_slips.index') }}">
+						<i class='bx bx-radio-circle'></i>My Salary Slips
+					</a>
+				</li>
+				@endcan
 			</ul>
 		</li>
-		@endcan
+		@endcanany
 	</ul>
 	<!--end navigation-->
 </div>

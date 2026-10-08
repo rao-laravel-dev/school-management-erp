@@ -405,6 +405,37 @@ class StaffAttendanceController extends Controller
     {
         $staff = User::with('roles')->findOrFail($user);
 
+        return view('admin.staff_attendance.show', array_merge(['staff' => $staff], $this->attendanceData($request, $staff)));
+    }
+
+    // ==========================================
+    // MY ATTENDANCE — logged-in staff ki apni attendance (read-only)
+    // ==========================================
+    public function myAttendance(Request $request)
+    {
+        $validator = Validator::make($request->query(), [
+            'from_date' => 'nullable|date',
+            'to_date'   => 'nullable|date|after_or_equal:from_date',
+            'status'    => 'nullable|in:present,absent,half_day,leave',
+        ], [
+            'to_date.after_or_equal' => 'To Date must be on or after From Date',
+        ]);
+
+        // GET filter galat ho to bina params wale page par wapas (back() same URL par loop kar sakta hai)
+        if ($validator->fails()) {
+            return redirect()->route('my.attendance.index')->withErrors($validator);
+        }
+
+        // Sirf apna record, kisi aur staff ka nahi
+        $staff = User::with('roles')->findOrFail(auth()->id());
+
+        return view('my.attendance.index', array_merge(['staff' => $staff], $this->attendanceData($request, $staff)));
+    }
+    // End Method
+
+    // ShowAttendance aur myAttendance dono ki shared query (date range + status, counts, %, monthly)
+    private function attendanceData(Request $request, User $staff): array
+    {
         $fromDate     = $request->query('from_date', now()->startOfMonth()->toDateString());
         $toDate       = $request->query('to_date', now()->toDateString());
         $statusFilter = $request->query('status');
@@ -445,14 +476,14 @@ class StaffAttendanceController extends Controller
             ->sortKeys()
             ->values();
 
-        return view('admin.staff_attendance.show', compact(
-            'staff',
+        return compact(
             'records',
             'summary',
             'monthly',
             'fromDate',
             'toDate',
             'statusFilter'
-        ));
+        );
     }
+    // End Method
 }

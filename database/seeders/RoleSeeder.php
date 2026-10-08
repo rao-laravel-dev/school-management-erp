@@ -182,16 +182,10 @@ class RoleSeeder extends Seeder
             'access-attendance',
             'access-leave-application',
             'access-front-office',
-            'access-fee-structures',
-            'access-fee-collections',
-            'access-fee-types',
-            'access-bank-accounts',
-            'access-expense-categories',
-            'access-expenses',
-            'access-salary-slips',
+            // Fee + finance permissions receptionist se hata di (08-10-2026)
             'access-staff-attendance',
-            'access-discount-policies',
-            'access-fine-policies',
+            'access-my-salary-slips',       // web.php my.salary_slips.*
+            'access-my-attendance',         // web.php my.attendance.index
 
         ]);
 
@@ -237,6 +231,8 @@ class RoleSeeder extends Seeder
             'access-staff-attendance',
             'access-discount-policies',
             'access-fine-policies',
+            'access-my-salary-slips',       // web.php my.salary_slips.*
+            'access-my-attendance',         // web.php my.attendance.index
 
         ]);
 
@@ -248,6 +244,7 @@ class RoleSeeder extends Seeder
             'access-student-houses',
             'access-attendance',
             'access-my-salary-slips',       // web.php Only for Teacher this permission.
+            'access-my-attendance',         // web.php my.attendance.index
             'access-home-works',
             'manage-home-works',
             'access-class-timetable',

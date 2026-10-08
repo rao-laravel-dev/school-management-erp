@@ -230,4 +230,26 @@ class SalarySlipController extends Controller
         return redirect()->route('salary_slips.index')
             ->with('success', 'Salary slip deleted.');
     }
+
+    // My Salary Slips (har staff role, sirf apni slips — read-only)
+    public function myIndex()
+    {
+        $slips = SalarySlip::where('user_id', auth()->id())
+            ->orderByDesc('month')
+            ->get();
+
+        return view('my.salary_slips.index', compact('slips'));
+    }
+    // End Method
+
+    // My Salary Slip detail / print (owner check: kisi aur ki slip par 403)
+    public function myShow($id)
+    {
+        $slip = SalarySlip::with(['user.roles', 'paidBy', 'transaction'])->findOrFail($id);
+
+        abort_if((int) $slip->user_id !== (int) auth()->id(), 403);
+
+        return view('my.salary_slips.show', compact('slip'));
+    }
+    // End Method
 }

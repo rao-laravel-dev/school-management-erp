@@ -76,27 +76,11 @@
                         <i class='bx bx-radio-circle'></i>Leave List
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('staffleaveapp.create') }}">
-                        <i class='bx bx-radio-circle'></i>Apply Leave
-                    </a>
-                </li>
             </ul>
         </li>
         @endcan
 
-        @can('access-attendance')
-        <li>
-            <a href="javascript:;" class="has-arrow">
-                <div class="parent-icon"><i class='bx bx-check-shield'></i></div>
-                <div class="menu-title">Attendance</div>
-            </a>
-            <ul>
-                <li><a href="{{ route('attendance.create') }}"><i class='bx bx-radio-circle'></i>Mark Attendance</a></li>
-                <li><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>View Report</a></li>
-            </ul>
-        </li>
-        @endcan
+        {{-- Attendance dropdown hata diya: receptionist sirf reports dekhta hai, links ab "Reports" menu mein --}}
 
         @can('access-academics')
         <li>
@@ -148,8 +132,103 @@
                         <li><a href="{{ route('school-class-subjects.assign') }}"><i class='bx bx-right-arrow-alt'></i>Assign New</a></li>
                     </ul>
                 </li>
+
+                {{-- Academic Year --}}
+                <li><a href="{{ route('academic_years.index') }}"><i class='bx bx-radio-circle'></i>Academic Year</a></li>
+
+                {{-- TimeTable --}}
+                @canany(['access-class-timetable', 'access-teacher-timetable'])
+                <li>
+                    <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>TimeTable</a>
+                    <ul>
+                        @can('access-class-timetable')
+                        <li><a href="{{ route('class_timetable.index') }}"><i class='bx bx-right-arrow-alt'></i>Class Timetable</a></li>
+                        @endcan
+                        @can('access-teacher-timetable')
+                        <li><a href="{{ route('teacher_timetable.index') }}"><i class='bx bx-right-arrow-alt'></i>Teacher Timetable</a></li>
+                        @endcan
+                    </ul>
+                </li>
+                @endcanany
+
+                {{-- Rooms --}}
+                @can('access-rooms')
+                <li><a href="{{ route('rooms.index') }}"><i class='bx bx-radio-circle'></i>Manage Room</a></li>
+                @endcan
+
+                {{-- Academic Calendar --}}
+                <li>
+                    <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Academic Calendar</a>
+                    <ul>
+                        <li><a href="{{ route('academic_calendar.index') }}"><i class='bx bx-right-arrow-alt'></i>Academic Calendar</a></li>
+                        <li><a href="{{ route('event_type.index') }}"><i class='bx bx-right-arrow-alt'></i>Holiday</a></li>
+                    </ul>
+                </li>
             </ul>
         </li>
         @endcan
+
+        {{-- Examination --}}
+        @canany(['access-exam-schedules', 'access-results', 'access-marksheets'])
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-notepad'></i></div>
+                <div class="menu-title">Examination</div>
+            </a>
+            <ul>
+                @can('access-exam-schedules')
+                <li><a href="{{ route('exam_schedule.index') }}"><i class='bx bx-radio-circle'></i>Exam Schedule</a></li>
+                @endcan
+                @can('access-results')
+                <li><a href="{{ route('result.index') }}"><i class='bx bx-radio-circle'></i>Result</a></li>
+                @endcan
+                @can('access-marksheets')
+                <li><a href="{{ route('print_marksheet.index') }}"><i class='bx bx-radio-circle'></i>Print Marksheet</a></li>
+                @endcan
+            </ul>
+        </li>
+        @endcanany
+
+        {{-- ID Cards (sirf print) --}}
+        @canany(['access-id-card-templates', 'access-staff-id-card-templates'])
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-id-card'></i></div>
+                <div class="menu-title">ID Cards</div>
+            </a>
+            <ul>
+                @can('access-id-card-templates')
+                <li><a href="{{ route('print_id_card.index') }}"><i class='bx bx-radio-circle'></i>Print Student ID Card</a></li>
+                @endcan
+                @can('access-staff-id-card-templates')
+                <li><a href="{{ route('print_staff_id_card.index') }}"><i class='bx bx-radio-circle'></i>Print Staff ID Card</a></li>
+                @endcan
+            </ul>
+        </li>
+        @endcanany
+
+        {{-- Reports: logged-in user ki apni reports + attendance reports (aage aur links yahan aayenge) --}}
+        @canany(['access-my-attendance', 'access-my-salary-slips', 'access-attendance', 'access-staff-attendance'])
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-file'></i></div>
+                <div class="menu-title">Reports</div>
+            </a>
+            <ul>
+                @can('access-my-attendance')
+                <li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance</a></li>
+                @endcan
+                @can('access-my-salary-slips')
+                <li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slips</a></li>
+                @endcan
+                @can('access-attendance')
+                <li><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
+                @endcan
+                @can('access-staff-attendance')
+                <li><a href="{{ route('staff_attendance.report') }}"><i class='bx bx-radio-circle'></i>Staff Attendance Report</a></li>
+                @endcan
+            </ul>
+        </li>
+        @endcanany
     </ul>
 </div>

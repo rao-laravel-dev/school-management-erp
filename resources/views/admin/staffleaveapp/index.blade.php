@@ -75,22 +75,22 @@
 
                         {{-- Actions Column --}}
                         <td class="text-center">
-                            @can('manage-leave-application')
-                            {{-- Admin ke liye: Sirf Delete --}}
-                            <button type="button" class="btn btn-sm btn-outline-danger delete-leave-btn" data-id="{{ $app->id }}">
-                                <i class="bx bx-trash"></i>
-                            </button>
-                            @else
-                            {{-- Receptionist ke liye: Edit aur Delete dono --}}
+                            {{-- Edit sirf pending par (sab roles, non-admin ko list mein sirf apni rows milti hain) --}}
+                            @if($app->status == 'pending')
                             <a href="javascript:void(0)"
                                 data-url="{{ route('staffleaveapp.edit', $app->id) }}"
                                 class="btn btn-sm btn-outline-primary edit-leave-btn">
                                 <i class="bx bx-edit"></i>
                             </a>
+                            @endif
+                            {{-- Delete: admin har row, baqi sirf apni pending --}}
+                            @if(auth()->user()->can('manage-leave-application') || $app->status == 'pending')
                             <button type="button" class="btn btn-sm btn-outline-danger delete-leave-btn" data-id="{{ $app->id }}">
                                 <i class="bx bx-trash"></i>
                             </button>
-                            @endcan
+                            @else
+                            <span class="text-muted">-</span>
+                            @endif
                         </td>
                     </tr>
                     @endforeach
@@ -106,7 +106,7 @@
             <form action="{{ route('staffleaveapp.store') }}" method="POST" id="leaveForm" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header bg-primary text-white p-2">
-                    <h5 class="modal-title text-white mb-0">New Leave Application</h5>
+                    <h5 class="modal-title text-white mb-0" id="leaveModalTitle">New Leave Application</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size: 0.7rem;" aria-label="Close"></button>
                 </div>
 
@@ -120,12 +120,12 @@
 
                         <div class="col-md-4">
                             <label class="form-label">Staff *</label>
-                            @if(auth()->user()->hasRole('admin'))
-                            {{-- Admin ke liye Select Dropdown --}}
+                            @if(auth()->user()->hasAnyRole(['admin', 'superadmin']))
+                            {{-- Admin/Superadmin ke liye Select Dropdown --}}
                             <select name="user_id" id="staff_user_id" class="form-select @error('user_id') is-invalid @enderror">
                                 <option value="">Select Staff</option>
                                 @foreach($staffs as $s)
-                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                <option value="{{ $s->id }}">{{ $s->name }} ({{ ucfirst(optional($s->roles->first())->name ?: '-') }} - {{ $s->staff_code }})</option>
                                 @endforeach
                             </select>
                             @else
@@ -193,7 +193,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save Application</button>
+                    <button type="submit" class="btn btn-primary" id="leaveSubmitBtn">Save Application</button>
                 </div>
             </form>
         </div>
@@ -211,8 +211,14 @@
             "preventDuplicates": true
         };
 
-        // 2. Helper: Load Leave Types
-        function loadLeaveTypes(userId) {
+        // Apply aur Edit dono isi modal se; editData null = apply mode
+        const STORE_URL = "{{ route('staffleaveapp.store') }}";
+        const UPDATE_URL_TPL = "{{ route('staffleaveapp.update', ':id') }}";
+        const DESTROY_URL_TPL = "{{ route('staffleaveapp.destroy', ':id') }}";
+        let editData = null;
+
+        // 2. Helper: Load Leave Types (selectedType: edit mode mein pehle se select)
+        function loadLeaveTypes(userId, selectedType) {
             if (!userId) return;
 
             $.ajax({
@@ -230,6 +236,11 @@
                         });
                     } else {
                         dropdown.append('<option value="">No types found</option>');
+                    }
+
+                    // Edit mode: purana type select + balance load
+                    if (selectedType) {
+                        dropdown.val(selectedType).trigger('change');
                     }
                 },
                 error: function(xhr) {
@@ -271,21 +282,36 @@
             }
         });
 
-        // 5. EVENT: Date Calculation
-        $('#start_date, #end_date').on('change', function() {
-            let start = new Date($('#start_date').val());
-            let end = new Date($('#end_date').val());
+        // 5. EVENT: Date + Duration Calculation
+        // Half day sirf ek din (start = end) par, warna Full Day force
+        function calcLeaveDays() {
+            let startVal = $('#start_date').val();
+            let endVal = $('#end_date').val();
             let display = $('#total_days_display');
+            let sameDay = !startVal || !endVal || startVal === endVal;
 
-            if ($('#start_date').val() && $('#end_date').val()) {
-                if (end >= start) {
-                    let diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                    display.text("Total: " + diff + " days").removeClass('text-danger').addClass('text-success');
-                } else {
-                    display.text("Invalid Date Range").removeClass('text-success').addClass('text-danger');
-                }
+            $('#dur2, #dur3').prop('disabled', !sameDay);
+            if (!sameDay && !$('#dur1').is(':checked')) {
+                $('#dur1').prop('checked', true);
             }
-        });
+
+            if (!startVal || !endVal) {
+                display.text('');
+                return;
+            }
+
+            let start = new Date(startVal);
+            let end = new Date(endVal);
+            if (end >= start) {
+                let isHalf = $('input[name="leave_duration"]:checked').val() !== 'full';
+                let diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                display.text(isHalf ? "Total: 0.5 day" : "Total: " + diff + " days").removeClass('text-danger').addClass('text-success');
+            } else {
+                display.text("Invalid Date Range").removeClass('text-success').addClass('text-danger');
+            }
+        }
+
+        $(document).on('change', '#start_date, #end_date, input[name="leave_duration"]', calcLeaveDays);
 
         // 6. FORM: Leave Application Submit
         $(document).on('submit', '#leaveForm', function(e) {
@@ -307,17 +333,26 @@
                     toastr.success(res.success || "Saved successfully!");
                     $('#leaveModal').modal('hide');
                     form[0].reset();
+                    calcLeaveDays();
                     setTimeout(() => location.reload(), 1000);
                 },
                 error: function(xhr) {
-                    btn.prop('disabled', false).text('Save Application');
+                    btn.prop('disabled', false).text(editData ? 'Update' : 'Save Application');
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
                         $.each(errors, function(key, value) {
+                            // Duration radios 3 hain, error sirf ek dafa (Second Half label ke baad)
+                            if (key === 'leave_duration') {
+                                $('label[for="dur3"]').after('<div class="invalid-feedback d-block">' + value[0] + '</div>');
+                                return;
+                            }
                             let input = form.find('[name="' + key + '"]');
                             input.addClass('is-invalid');
                             input.after('<div class="invalid-feedback d-block">' + value[0] + '</div>');
                         });
+                    } else {
+                        // 403 (processed / not owner) ya 500 ka server message
+                        toastr.error((xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) || 'Something went wrong');
                     }
                 }
             });
@@ -348,12 +383,95 @@
 
         // 8. Modal Trigger (Yeh ab .ready() ke andar hai)
         $('#leaveModal').on('shown.bs.modal', function() {
-            @if(auth()->user()->hasRole('admin'))
+            // Edit mode: us leave ke staff ki types, purana type selected
+            if (editData) {
+                loadLeaveTypes(editData.user_id, editData.leave_type);
+                return;
+            }
+            @if(auth()->user()->hasAnyRole(['admin', 'superadmin']))
                 let adminSelectedId = $('#staff_user_id').val();
                 if (adminSelectedId) loadLeaveTypes(adminSelectedId);
             @else
                 loadLeaveTypes("{{ auth()->id() }}");
             @endif
+        });
+
+        // 9. EVENT: Edit (same modal edit mode mein, AJAX prefill)
+        $(document).on('click', '.edit-leave-btn', function() {
+            $.get($(this).data('url'))
+                .done(function(res) {
+                    editData = res;
+                    let form = $('#leaveForm');
+
+                    $('#leaveModalTitle').text('Edit Leave Application');
+                    $('#leaveSubmitBtn').text('Update');
+                    form.attr('action', UPDATE_URL_TPL.replace(':id', res.id));
+                    // File upload ke liye POST + _method=PUT
+                    form.find('input[name="_method"]').remove();
+                    form.append('<input type="hidden" name="_method" value="PUT">');
+
+                    // Apply date aur staff update mein change nahi hote
+                    $('#apply_date').val(res.apply_date || '').prop('readonly', true);
+                    $('select#staff_user_id').val(res.user_id).prop('disabled', true);
+
+                    $('#start_date').val(res.from_date || '');
+                    $('#end_date').val(res.to_date || '');
+                    $('input[name="leave_duration"][value="' + (res.leave_duration || 'full') + '"]').prop('checked', true);
+                    $('#reason').val(res.reason || '');
+                    calcLeaveDays();
+
+                    $('#leaveModal').modal('show');
+                })
+                .fail(function(xhr) {
+                    toastr.error((xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) || 'Leave load nahi ho saki');
+                });
+        });
+
+        // 10. Modal band: edit mode se wapas apply mode
+        $('#leaveModal').on('hidden.bs.modal', function() {
+            if (!editData) return;
+            editData = null;
+            let form = $('#leaveForm');
+
+            $('#leaveModalTitle').text('New Leave Application');
+            $('#leaveSubmitBtn').text('Save Application');
+            form.attr('action', STORE_URL);
+            form.find('input[name="_method"]').remove();
+            $('#apply_date').prop('readonly', false);
+            $('select#staff_user_id').prop('disabled', false);
+
+            form[0].reset();
+            form.find('.invalid-feedback').remove();
+            form.find('.is-invalid').removeClass('is-invalid');
+            $('#balance_container').hide();
+            calcLeaveDays();
+        });
+
+        // 11. EVENT: Delete (confirm ke baad)
+        $(document).on('click', '.delete-leave-btn', function() {
+            let id = $(this).data('id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+                $.ajax({
+                    url: DESTROY_URL_TPL.replace(':id', id),
+                    type: 'DELETE',
+                    // Teacher/reception/accountant layouts mein global $.ajaxSetup nahi, token khud bhejo
+                    data: { _token: $('meta[name="csrf-token"]').attr('content') || $('#leaveForm input[name="_token"]').val() }
+                }).done(function(res) {
+                    toastr.success(res.message || 'Deleted');
+                    setTimeout(() => location.reload(), 1000);
+                }).fail(function(xhr) {
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Delete nahi ho saka');
+                });
+            });
         });
 
     }); // End of $(document).ready
