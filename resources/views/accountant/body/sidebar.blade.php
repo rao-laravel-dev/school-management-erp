@@ -74,5 +74,23 @@
             </ul>
         </li>
         @endcan
+
+        {{-- Reports: logged-in user ki apni reports (aage aur links yahan aayenge) --}}
+        @canany(['access-my-attendance', 'access-my-salary-slips'])
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-file'></i></div>
+                <div class="menu-title">Reports</div>
+            </a>
+            <ul>
+                @can('access-my-attendance')
+                <li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance</a></li>
+                @endcan
+                @can('access-my-salary-slips')
+                <li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slips</a></li>
+                @endcan
+            </ul>
+        </li>
+        @endcanany
     </ul>
 </div>
