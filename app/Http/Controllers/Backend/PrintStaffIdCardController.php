@@ -27,18 +27,18 @@ class PrintStaffIdCardController extends Controller
     {
         $staffMembers = User::role($role)
             ->where('status', 1)
-            ->with(['teacher', 'accountant', 'receptionist'])
+            ->with(['teacher', 'accountant', 'receptionist', 'roles']) // roles: staff_code accessor N+1 se bachne ke liye
             ->get();
 
-        $staff = $staffMembers->map(function ($user) {
+        $staff =$staffMembers->map(function ($user) {
             $photo  = $user->teacher->photo ?? $user->accountant->photo ?? $user->receptionist->photo ?? null;
-            $folder = $user->teacher ? 'teacher_images' : ($user->accountant ? 'accountant_images' : ($user->receptionist ? 'receptionist_images' : null));
+            $folder = $user->teacher ? 'teacher_images' : ($user->accountant ? 'accountants' : ($user->receptionist ? 'receptionists' : null));
 
             return [
                 'id'       => $user->id,
-                'staff_id' => $user->teacher->teacher_id ?? $user->accountant->accountant_id ?? $user->id,
+                'staff_id' => $user->staff_code,
                 'name'     => strtoupper($user->name),
-                'photo'    => $photo && $folder ? asset('uploads/' . $folder . '/' . $photo) : asset('images/no-image.png'),
+                'photo'    => $user->teacher ? $user->teacher->photo_url : ($photo && $folder ? asset('uploads/' . $folder . '/' . $photo) : asset('images/no-image.png')),
             ];
         });
 
@@ -56,7 +56,7 @@ class PrintStaffIdCardController extends Controller
         $template = StaffIdCardTemplate::findOrFail($request->template_id);
 
         $staffMembers = User::whereIn('id', $request->staff_ids)
-            ->with(['teacher', 'accountant', 'receptionist'])
+            ->with(['teacher', 'accountant', 'receptionist', 'roles'])
             ->get();
 
         return view('admin.staff_id_card_template.card', compact('template', 'staffMembers'));

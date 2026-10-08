@@ -51,13 +51,13 @@
     color: #fff;
 }
 
-        .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; flex-direction: row; gap: 2mm; }
-        .id-card.vertical .id-card-body { flex-direction: column; align-items: center; }
+        .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 4mm; }
+        .id-card.vertical .id-card-body { flex-direction: column; align-items: center; gap: 2mm; }
         .id-card-body .photo { flex: 0 0 auto; text-align: center; }
         .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid #ddd; display: block; }
-        .id-card-body table { width: 100%; text-align: left; border-collapse: collapse; }
-        .id-card-body table td { padding: .3mm 0; text-align: left; font-size: 5pt; line-height: 1.25; vertical-align: top; color: #333; }
-        .id-card-body table td.label { font-weight: 700; width: 38%; white-space: nowrap; }
+        .id-card-body table { width: auto; max-width: 100%; text-align: left; border-collapse: collapse; }
+        .id-card-body table td { padding: .3mm 0; text-align: left; font-size: 5pt; line-height: 1.25; vertical-align: top; color: #333; overflow-wrap: anywhere; }
+        .id-card-body table td.label { font-weight: 700; width: 38%; white-space: nowrap; padding-right: 3mm; }
 
         .id-card-back-header { background-color: var(--header-color); color: #fff; text-align: center; padding: 1mm; font-size: 5pt; font-weight: 700; flex: 0 0 auto; }
         .id-card-back-content {
@@ -183,9 +183,9 @@
     @foreach($staffMembers as $staff)
     @php
         $detail = $staff->teacher ?? $staff->accountant ?? $staff->receptionist;
-        $folder = $staff->teacher ? 'teacher_images' : ($staff->accountant ? 'accountant_images' : ($staff->receptionist ? 'receptionist_images' : null));
-        $photoUrl = ($detail && $detail->photo && $folder) ? asset('uploads/' . $folder . '/' . $detail->photo) : asset('images/no-image.png');
-        $staffCode = $staff->teacher->teacher_id ?? $staff->accountant->accountant_id ?? $staff->id;
+        $folder = $staff->teacher ? 'teacher_images' : ($staff->accountant ? 'accountants' : ($staff->receptionist ? 'receptionists' : null));
+        $photoUrl = $staff->teacher ? $staff->teacher->photo_url : (($detail && $detail->photo && $folder) ? asset('uploads/' . $folder . '/' . $detail->photo) : asset('images/no-image.png'));
+        $staffCode = $staff->staff_code; // User accessor: teacher/accountant/receptionist ka apna ID
         $serialNo = 'SF-' . str_pad($staff->id, 5, '0', STR_PAD_LEFT);
     @endphp
 
