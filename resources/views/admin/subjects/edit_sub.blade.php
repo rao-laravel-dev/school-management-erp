@@ -1,4 +1,4 @@
-@extends('admin..layout.app')
+@extends($current_layout)
 @section('content')
 
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
