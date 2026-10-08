@@ -42,3 +42,5 @@ Thumbs.db
 
 # Markdown docs (local only)
 *.md
+# Seeder with demo passwords (local only)
+/database/seeders/UserSeeder.php
