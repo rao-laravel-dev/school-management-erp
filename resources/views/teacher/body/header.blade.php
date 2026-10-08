@@ -646,10 +646,7 @@
 			</div>
 
 			@php
-    $teacherPhoto = Auth::check() && Auth::user()->teacher ? Auth::user()->teacher->photo : null;
-    $navImageUrl = ($teacherPhoto && \Storage::disk('public')->exists('teacher_images/' . $teacherPhoto))
-        ? asset('storage/teacher_images/' . $teacherPhoto)
-        : asset('uploads/no_image.jpg');
+    $navImageUrl = Auth::check() && Auth::user()->teacher ? Auth::user()->teacher->photo_url : asset('uploads/no_image.jpg');
 @endphp
 
 <div class="user-box dropdown px-3">

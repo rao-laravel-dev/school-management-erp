@@ -28,8 +28,9 @@
 					@if(isset($assignedTeacher) && $assignedTeacher)
             <li class="nav-item dropdown dropdown-large d-none d-md-flex me-2">
                 <div class="d-flex align-items-center bg-light-primary px-3 py-1 rounded-pill border" style="gap: 10px;">
-                    @if(!empty($assignedTeacher->photo) && file_exists(public_path('uploads/teachers/'.$assignedTeacher->photo)))
-                        <img src="{{ asset('uploads/teachers/'.$assignedTeacher->photo) }}" 
+                    @if(!empty($assignedTeacher->photo))
+                        {{-- $assignedTeacher stdClass hai (DB::table), isliye Teacher model se photo_url liya --}}
+                        <img src="{{ (new \App\Models\Teacher)->forceFill(['photo' => $assignedTeacher->photo])->photo_url }}"
                              class="rounded-circle border border-white" 
                              width="32" height="32" style="object-fit: cover;">
                     @else

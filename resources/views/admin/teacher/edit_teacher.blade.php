@@ -112,7 +112,7 @@
                             <input type="file" name="photo" id="photo" class="form-control" accept="image/*" onchange="previewImage(this)">
                         </div>
                         <div class="avatar-preview-wrapper border rounded bg-white" style="width: 100px; height: 100px; overflow: hidden; padding: 3px;">
-                            <img id="imagePreview" src="{{ $teacher->photo ? asset('uploads/teacher_images/'.$teacher->photo) : asset('uploads/no_image.jpg') }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">
+                            <img id="imagePreview" src="{{ $teacher->photo_url }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">
                         </div>
                     </div>
                 </div>

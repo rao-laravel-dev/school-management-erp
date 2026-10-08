@@ -1,9 +1,7 @@
 @extends('teacher.layout.app')
 @section('content')
 @php
-    $teacherImageUrl = ($teacher->photo && \Storage::disk('public')->exists('teacher_images/' . $teacher->photo))
-        ? asset('storage/teacher_images/' . $teacher->photo)
-        : asset('uploads/no_image.jpg');
+    $teacherImageUrl = $teacher->photo_url;
 @endphp
 
 {{-- Breadcrumb --}}

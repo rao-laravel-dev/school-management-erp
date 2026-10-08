@@ -22,12 +22,12 @@
         @if($assignedTeacher)
             <div class="mb-3">
                 @php
-                    $imgPath = 'uploads/teachers/'.$assignedTeacher->photo;
-                    // Check logic: agar file exists karti hai, toh path use karo, warna default
+                    // $assignedTeacher stdClass hai (DB::table), isliye Teacher model se photo_url liya
+                    $imgUrl = (new \App\Models\Teacher)->forceFill(['photo' => $assignedTeacher->photo])->photo_url;
                 @endphp
 
-                @if(!empty($assignedTeacher->photo) && file_exists(public_path($imgPath)))
-                    <img src="{{ asset($imgPath) }}" 
+                @if(!empty($assignedTeacher->photo))
+                    <img src="{{ $imgUrl }}"
                          class="rounded-circle p-1 border border-primary shadow" 
                          width="120" height="120" alt="Teacher Photo" 
                          style="object-fit: cover;">
