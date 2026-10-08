@@ -9,7 +9,7 @@ use App\Models\Room;
 use App\Models\Teacher;
 use App\Services\TimetableDayStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class TeacherTimetableController extends Controller
 {
@@ -25,6 +25,12 @@ class TeacherTimetableController extends Controller
 
     public function getData(Request $request, $teacherId)
     {
+        // Teacher portal route par URL ka id trust nahi: sirf apna teachers.id, warna 403 (IDOR band)
+        if ($request->routeIs('teacher.timetable.get_data')) {
+            $ownTeacherId = optional(Auth::user()->teacher)->id;
+            abort_if(! $ownTeacherId || (int) $teacherId !== (int) $ownTeacherId, 403);
+        }
+
         $request->validate(['week' => 'nullable|date']);
 
         $timetable = ClassTimetable::with(['schoolClass', 'section', 'subject'])
@@ -83,7 +89,7 @@ class TeacherTimetableController extends Controller
             'name'             => $teacher->name,
             'father_name'      => $teacher->father_name,
             'phone'            => $teacher->phone,
-            'photo' => $teacher->photo? Storage::disk('public')->url('teacher_images/' . $teacher->photo): asset('backend/assets/images/avatars/avatar-1.png'),
+            'photo'            => $teacher->photo_url,
             'class_teacher_of' => $classTeacherOf,
             'classes'          => $teachingClasses,
         ]);
