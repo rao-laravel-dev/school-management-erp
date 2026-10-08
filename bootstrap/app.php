@@ -29,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        // Blocked (status 0/2) user ko har web request par logout karo
+        $middleware->web(append: [\App\Http\Middleware\EnsureUserIsActive::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

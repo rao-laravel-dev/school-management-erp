@@ -195,4 +195,10 @@ class User extends Authenticatable
 
         return $qr->code;
     }
+
+    // Status 0 (inactive) / 2 (pending) login nahi kar sakte; superadmin kabhi block nahi
+    public function isLoginBlocked(): bool
+    {
+        return in_array((int) $this->status, [0, 2], true) && ! $this->hasRole('superadmin');
+    }
 }

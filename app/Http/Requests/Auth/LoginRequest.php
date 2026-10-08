@@ -41,6 +41,15 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Inactive (0) / pending (2) user ko login na karne do (superadmin exempt)
+        if (Auth::user()->isLoginBlocked()) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account is inactive or pending approval.',
+            ]);
+        }
     }
 
     public function ensureIsNotRateLimited(): void
