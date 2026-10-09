@@ -31,7 +31,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label text-secondary small fw-semibold">Roll No <span class="text-danger">*</span></label>
-                            <input type="text" name="roll_number" id="roll_number" class="form-control bg-light fw-bold text-success" value="{{ old('roll_number', $student->roll_number) }}" readonly>
+                            <input type="text" name="roll_number" id="roll_number" class="form-control bg-light fw-bold text-success" value="{{ old('roll_number', $student->currentEnrollment->roll_no ?? '') }}" readonly>
                             @error('roll_number') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
 
@@ -97,13 +97,13 @@
 
                         <div class="col-md-3">
                             <label class="form-label text-secondary small fw-semibold">Category</label>
-                            <select name="category" id="category" class="form-select @error('category') is-invalid @enderror">
+                            <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
                                 <option value="">-- Select Category --</option>
-                                <option value="General" {{ old('category', $student->category) == 'General' ? 'selected' : '' }}>General</option>
-                                <option value="OBC" {{ old('category', $student->category) == 'OBC' ? 'selected' : '' }}>OBC</option>
-                                <option value="SC/ST" {{ old('category', $student->category) == 'SC/ST' ? 'selected' : '' }}>SC/ST</option>
+                                @foreach($categories as $c)
+                                <option value="{{ $c->id }}" {{ old('category_id', $student->category_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                                @endforeach
                             </select>
-                            @error('category') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
+                            @error('category_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-md-3">
@@ -131,12 +131,13 @@
 
                         <div class="col-md-3">
                             <label class="form-label text-secondary small fw-semibold">House</label>
-                            <select name="house" id="house" class="form-select @error('house') is-invalid @enderror">
+                            <select name="house_id" id="house_id" class="form-select @error('house_id') is-invalid @enderror">
                                 <option value="">-- Select House --</option>
-                                <option value="Jinnah" {{ old('house', $student->house) == 'Jinnah' ? 'selected' : '' }}>Jinnah House</option>
-                                <option value="Iqbal" {{ old('house', $student->house) == 'Iqbal' ? 'selected' : '' }}>Iqbal House</option>
+                                @foreach($houses as $h)
+                                <option value="{{ $h->id }}" {{ old('house_id', $student->house_id) == $h->id ? 'selected' : '' }}>{{ $h->name }}</option>
+                                @endforeach
                             </select>
-                            @error('house') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
+                            @error('house_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-md-3">
@@ -364,10 +365,27 @@
         @endif
 
         // --- 1. LIVE ACADEMIC IDENTIFIERS ENGINE ---
+        // DB wali original values — admission_no edit par kabhi change nahi hota, roll_no sirf placement change par naya banta hai
+        const origAdmissionNo = @json($student->admission_no);
+        const origRollNo = @json($student->currentEnrollment->roll_no ?? '');
+        const origClass = @json((string) ($student->currentEnrollment->class_id ?? ''));
+        const origSection = @json((string) ($student->currentEnrollment->section_id ?? ''));
+        const origGroup = @json((string) ($student->currentEnrollment->group_id ?? ''));
+
         function triggerIdentifierEngine() {
             let classId = $("select[name='class_id']").val();
             let sectionId = $("select[name='section_id']").val();
             let groupId = $("select[name='group_id']").val();
+
+            // Placement original jaisi hai to originals wapas, AJAX nahi
+            if ((classId || '') === origClass && (sectionId || '') === origSection && (groupId || '') === origGroup) {
+                $("#admission_no").val(origAdmissionNo);
+                $("#roll_number").val(origRollNo);
+                if (classId && sectionId) {
+                    showTemporaryFeeStructure();
+                }
+                return;
+            }
 
             if (classId) {
                 $.ajax({
@@ -381,8 +399,8 @@
                     },
                     success: function(res) {
                         if (res.success) {
-                            $("#admission_no").val(res.admission_no);
-                            $("#roll_number").val(res.roll_no); 
+                            // admission_no edit par nahi badalta (sirf roll_no preview)
+                            $("#roll_number").val(res.roll_no);
                         }
                     },
                     error: function() {
@@ -408,7 +426,6 @@
             sectionDropdown.empty().append('<option value="">-- Select Section --</option>');
             
             // Only overwrite inputs on MANUAL change action
-            $('#admission_no').val('Compiling...').attr('placeholder', 'Select Class & Section to Generate...');
             $('#roll_number').val('Generating...').attr('placeholder', 'Automatic Allocation...'); 
             hideFeeCard();
 
@@ -416,7 +433,6 @@
             toggleGroupAsterisk(classText);
 
             if (!classId) {
-                $('#admission_no').val('');
                 $('#roll_number').val('');
                 return;
             }
@@ -453,7 +469,6 @@
 
         // Listeners for manual changes across structural selects
         $(document).on('change', "select[name='section_id'], select[name='group_id']", function() {
-            $('#admission_no').val('Updating Engine...');
             $('#roll_number').val('Updating Engine...');
             triggerIdentifierEngine();
         });
@@ -597,14 +612,9 @@
             toggleGroupAsterisk($('#class_id').find('option:selected').text().trim().toLowerCase());
         }
         
-        if(!$('#roll_number').val() || $('#roll_number').val() === "") {
-            // Only trigger engine automatically if roll number is missing on render stream
-            triggerIdentifierEngine();
-        } else {
-            // If roll no exists from DB, just render the fee breakdown layout safely
-            if ($("select[name='class_id']").val() && $("select[name='section_id']").val()) {
-                showTemporaryFeeStructure();
-            }
+        // Edit page par load par engine kabhi nahi chalta — DB ke admission_no/roll_no hi rehte hain
+        if ($("select[name='class_id']").val() && $("select[name='section_id']").val()) {
+            showTemporaryFeeStructure();
         }
 
         if($('#father_cnic').val()) {

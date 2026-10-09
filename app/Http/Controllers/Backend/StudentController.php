@@ -825,6 +825,10 @@ class StudentController extends Controller
         $groups = Group::all();
         $academic_years = AcademicYear::all();
 
+        // category & house dropdowns DB se (create page jaisa)
+        $categories = \App\Models\StudentCategory::where('status', 1)->orderBy('name')->get();
+        $houses = \App\Models\StudentHouse::where('status', 1)->orderBy('name')->get();
+
         // 2. Mapping Pivot Table se dynamic active sections nikaalein
         $sections = collect(); // Fallback empty collection
         if ($classId) {
@@ -842,7 +846,9 @@ class StudentController extends Controller
             'classes',
             'sections',
             'groups',
-            'academic_years'
+            'academic_years',
+            'categories',
+            'houses'
         ));
     }
 
@@ -875,9 +881,30 @@ class StudentController extends Controller
             $sectionId = $request->input('section_id', $currentEnrollment->section_id ?? null);
             $groupId   = $request->input('group_id', $currentEnrollment->group_id ?? null);
 
-            // Roll No / Admission No: keep existing unless explicitly overridden
-            $admission_no        = $request->filled('admission_no') ? $request->admission_no : $student->admission_no;
-            $customNumericRollNo = $request->filled('roll_no') ? $request->roll_no : $student->roll_number;
+            // Admission No permanent hai — edit par kabhi change nahi hota (request value trust nahi karte)
+            $admission_no        = $student->admission_no;
+
+            // Roll No: sirf tab naya banta hai jab class/section/group badle (server-side), request ki roll value trust nahi karte
+            $customNumericRollNo = $currentEnrollment->roll_no ?? null;
+            $placementChanged = !$currentEnrollment
+                || (string) $classId   !== (string) $currentEnrollment->class_id
+                || (string) $sectionId !== (string) $currentEnrollment->section_id
+                || (string) $groupId   !== (string) $currentEnrollment->group_id;
+
+            if ($placementChanged && !empty($classId)) {
+                $classModel   = SchoolClass::find($classId);
+                $sectionModel = Section::find($sectionId);
+                $groupModel   = Group::find($groupId);
+                if (!$classModel) {
+                    throw new Exception("Class configuration not found.");
+                }
+
+                [$classCode, $sectionChar, $groupCode, $rollMaxSeq] = $this->buildRollSequence($classModel, $sectionModel, $groupModel, $academic_year_id);
+                $seqStr = str_pad($rollMaxSeq + 1, 2, '0', STR_PAD_LEFT);
+                $customNumericRollNo = $groupCode
+                    ? "{$classCode}-{$groupCode}-{$sectionChar}-{$seqStr}"
+                    : "{$classCode}-{$sectionChar}-{$seqStr}";
+            }
 
             // =================================================================
             // TRACK LAYER A: UPDATE PARENT / GUARDIAN STRUCTURAL PROFILE
