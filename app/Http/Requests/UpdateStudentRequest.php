@@ -4,10 +4,10 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreStudentRequest extends FormRequest
+class UpdateStudentRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Route pehle se can:access-students middleware ke peeche hai.
      */
     public function authorize(): bool
     {
@@ -15,15 +15,15 @@ class StoreStudentRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Rules edit_student.blade.php ke input names se match karte hain.
+     * admission_no / roll_number yahan nahi — server-side hi decide hote hain (request trust nahi).
      */
     public function rules(): array
     {
+        $image = 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048';
+
         return [
             // 🎓 Academic Details
-            'is_existing_student' => 'nullable|boolean',
-            'admission_no'         => ['nullable', 'required_if:is_existing_student,1', 'string', 'max:50', 'unique:students,admission_no'],
-            'roll_number'        => 'nullable|string',
             'admission_date'     => 'required|date',
             'class_id'           => 'required|integer|exists:school_class,id',
             'section_id'         => 'required|integer|exists:sections,id',
@@ -35,23 +35,23 @@ class StoreStudentRequest extends FormRequest
             'gender'             => 'required|in:male,female',
             'date_of_birth'      => 'required|date',
             'category_id'        => 'nullable|integer|exists:student_categories,id',
+            'house_id'           => 'nullable|integer|exists:student_houses,id',
             'religion'           => 'nullable|string|max:100',
             'caste'              => 'nullable|string|max:100',
             'blood_group'        => 'nullable|string|max:10',
-            'house_id'           => 'nullable|integer|exists:student_houses,id',
             'height'             => 'nullable|string|max:50',
             'weight'             => 'nullable|string|max:50',
             'measurement_date'   => 'nullable|date',
-            'student_photo'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'medical_history'    => 'nullable|string',
+            'student_photo'      => $image,
 
             // 👨‍👩‍👦 Parent & Contact Details
             'father_name'        => 'required|string|max:255',
             'father_phone'       => ['required', 'regex:/^(03|923|\+923)[0-9]{9}$/'],
-            'father_photo'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'father_photo'       => $image,
             'mother_name'        => 'nullable|string|max:255',
             'mother_phone'       => 'nullable|string|max:255',
-            'mother_photo'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'mother_photo'       => $image,
 
             // 🛡️ Guardian Setup
             'is_guardian'        => 'required|in:father,mother,other',
@@ -60,44 +60,32 @@ class StoreStudentRequest extends FormRequest
             'guardian_relation'  => 'required|string|max:100',
             'guardian_email'     => 'nullable|email|max:255',
             'guardian_address'   => 'nullable|string|max:500',
-            'guardian_photo'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'guardian_photo'     => $image,
 
             // 🪪 National Identification Documents
             'father_cnic'        => 'required|string|max:50',
-            'father_cnic_front'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'father_cnic_back'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'father_cnic_front'  => $image,
+            'father_cnic_back'   => $image,
             'mother_cnic'        => 'nullable|string|max:50',
-            'mother_cnic_front'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'mother_cnic_back'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'mother_cnic_front'  => $image,
+            'mother_cnic_back'   => $image,
 
-            // 🔑 Account Security Setup
-            'password'           => 'required|string|min:6|confirmed',
-
-            // 🛡️ Guardian Account Security
-            'guardian_password'  => 'required|string|min:6|confirmed',
-
-            // 💸 Discounts
-            'discount_policy_ids'   => 'nullable|array',
-            'discount_policy_ids.*' => 'integer',
-            'discount_remarks'      => 'nullable|string|max:500',
+            // 🔑 Account Security (blank = current password rakho)
+            'password'           => 'nullable|string|min:6|confirmed',
+            'guardian_password'  => 'nullable|string|min:6|confirmed',
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     */
     public function messages(): array
     {
         return [
-            'admission_no.required_if' => 'Existing student ke liye Admission No dena zaroori hai.',
-            'admission_no.unique'      => 'Yeh Admission No pehle se kisi aur student ko allot ho chuka hai.',
             'class_id.required'          => 'Please select a valid class from the dropdown.',
             'section_id.required'        => 'Please select a valid section from the dropdown.',
             'first_name.required'        => 'Student first name field is required.',
             'last_name.required'         => 'Student last name field is required.',
             'gender.required'            => 'Please select student gender.',
-            'student_photo.image'        => 'The profile attachment must be an image file.',
-            'student_photo.max'          => 'Profile image size must not exceed 2MB.',
+            'category_id.exists'         => 'Selected category is invalid.',
+            'house_id.exists'            => 'Selected house is invalid.',
             'father_name.required'       => 'Father name configuration is required.',
             'father_phone.required'      => 'Father primary contact number is required.',
             'father_phone.regex'         => 'Enter a valid Pakistani mobile number (03XXXXXXXXX).',
@@ -105,11 +93,12 @@ class StoreStudentRequest extends FormRequest
             'guardian_name.required'     => 'Guardian contact name is required.',
             'guardian_phone.required'    => 'Guardian active phone number is required.',
             'guardian_relation.required' => 'Guardian relation mapping is required.',
-            'password.required'          => 'System login security password is required.',
             'password.min'               => 'Security password must be at least 6 characters long.',
             'password.confirmed'         => 'Security password confirmation does not match.',
-            'category_id.exists'         => 'Selected category is invalid.',
-            'house_id.exists'            => 'Selected house is invalid.',
+            'guardian_password.min'      => 'Guardian password must be at least 6 characters long.',
+            'guardian_password.confirmed' => 'Guardian password confirmation does not match.',
+
+            'student_photo.max'          => 'Profile image size must not exceed 2MB.',
             'father_photo.max'           => 'Father photo size must not exceed 2MB.',
             'mother_photo.max'           => 'Mother photo size must not exceed 2MB.',
             'guardian_photo.max'         => 'Guardian photo size must not exceed 2MB.',
@@ -117,10 +106,6 @@ class StoreStudentRequest extends FormRequest
             'father_cnic_back.max'       => 'Father CNIC back size must not exceed 2MB.',
             'mother_cnic_front.max'      => 'Mother CNIC front size must not exceed 2MB.',
             'mother_cnic_back.max'       => 'Mother CNIC back size must not exceed 2MB.',
-
-            'guardian_password.required'  => 'Guardian system password is required.',
-            'guardian_password.min'       => 'Guardian password must be at least 6 characters long.',
-            'guardian_password.confirmed' => 'Guardian password confirmation does not match.',
         ];
     }
 }

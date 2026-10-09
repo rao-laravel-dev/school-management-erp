@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Exports\StudentsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\UpdateStudentRequest;
 use App\Models\AcademicYear;
 use App\Models\DiscountPolicy;
 use App\Models\Enrollment;
@@ -855,7 +856,7 @@ class StudentController extends Controller
     /**
      * 7. ATOMIC TRANSACTION: Update Student Record, Parent Profile & Enrollment Sync Matrix
      */
-    public function UpdateStudent(Request $request, $id)
+    public function UpdateStudent(UpdateStudentRequest $request, $id)
     {
         DB::beginTransaction();
 
