@@ -69,6 +69,7 @@ class StudentController extends Controller
             'section',
             'group'
         ])
+            ->whereHas('student') // soft-deleted student wali enrollment skip (warna table_rows 500)
             ->latest()
             ->get();
 
@@ -186,7 +187,8 @@ class StudentController extends Controller
     {
         // 1. Student model se start karne ke bajaye Enrollment se start karein
         // Kyunke enrollments table mein sab kuch linked hai.
-        $query = Enrollment::with(['student.user', 'schoolClass', 'section', 'group']);
+        $query = Enrollment::with(['student.user', 'schoolClass', 'section', 'group'])
+            ->whereHas('student'); // soft-deleted student wali enrollment skip
 
         // 2. Dynamic Filtering (Condition checks)
         if ($request->filled('class_id')) {
@@ -261,7 +263,8 @@ class StudentController extends Controller
      */
     public function ExportPdf(Request $request)
     {
-        $query = Enrollment::with(['student.user', 'student.parent', 'schoolClass', 'section', 'group']);
+        $query = Enrollment::with(['student.user', 'student.parent', 'schoolClass', 'section', 'group'])
+            ->whereHas('student'); // soft-deleted student wali enrollment skip
 
         if ($request->filled('class_id')) {
             $query->where('class_id', $request->class_id);
@@ -1190,7 +1193,7 @@ class StudentController extends Controller
     public function StudentTrash()
     {
         $trashedStudents = Student::onlyTrashed()->latest()->get();
-        return view('admin.student.trash', compact('trashedStudents'));
+        return view('admin.students.trash', compact('trashedStudents'));
     }
 
     // 2. Soft Delete

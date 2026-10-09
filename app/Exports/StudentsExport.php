@@ -50,7 +50,7 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
             'schoolClass',
             'section',
             'group',
-        ]);
+        ])->whereHas('student'); // soft-deleted student wali enrollment skip
 
         if ($this->classId) {
             $query->where('class_id', $this->classId);

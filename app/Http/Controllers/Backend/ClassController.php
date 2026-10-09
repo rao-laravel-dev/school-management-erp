@@ -175,7 +175,7 @@ class ClassController extends Controller
     public function ClassDestroy($id)
     {
         SchoolClass::findOrFail($id)->delete();
-        return redirect()->back()->with(['message' => 'Class Deleted Successfully', 'alert-type' => 'error']);
+        return redirect()->back()->with(['message' => 'Class Deleted Successfully', 'alert-type' => 'success']);
     }
     // End Method
 }

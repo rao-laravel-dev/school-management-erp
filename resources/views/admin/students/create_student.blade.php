@@ -43,7 +43,7 @@
 
                                 <div class="col-md-3">
                                     <label class="form-label" for="admission_no">Admission No <span class="text-danger">*</span></label>
-                                    <input type="text" name="admission_no" id="admission_no" class="form-control form-control-sm bg-light fw-bold text-success" value="{{ old('admission_no') }}" placeholder="Select Class & Section to Generate..." readonly>
+                                    <input type="text" name="admission_no" id="admission_no" class="form-control form-control-sm bg-light fw-bold text-success @error('admission_no') is-invalid @enderror" value="{{ old('admission_no') }}" placeholder="Select Class & Section to Generate..." readonly>
                                     @error('admission_no') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
 
@@ -514,7 +514,9 @@ $validationErrorsJson = json_encode($errors->all());
             var sectionDropdown = $('#section_id');
             sectionDropdown.empty().append('<option value="">-- Select Section --</option>');
 
-            $('#admission_no').val('');
+            if (!$('#is_existing_student').is(':checked')) { // existing student ka manual Adm No clear na ho
+                $('#admission_no').val('');
+            }
             $('#roll_number').val('Auto Generating...');
             hideFeeCard();
 
@@ -835,6 +837,15 @@ $validationErrorsJson = json_encode($errors->all());
                 }
             }
         });
+
+        // Validation redirect ke baad checkbox checked ho to field editable rakho (old value clear nahi karni)
+        if ($('#is_existing_student').is(':checked')) {
+            $('#admission_no')
+                .prop('readonly', false)
+                .removeClass('bg-light text-success')
+                .addClass('bg-white')
+                .attr('placeholder', 'Enter existing Admission No manually...');
+        }
 
         // --- 11. AUTO SELECT DISCOUNT (CATEGORY BASED) ---
         $('#category_id').on('change', function() {

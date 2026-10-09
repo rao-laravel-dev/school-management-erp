@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ParentProfile;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreStudentRequest extends FormRequest
 {
@@ -74,7 +76,17 @@ class StoreStudentRequest extends FormRequest
             'password'           => 'required|string|min:6|confirmed',
 
             // 🛡️ Guardian Account Security
-            'guardian_password'  => 'required|string|min:6|confirmed',
+            // Sirf naye parent ke liye required — existing parent (same father_cnic lookup jo StoreStudent karta hai) ka password nahi badalta
+            'guardian_password'  => [
+                'nullable',
+                Rule::requiredIf(function () {
+                    $cnic = trim((string) $this->input('father_cnic'));
+                    return $cnic === '' || !ParentProfile::where('father_cnic', $cnic)->exists();
+                }),
+                'string',
+                'min:6',
+                'confirmed',
+            ],
 
             // 💸 Discounts
             'discount_policy_ids'   => 'nullable|array',

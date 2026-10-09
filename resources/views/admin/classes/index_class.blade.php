@@ -185,9 +185,7 @@
             "timeOut": "5000"
         };
 
-        @if(session('message'))
-        toastr[@json(session('alert-type', 'success'))](@json(session('message')));
-        @endif
+        // session('message') toastr layout khud dikhata hai — yahan dobara nahi (warna 2x)
 
 
         @if(session('toastr-success'))
