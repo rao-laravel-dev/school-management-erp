@@ -177,7 +177,7 @@
                                     @error('student_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="avatar-preview-wrapper border rounded bg-light d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 38px; min-width: 40px; overflow: hidden;">
-                                    <img id="student_preview" src="{{ (!empty($student->photo) && file_exists(public_path('uploads/students/'.$student->photo))) ? asset('uploads/students/'.$student->photo) : asset('uploads/no_image.jpg') }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img id="student_preview" src="{{ $student->photo_url }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                             </div>
                         </div>
@@ -213,7 +213,7 @@
                             <label class="form-label text-secondary small fw-semibold">Father Photo</label>
                             <div class="d-flex gap-2">
                                 <input type="file" name="father_photo" id="father_photo" class="form-control @error('father_photo') is-invalid @enderror" accept="image/*">
-                                <img id="father_preview" src="{{ (!empty($student->parent->father_photo) && file_exists(public_path('uploads/students/'.$student->parent->father_photo))) ? asset('uploads/students/'.$student->parent->father_photo) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                <img id="father_preview" src="{{ $student->parent ? $student->parent->father_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                             </div>
                             @error('father_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
@@ -232,7 +232,7 @@
                             <label class="form-label text-secondary small fw-semibold">Mother Photo</label>
                             <div class="d-flex gap-2">
                                 <input type="file" name="mother_photo" id="mother_photo" class="form-control @error('mother_photo') is-invalid @enderror" accept="image/*">
-                                <img id="mother_preview" src="{{ (!empty($student->parent->mother_photo) && file_exists(public_path('uploads/students/'.$student->parent->mother_photo))) ? asset('uploads/students/'.$student->parent->mother_photo) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                <img id="mother_preview" src="{{ $student->parent ? $student->parent->mother_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                             </div>
                             @error('mother_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
@@ -283,7 +283,7 @@
                             <label class="form-label text-secondary small fw-semibold">Guardian Photo</label>
                             <div class="d-flex gap-2">
                                 <input type="file" name="guardian_photo" id="guardian_photo" class="form-control @error('guardian_photo') is-invalid @enderror" accept="image/*" disabled>
-                                <img id="guardian_preview" src="{{ (!empty($student->parent->guardian_photo) && file_exists(public_path('uploads/students/'.$student->parent->guardian_photo))) ? asset('uploads/students/'.$student->parent->guardian_photo) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                <img id="guardian_preview" src="{{ $student->parent ? $student->parent->guardian_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                             </div>
                             @error('guardian_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
@@ -304,11 +304,41 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-secondary small fw-semibold">Father CNIC Front</label>
-                            <input type="file" name="father_cnic_front" id="father_cnic_front" class="form-control">
+                            <div class="d-flex gap-2">
+                                <input type="file" name="father_cnic_front" id="father_cnic_front" class="form-control @error('father_cnic_front') is-invalid @enderror" accept="image/*">
+                                <img id="father_cnic_front_preview" src="{{ !empty($student->parent->father_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                            </div>
+                            @error('father_cnic_front') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-secondary small fw-semibold">Father CNIC Back</label>
-                            <input type="file" name="father_cnic_back" id="father_cnic_back" class="form-control">
+                            <div class="d-flex gap-2">
+                                <input type="file" name="father_cnic_back" id="father_cnic_back" class="form-control @error('father_cnic_back') is-invalid @enderror" accept="image/*">
+                                <img id="father_cnic_back_preview" src="{{ !empty($student->parent->father_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                            </div>
+                            @error('father_cnic_back') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-semibold">Mother CNIC No.</label>
+                            <input type="text" name="mother_cnic" id="mother_cnic" class="form-control @error('mother_cnic') is-invalid @enderror" value="{{ old('mother_cnic', $student->parent->mother_cnic ?? '') }}">
+                            @error('mother_cnic') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-semibold">Mother CNIC Front</label>
+                            <div class="d-flex gap-2">
+                                <input type="file" name="mother_cnic_front" id="mother_cnic_front" class="form-control @error('mother_cnic_front') is-invalid @enderror" accept="image/*">
+                                <img id="mother_cnic_front_preview" src="{{ !empty($student->parent->mother_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                            </div>
+                            @error('mother_cnic_front') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-semibold">Mother CNIC Back</label>
+                            <div class="d-flex gap-2">
+                                <input type="file" name="mother_cnic_back" id="mother_cnic_back" class="form-control @error('mother_cnic_back') is-invalid @enderror" accept="image/*">
+                                <img id="mother_cnic_back_preview" src="{{ !empty($student->parent->mother_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                            </div>
+                            @error('mother_cnic_back') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
                     </div>
                 </div>
@@ -554,6 +584,28 @@
                 }
                 reader.readAsDataURL(this.files[0]);
             }
+        });
+
+        // Parent photos + CNIC images: file select hote hi preview update
+        var previewMap = {
+            '#father_photo': '#father_preview',
+            '#mother_photo': '#mother_preview',
+            '#guardian_photo': '#guardian_preview',
+            '#father_cnic_front': '#father_cnic_front_preview',
+            '#father_cnic_back': '#father_cnic_back_preview',
+            '#mother_cnic_front': '#mother_cnic_front_preview',
+            '#mother_cnic_back': '#mother_cnic_back_preview'
+        };
+        $.each(previewMap, function(inputSel, previewSel) {
+            $(inputSel).on('change', function() {
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $(previewSel).attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
         });
 
         // --- 5. SIBLING AUTO-FETCH ENGINE ---

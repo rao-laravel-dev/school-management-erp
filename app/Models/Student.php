@@ -126,19 +126,6 @@ class Student extends Model
     }
 
     /**
-     * Photo URL Accessor
-     * Use: <img src="{{ $student->photo_url }}">
-     */
-    protected function photoUrl(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->photo
-                ? asset('uploads/students/' . $this->photo)
-                : asset('assets/images/default-avatar.png'),
-        );
-    }
-
-    /**
      * First Name Mutator (Trim + Lowercase + Capitalize)
      */
     protected function firstName(): Attribute
