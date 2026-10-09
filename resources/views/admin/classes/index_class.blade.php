@@ -234,6 +234,7 @@
                     $('#edit_id').val(data.id);
                     $('#edit_name').val(data.name);
                     $('#edit_numeric_name').val(data.numeric_name);
+                    $('#edit_class_code').val((data.class_code || '').replace(/^CLS-/, '')); // CLS-MONT -> MONT
                     $('#edit_has_subjects').prop('checked', data.has_subjects == 1);
                     $('#edit_description').val(data.description);
                     $('#edit_status').prop('checked', data.status == 1);

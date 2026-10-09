@@ -17,7 +17,7 @@ class ClassController extends Controller
     use Exportable, Importable;
 
     private const EXPORT_HEADINGS = ['Class', 'Class Code', 'Numeric Name', 'Has Subjects', 'Description', 'Status'];
-    private const IMPORT_HEADINGS = ['name', 'numeric_name', 'has_subjects', 'description'];
+    private const IMPORT_HEADINGS = ['name', 'class_code', 'numeric_name', 'has_subjects', 'description'];
 
     private function classExportRows(): array
     {
@@ -47,7 +47,7 @@ class ClassController extends Controller
     public function ImportTemplate()
     {
         return Excel::download(
-            new GenericTemplateExport(self::IMPORT_HEADINGS, ['Class 5', 5, 'yes', '']),
+            new GenericTemplateExport(self::IMPORT_HEADINGS, ['Class 5', '5', 5, 'yes', '']),
             'classes_import_template.xlsx'
         );
     }
@@ -80,23 +80,41 @@ class ClassController extends Controller
     }
     // End Method
 
+    // Class code rules: CLS- ke baad sirf capital letters/digits (roll no mein dash na aaye), unique
+    private function classCodeRules($ignoreId = null): array
+    {
+        return ['required', 'max:20', 'regex:/^[A-Z0-9]+$/', function ($attribute, $value, $fail) use ($ignoreId) {
+            $exists = SchoolClass::where('class_code', 'CLS-' . $value)
+                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+                ->exists();
+            if ($exists) {
+                $fail('This class code already exists.');
+            }
+        }];
+    }
+
     public function StoreClass(Request $request)
     {
+        $request->merge(['class_code' => strtoupper(trim((string) $request->class_code))]);
+
         $request->validate([
             'name' => 'required|string|max:255|unique:school_class,name',
             'numeric_name' => 'required|integer|unique:school_class,numeric_name',
+            'class_code' => $this->classCodeRules(),
             'description' => 'nullable|string',
         ], [
             'name.required' => 'The class name is mandatory.',
             'name.unique' => 'This class name already exists.',
             'numeric_name.required' => 'Numeric name is required.',
             'numeric_name.unique' => 'A class with this numeric identity already exists.',
+            'class_code.required' => 'Class code is required.',
+            'class_code.regex' => 'Class code: only capital letters and digits (no dash/space).',
         ]);
 
         $className = $request->name;
         $slug = Str::slug($className);
-        $classCode = 'CLS-' . str_replace('-', 'N', $request->numeric_name);
-        // e.g. CLS-N3
+        $classCode = 'CLS-' . $request->class_code;
+        // e.g. CLS-KG1
 
         SchoolClass::create([
             'name' => $className,
@@ -114,12 +132,17 @@ class ClassController extends Controller
 
     public function UpdateClass(Request $request, $id)
     {
+        $request->merge(['class_code' => strtoupper(trim((string) $request->class_code))]);
+
         $request->validate([
             'name' => 'required|unique:school_class,name,' . $id,
             'numeric_name' => 'required|numeric',
+            'class_code' => $this->classCodeRules($id),
         ], [
             'name.required' => 'Class name is required.',
             'name.unique' => 'This class name is already taken.',
+            'class_code.required' => 'Class code is required.',
+            'class_code.regex' => 'Class code: only capital letters and digits (no dash/space).',
         ]);
 
         SchoolClass::findOrFail($id)->update([
@@ -127,6 +150,7 @@ class ClassController extends Controller
             'has_subjects' => $request->has('has_subjects'),
             'slug' => Str::slug($request->name),
             'numeric_name' => $request->numeric_name,
+            'class_code' => 'CLS-' . $request->class_code,
             'description' => $request->description,
             'status' => $request->has('status') ? 1 : 0,
         ]);

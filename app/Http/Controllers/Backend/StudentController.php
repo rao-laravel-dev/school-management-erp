@@ -1268,7 +1268,7 @@ class StudentController extends Controller
      */
     private function buildRollSequence($classModel, $sectionModel, $groupModel, $academicYearId): array
     {
-        $classCode = $classModel->roll_code; // e.g. "10", "MONT", "KG1"
+        $classCode = preg_replace('/[^A-Z0-9]/', '', strtoupper($classModel->roll_code)); // e.g. "10", "MONT", "KG1" (sirf alnum)
         $sectionChar = $sectionModel ? strtoupper(substr(trim($sectionModel->name), 0, 1)) : 'A';
         $groupCode = $groupModel ? strtoupper(trim($groupModel->group_code ?? $groupModel->name)) : null;
 

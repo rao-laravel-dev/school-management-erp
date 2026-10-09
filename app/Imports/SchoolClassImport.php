@@ -22,6 +22,14 @@ class SchoolClassImport extends ValidatedImport
                 },
             ],
             'numeric_name' => ['required', 'integer', 'unique:school_class,numeric_name'],
+            'class_code'   => [
+                'required', 'max:20', 'regex:/^[A-Z0-9]+$/',
+                function ($attribute, $value, $fail) {
+                    if (SchoolClass::where('class_code', 'CLS-' . $value)->exists()) {
+                        $fail('Class code ' . $value . ' already exists.');
+                    }
+                },
+            ],
             'has_subjects' => ['required', 'boolean'],
             'description'  => ['nullable', 'string', 'max:1000'],
         ];
@@ -32,13 +40,14 @@ class SchoolClassImport extends ValidatedImport
         return [
             'name.unique'           => 'Class ":input" already exists.',
             'numeric_name.unique'   => 'Numeric name :input is already used by another class.',
+            'class_code.regex'      => 'Class code must be capital letters/digits only (no dash/space).',
             'has_subjects.required' => 'The has_subjects must be yes or no.',
         ];
     }
 
     protected function uniqueInFile(): array
     {
-        return ['name', 'numeric_name'];
+        return ['name', 'numeric_name', 'class_code'];
     }
 
     protected function prepare(array $row): array
@@ -54,6 +63,8 @@ class SchoolClassImport extends ValidatedImport
             default                 => null,
         };
 
+        $row['class_code'] = strtoupper(trim((string) ($row['class_code'] ?? '')));
+
         $row['slug'] = Str::slug($row['name'] ?? '');
 
         return $row;
@@ -65,7 +76,7 @@ class SchoolClassImport extends ValidatedImport
             'name'         => $data['name'],
             'has_subjects' => $data['has_subjects'],
             'numeric_name' => $data['numeric_name'],
-            'class_code'   => 'CLS-' . str_replace('-', 'N', $data['numeric_name']), // StoreClass jaisa
+            'class_code'   => 'CLS-' . $data['class_code'], // StoreClass jaisa
             'slug'         => $data['slug'],
             'description'  => $data['description'] ?? null,
             'status'       => 1,

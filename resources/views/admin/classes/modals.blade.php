@@ -18,6 +18,11 @@
                         <input type="number" name="numeric_name" class="form-control form-control-sm" placeholder="e.g. 10">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label small fw-bold">Class Code <span class="text-danger">*</span></label>
+                        <input type="text" name="class_code" class="form-control form-control-sm" placeholder="e.g. MONT, KG1, 10" maxlength="20" style="text-transform:uppercase">
+                        <small class="text-muted">Letters/digits only, no dash or space.</small>
+                    </div>
+                    <div class="mb-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="has_subjects" id="has_subjects" value="1" checked>
                             <label class="form-check-label small" for="has_subjects">This class has subject-wise teachers</label>
@@ -62,6 +67,11 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Numeric Name <span class="text-danger">*</span></label>
                         <input type="number" name="numeric_name" id="edit_numeric_name" class="form-control form-control-sm">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Class Code <span class="text-danger">*</span></label>
+                        <input type="text" name="class_code" id="edit_class_code" class="form-control form-control-sm" maxlength="20" style="text-transform:uppercase">
+                        <small class="text-muted">Letters/digits only, no dash or space.</small>
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">

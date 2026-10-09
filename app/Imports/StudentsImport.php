@@ -286,7 +286,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
      */
     private function buildRollSequence($classModel, $sectionModel, $groupModel, $academicYearId): array
     {
-        $classCode = $classModel->roll_code;
+        $classCode = preg_replace('/[^A-Z0-9]/', '', strtoupper($classModel->roll_code));
         $sectionChar = strtoupper(substr(trim($sectionModel->name), 0, 1));
         $groupCode = $groupModel ? strtoupper(trim($groupModel->group_code ?? $groupModel->name)) : null;
 
