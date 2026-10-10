@@ -26,7 +26,7 @@
             {{-- Student Image & Basic ID --}}
             <div class="col-md-3 text-center border-end">
                 @if($enrollment->student && $enrollment->student->photo)
-                <img src="{{ asset('uploads/students/' . $enrollment->student->photo) }}"
+                <img src="{{ $enrollment->student->photo_url }}"
                     alt="Student Photo"
                     class="rounded-3 border shadow-sm"
                     style="width: 100px; height: 100px; object-fit: cover;">

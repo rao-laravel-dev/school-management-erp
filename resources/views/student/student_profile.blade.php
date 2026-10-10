@@ -23,8 +23,8 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex flex-column align-items-center text-center">
-                                    <img src="{{ (!empty($profileData->photo)) 
-    ? url('uploads/student_images/'.$profileData->photo) 
+                                    <img src="{{ $profileData->studentProfile
+    ? $profileData->studentProfile->photo_url
     : url('uploads/no_image.jpg') }}" alt="Parents Profile Image" class="rounded-circle p-1 bg-primary" width="110">
                                 
                                     <div class="mt-3">
@@ -102,8 +102,8 @@
                                         <h6 class="mb-0"></h6>
                                     </div>
     <div class="col-sm-9 text-secondary">
-    <img id="showImage" src="{{ (!empty($profileData->photo)) 
-    ? url('uploads/student_images/'.$profileData->photo) 
+    <img id="showImage" src="{{ $profileData->studentProfile
+    ? $profileData->studentProfile->photo_url
     : url('uploads/no_image.jpg') }}" alt="Parent Profile Image" class="rounded-circle p-1 bg-primary" width="80">
     </div>
                                 </div>

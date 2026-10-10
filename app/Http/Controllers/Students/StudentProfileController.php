@@ -101,7 +101,7 @@ class StudentProfileController extends Controller
         $id = Auth::id();
         $profileData = User::find($id);
 
-        return view('students.student_profile', compact('profileData'));
+        return view('student.student_profile', compact('profileData'));
     }
 
     // Profile Update
@@ -117,23 +117,27 @@ class StudentProfileController extends Controller
         ];
 
         if ($request->hasFile('photo')) {
-            if ($user->photo) {
-                $imageService->delete($user->photo, 'uploads/student_images');
+            // admin ki upload ki hui photo sirf students.photo mein hoti hai, isliye pehle wahi dekho
+            $oldPhoto = $user->studentProfile ? $user->studentProfile->photo : $user->photo;
+            if ($oldPhoto) {
+                $imageService->delete($oldPhoto, 'uploads/students');
             }
 
             $data['photo'] = $imageService->upload(
                 $request->file('photo'),
-                'uploads/student_images',
+                'uploads/students', // Student::photo_url yahi folder dekhta hai
                 300,
                 300
             );
         }
 
-        $user->update($data);
+        DB::transaction(function () use ($user, $data) { // users + students dono ek sath save
+            $user->update($data);
 
-        if (isset($data['photo']) && $user->studentProfile) {
-            $user->studentProfile->update(['photo' => $data['photo']]);
-        }
+            if (isset($data['photo']) && $user->studentProfile) {
+                $user->studentProfile->update(['photo' => $data['photo']]);
+            }
+        });
 
         return redirect()->back()->with([
             'message' => 'Student Profile Updated Successfully',

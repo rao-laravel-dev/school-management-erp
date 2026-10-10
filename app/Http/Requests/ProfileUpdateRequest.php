@@ -30,6 +30,7 @@ class ProfileUpdateRequest extends FormRequest
 
             // Address is optional field
             'adrs'         => 'nullable|string|max:255',
+            'address'      => 'nullable|string|max:255', // student profile form ka field name
 
             // Gender validation (safe enum check)
             'gender'       => 'nullable|in:male,female',

@@ -149,8 +149,8 @@
 			<div class="user-box dropdown px-3">
 				<a class="d-flex align-items-center nav-link dropdown-toggle gap-3 dropdown-toggle-nocaret" href="#"
 					role="button" data-bs-toggle="dropdown" aria-expanded="false">
-					<img src="{{ (Auth::check() && Auth::user()->photo)
-	? url('uploads/student_images/' . Auth::user()->photo)
+					<img src="{{ (Auth::check() && Auth::user()->studentProfile)
+	? Auth::user()->studentProfile->photo_url
 	: url('uploads/no_image.jpg') }}" class="user-img" alt="user avatar">
 
 					<div class="user-info">
