@@ -23,7 +23,7 @@ class FinanceReportController extends Controller
 
         // Detailed lists per tab
         $feeCollections = (clone $baseQuery)->where('category', 'fee')->where('type', 'income')
-            ->with(['studentFee.student', 'studentFee.feeType', 'bankAccount', 'user'])
+            ->with(['studentFee.student' => fn ($q) => $q->withTrashed(), 'studentFee.feeType', 'bankAccount', 'user']) // trashed student ki fee history mein bhi naam dikhe
             ->orderByDesc('transaction_date')->get();
 
         $salaryPayments = (clone $baseQuery)->where('category', 'salary')

@@ -64,6 +64,7 @@ class PrintReportCardController extends Controller
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
             ->where('enroll_status', 1)
+            ->whereHas('student') // soft-deleted student list mein nahi
             ->whereHas('result', function ($q) use ($request) {
                 $q->where('exam_id', $request->exam_id);
             })

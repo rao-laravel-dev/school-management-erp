@@ -75,6 +75,7 @@ class MarkSheetController extends Controller
                     ->where('class_id', $selectedClassId)
                     ->where('section_id', $selectedSectionId)
                     ->where('enroll_status', 1)
+                    ->whereHas('student') // soft-deleted student marks entry mein nahi
                     ->orderBy('roll_no')
                     ->get();
 

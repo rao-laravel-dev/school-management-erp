@@ -62,6 +62,7 @@ class PrintMarksheetController extends Controller
             ->where('section_id', $sectionId)
             ->where('enroll_status', 1)
             ->whereIn('id', $resultEnrollmentIds)
+            ->whereHas('student') // soft-deleted student list mein nahi
             ->orderBy('roll_no')
             ->get()
             ->map(function ($enrollment) {
@@ -97,7 +98,7 @@ class PrintMarksheetController extends Controller
             ->keyBy('subject_id');
 
         $sheets = collect($request->enrollment_ids)->map(function ($enrollmentId) use ($exam, $request, $examSchedules, $template) {
-            $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section'])->findOrFail($enrollmentId);
+            $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section'])->whereHas('student')->findOrFail($enrollmentId); // soft-deleted student = 404 (500 nahi)
             $student    = $enrollment->student;
 
             $result = Result::with('grade')

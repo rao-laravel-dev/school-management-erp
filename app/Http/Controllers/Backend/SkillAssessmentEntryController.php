@@ -60,6 +60,7 @@ class SkillAssessmentEntryController extends Controller
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
             ->where('enroll_status', 1)
+            ->whereHas('student') // soft-deleted student list mein nahi
             ->orderBy('roll_no')
             ->get();
 

@@ -36,6 +36,7 @@ class LibraryMemberController extends Controller
             ->where('class_id', $request->class_id)
             ->where('enroll_status', 1) // sirf Active enrollments
             ->when($request->section_id, fn($q) => $q->where('section_id', $request->section_id))
+            ->whereHas('student') // soft-deleted student wali enrollment skip (warna null crash)
             ->get();
 
         $memberIds = LibraryMember::where('member_type', 'student')
@@ -64,6 +65,10 @@ class LibraryMemberController extends Controller
 
     public function addStudent($id)
     {
+        if (!Student::whereKey($id)->exists()) { // soft-deleted / invalid id par member nahi banta
+            return response()->json(['message' => 'Student not found.'], 422);
+        }
+
         $exists = LibraryMember::where('member_type', 'student')->where('member_id', $id)->exists();
         if ($exists) {
             return response()->json(['message' => 'Already a library member.'], 422);

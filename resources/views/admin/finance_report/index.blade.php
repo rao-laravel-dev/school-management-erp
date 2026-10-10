@@ -108,7 +108,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ \Carbon\Carbon::parse($txn->transaction_date)->format('d M, Y') }}</td>
-                                <td>{{ $txn->studentFee->student->first_name . ' ' . $txn->studentFee->student->last_name ?? '-' }}</td>
+                                <td>{{ trim(($txn->studentFee->student->first_name ?? '') . ' ' . ($txn->studentFee->student->last_name ?? '')) ?: '-' }}</td>
                                 <td>{{ $txn->studentFee->feeType->name ?? '-' }}</td>
                                 <td class="fw-bold text-success">{{ number_format($txn->amount, 2) }}</td>
                                 <td>{{ ucfirst($txn->payment_method) }}</td>

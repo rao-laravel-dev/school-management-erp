@@ -169,6 +169,9 @@
                                              ])) }}">
                                         {{ $txn->student->full_name ?? '-' }}
                                     </a>
+                                    @if($txn->student?->trashed())
+                                        <span class="badge bg-danger ms-1">Trashed</span>
+                                    @endif
                                 </td>
                                 <td>{{ $txn->student->admission_no ?? '-' }}</td>
                                 <td class="text-end fw-bold">{{ number_format($txn->amount, 2) }}</td>
@@ -290,6 +293,9 @@
                ])) }}">
                                         {{ $row->student->full_name ?? '-' }}
                                     </a>
+                                    @if($row->student?->trashed())
+                                        <span class="badge bg-danger ms-1">Trashed</span>
+                                    @endif
                                 </td>
                                 <td>{{ $row->student->admission_no ?? '-' }}</td>
                                 <td class="text-end">{{ number_format($row->total_payable, 2) }}</td>

@@ -39,6 +39,7 @@ class PrintIdCardController extends Controller
         $enrollments = Enrollment::with('student')
             ->where('class_id', $classId)
             ->where('section_id', $sectionId)
+            ->whereHas('student') // soft-deleted student wali enrollment skip (warna null crash)
             ->get();
 
         $students = $enrollments->map(function ($enrollment) {
@@ -70,6 +71,7 @@ class PrintIdCardController extends Controller
 
         $enrollments = Enrollment::with(['student.parent', 'student.house', 'schoolClass', 'section'])
             ->whereIn('id', $request->enrollment_ids)
+            ->whereHas('student') // soft-deleted student ka card nahi banta
             ->get();
 
         return view('admin.id_card_template.card', compact('template', 'enrollments'));

@@ -417,7 +417,7 @@ class FeeCollectionController extends Controller
                 now()->endOfMonth()->toDateString(),
             ])->sum('amount');
 
-        $rangeQuery = Transaction::with(['studentFee.feeType', 'studentFee.student', 'bankAccount', 'user'])
+        $rangeQuery = Transaction::with(['studentFee.feeType', 'studentFee.student' => fn($q) => $q->withTrashed(), 'bankAccount', 'user'])
             ->where('type', 'income')->where('category', 'fee')
             ->whereBetween('transaction_date', [$from, $to]);
 
@@ -466,7 +466,7 @@ class FeeCollectionController extends Controller
         $dueFrom = $request->query('due_from');
         $dueTo   = $request->query('due_to');
 
-        $dueQuery = StudentFees::with(['student', 'feeType'])->whereIn('status', ['unpaid', 'partial']);
+        $dueQuery = StudentFees::with(['student' => fn($q) => $q->withTrashed(), 'feeType'])->whereIn('status', ['unpaid', 'partial']);
 
         if ($dueFrom && $dueTo) {
             $dueQuery->whereBetween('due_date', [$dueFrom, $dueTo]);

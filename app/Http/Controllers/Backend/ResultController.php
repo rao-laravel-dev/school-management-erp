@@ -40,6 +40,7 @@ class ResultController extends Controller
                 ->where('exam_id', $selectedExamId)
                 ->where('class_id', $selectedClassId)
                 ->where('section_id', $selectedSectionId)
+                ->whereHas('enrollment.student') // soft-deleted student ki result row list mein nahi (row DB mein rehti hai)
                 ->orderBy('position')
                 ->get();
         }
@@ -106,6 +107,7 @@ class ResultController extends Controller
         $enrollments = Enrollment::where('class_id', $classId)
             ->where('section_id', $sectionId)
             ->where('enroll_status', 1)
+            ->whereHas('student') // soft-deleted student ka result generate nahi hota
             ->get();
 
         if ($enrollments->isEmpty()) {
