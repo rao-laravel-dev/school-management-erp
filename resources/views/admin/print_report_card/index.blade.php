@@ -152,9 +152,9 @@
                 students.forEach(s => {
                     rows += `<tr>
                         <td><input type="checkbox" class="student-check" value="${s.id}"></td>
-                        <td>${s.roll_no ?? '-'}</td>
-                        <td>${s.student?.name ?? '-'}</td>
-                        <td>${s.student?.father_name ?? '-'}</td>
+                        <td>${s.roll_no || '-'}</td>
+                        <td>${s.name || '-'}</td>
+                        <td>${s.father_name || '-'}</td>
                     </tr>`;
                 });
 

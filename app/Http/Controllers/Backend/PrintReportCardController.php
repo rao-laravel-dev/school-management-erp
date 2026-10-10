@@ -60,7 +60,7 @@ class PrintReportCardController extends Controller
             'section_id' => 'required|exists:sections,id',
         ]);
  
-        $enrollments = Enrollment::with('student')
+        $enrollments = Enrollment::with('student.parent')
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
             ->where('enroll_status', 1)
@@ -70,7 +70,13 @@ class PrintReportCardController extends Controller
             })
             ->get()
             ->sortBy(fn ($e) => $e->roll_no)
-            ->values();
+            ->values()
+            ->map(fn ($e) => [ // sirf zaroori fields (students table mein name/father_name column nahi hain)
+                'id'          => $e->id,
+                'roll_no'     => $e->roll_no,
+                'name'        => $e->student->full_name,
+                'father_name' => optional($e->student->parent)->father_name,
+            ]);
  
         return response()->json($enrollments);
     }

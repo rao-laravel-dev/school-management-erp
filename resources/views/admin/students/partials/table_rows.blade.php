@@ -32,7 +32,7 @@
 
     <td>
         <span class="badge bg-light-dark text-dark border w-100">
-            #{{ $enrollment->roll_no ?? 'N/A' }}
+            {{ $enrollment->roll_no ?? 'N/A' }}
         </span>
     </td>
 
