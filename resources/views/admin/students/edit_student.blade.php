@@ -673,6 +673,31 @@
             checkParentSibling($('#father_cnic').val().trim());
         }
         handleGuardianSync();
+
+        // --- 8. BACKEND VALIDATION ERRORS (create page jaisa toastr + pehle error tak scroll) ---
+        let validationErrors = @json($errors->all());
+        if (validationErrors && validationErrors.length > 0) {
+            toastr.error("Please fill all required fields correctly.", "Validation Error");
+
+            validationErrors.forEach(function(error) {
+                console.error("SmartSchool Validation Error: " + error);
+            });
+
+            // Edit page par accordion nahi, sirf pehli error wali field tak scroll
+            let firstError = $('.is-invalid').first();
+            if (firstError.length) {
+                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                firstError.trigger('focus');
+            }
+        }
+
+        // Field change/input par us ka is-invalid aur error text hata do (input, select, file, input-group sab)
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+        });
     });
 </script>
 @endpush

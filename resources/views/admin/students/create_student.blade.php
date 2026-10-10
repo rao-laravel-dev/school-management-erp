@@ -694,13 +694,43 @@ $validationErrorsJson = json_encode($errors->all());
             validationErrors.forEach(function(error) {
                 console.error("SmartSchool Validation Error: " + error);
             });
+
+            // Sirf PEHLE error wala accordion section kholo (data-bs-parent baqi band kar deta hai) aur us field tak scroll
+            let firstError = $('.is-invalid').first();
+            if (firstError.length) {
+                let scrollToError = function() {
+                    $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                    firstError.trigger('focus');
+                };
+                let errorPanel = firstError.closest('.accordion-collapse');
+                if (errorPanel.length && !errorPanel.hasClass('show')) {
+                    errorPanel.one('shown.bs.collapse', scrollToError);
+                    bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+                } else {
+                    scrollToError();
+                }
+            }
         }
 
+        // Field change/input par us ka is-invalid aur error text hata do (input, select, file, input-group sab)
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+        });
+
         // --- 8. SIBLING AUTO-FETCH & FIELD LOCK ENGINE ---
+        let lastCheckedCnic = ''; // same CNIC par blur + keyup se double AJAX / double toastr na ho
         $('#father_cnic').on('blur keyup', function() {
             let cnicValue = $(this).val().trim();
 
             if (cnicValue.length >= 13) {
+                if (cnicValue === lastCheckedCnic) {
+                    return;
+                }
+                lastCheckedCnic = cnicValue;
+
                 $.ajax({
                     url: '/students/check-parent/' + cnicValue,
                     type: 'GET',
@@ -772,10 +802,12 @@ $validationErrorsJson = json_encode($errors->all());
                         }
                     }
                 }).fail(function(xhr, status, error) {
+                    lastCheckedCnic = ''; // fail ke baad dobara try ho sake
                     toastr.error('Verification Framework Latency Warning: Parent data stream check failed.');
                     console.error("AJAX Interface Stack Failure Logged: ", error);
                 });
             } else {
+                lastCheckedCnic = '';
                 resetSiblingStructuralSync();
             }
         });
@@ -832,8 +864,9 @@ $validationErrorsJson = json_encode($errors->all());
                     .attr('placeholder', 'Select Class & Section to Generate...');
 
                 // agar class/section pehle se selected hain to fresh auto-generated Adm No le aayein
+                // section par trigger: class change section list empty kar deta hai (re-select chahiye hota tha)
                 if ($("select[name='class_id']").val() && $("select[name='section_id']").val()) {
-                    $("select[name='class_id'], select[name='section_id'], select[name='group_id']").first().trigger('change');
+                    $("select[name='section_id']").trigger('change');
                 }
             }
         });
