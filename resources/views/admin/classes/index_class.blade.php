@@ -192,6 +192,31 @@
         toastr.success(@json(session('toastr-success')));
         @endif
 
+        // --- INLINE FIELD ERRORS (422): field ke neeche error text, toastr list ke sath ---
+        function clearFieldErrors(form) {
+            form.find('.is-invalid').removeClass('is-invalid');
+            form.find('.invalid-feedback').remove();
+        }
+
+        function showFieldErrors(form, errors) {
+            clearFieldErrors(form);
+            $.each(errors, function(key, val) {
+                let input = form.find('[name="' + key + '"]').first();
+                if (input.length) {
+                    input.addClass('is-invalid');
+                    input.after($('<div class="invalid-feedback"></div>').text(val[0]));
+                }
+            });
+        }
+
+        // Field change/input par us ka error hata do; modal band ho to sab saaf
+        $('#addClassModal, #editClassModal').on('input change', '.is-invalid', function() {
+            $(this).removeClass('is-invalid').nextAll('.invalid-feedback').first().remove();
+        });
+        $('#addClassModal, #editClassModal').on('hidden.bs.modal', function() {
+            clearFieldErrors($(this).find('form'));
+        });
+
         // --- ADD CLASS ---
         $('#addClassForm').on('submit', function(e) {
             e.preventDefault();
@@ -213,6 +238,7 @@
                         $.each(errors, function(key, val) {
                             msg += "• " + val[0] + "<br>";
                         });
+                        showFieldErrors(form, errors);
                         toastr.error(msg, 'Validation Error!');
                     } else {
                         toastr.error('Something went wrong!');
@@ -268,6 +294,7 @@
                         $.each(errors, function(key, val) {
                             msg += "• " + val[0] + "<br>";
                         });
+                        showFieldErrors(form, errors);
                         toastr.error(msg, 'Validation Error!');
                     } else {
                         toastr.error('Something went wrong!');
