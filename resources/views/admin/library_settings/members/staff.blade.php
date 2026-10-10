@@ -95,14 +95,14 @@
                 `<span class="fw-bold text-danger">${s.library_card_no}</span>` :
                 '-';
 
-            const nameHtml = `<i class="bx bx-star text-success me-1"></i><span class="fw-semibold text-primary">${s.name ?? '-'}</span>`;
+            const nameHtml = `<i class="bx bx-star text-success me-1"></i><span class="fw-semibold text-primary">${s.name || '-'}</span>`;
 
             return [
                 index + 1,
                 cardNoHtml,
                 nameHtml,
-                s.email ?? '-',
-                s.phone ?? '-',
+                s.email || '-',
+                s.phone || '-',
                 actionBtn,
             ];
         }
@@ -151,12 +151,12 @@
                 toastr.success(res.message);
                 const row = table.row(btn.closest('tr'));
                 const rowData = row.data();
-                rowData[0] = `<span class="fw-bold text-success">${res.library_card_no}</span>`;
-                rowData[4] = `<button class="btn btn-sm btn-outline-danger btn-remove-staff" data-id="${id}"><i class="bx bx-undo"></i></button>`;
+                rowData[1] = `<span class="fw-bold text-danger">${res.library_card_no}</span>`; // col 1 = Library Card No.
+                rowData[5] = `<button class="btn btn-sm btn-outline-danger btn-remove-staff" data-id="${id}"><i class="bx bx-undo fw-bold"></i></button>`; // col 5 = Action
                 row.data(rowData).draw(false);
                 $(row.node()).addClass('table-success');
             }).fail(function(xhr) {
-                toastr.error(xhr.responseJSON?.message || 'Unable to add member.');
+                toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to add member.');
             });
         });
 
@@ -184,13 +184,13 @@
                         toastr.success(res.message);
                         const row = table.row(btn.closest('tr'));
                         const rowData = row.data();
-                        rowData[0] = '-';
-                        rowData[4] = `<button class="btn btn-sm btn-outline-success btn-add-staff" data-id="${id}"><i class="bx bx-plus"></i></button>`;
+                        rowData[1] = '-'; // col 1 = Library Card No.
+                        rowData[5] = `<button class="btn btn-sm btn-outline-success btn-add-staff" data-id="${id}"><i class="bx bx-plus fw-bold"></i></button>`; // col 5 = Action
                         row.data(rowData).draw(false);
                         $(row.node()).removeClass('table-success');
                     },
-                    error: function() {
-                        toastr.error('Unable to remove member.');
+                    error: function(xhr) {
+                        toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to remove member.');
                     }
                 });
             });

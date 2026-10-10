@@ -51,7 +51,6 @@
             <table class="table table-bordered table-striped w-100" id="studentTable">
                 <thead>
                     <tr>
-                    <tr>
                         <th style="width:40px">#</th>
                         <th>Library Card No.</th>
                         <th>Admission No</th>
@@ -120,18 +119,18 @@
                 `<span class="fw-bold text-danger">${s.library_card_no}</span>` :
                 '-';
 
-            const nameHtml = `<i class="bx bx-star text-success me-1"></i><span class="fw-semibold text-primary">${s.name ?? '-'}</span>`;
+            const nameHtml = `<i class="bx bx-star text-success me-1"></i><span class="fw-semibold text-primary">${s.name || '-'}</span>`;
 
             return [
                 index + 1,
                 cardNoHtml,
-                s.admission_no ?? '-',
+                s.admission_no || '-',
                 nameHtml,
                 s.class_section,
-                s.father_name ?? '-',
-                s.dob ?? '-',
-                s.gender ?? '-',
-                s.mobile ?? '-',
+                s.father_name || '-',
+                s.dob || '-',
+                s.gender || '-',
+                s.mobile || '-',
                 actionBtn,
             ];
         }
@@ -180,12 +179,12 @@
                 toastr.success(res.message);
                 const row = table.row(btn.closest('tr'));
                 const rowData = row.data();
-                rowData[0] = `<span class="fw-bold text-success">${res.library_card_no}</span>`;
-                rowData[8] = `<button class="btn btn-sm btn-outline-danger btn-remove-student" data-id="${id}"><i class="bx bx-x"></i></button>`;
+                rowData[1] = `<span class="fw-bold text-danger">${res.library_card_no}</span>`; // col 1 = Library Card No.
+                rowData[9] = `<button class="btn btn-sm btn-outline-danger btn-remove-student" data-id="${id}"><i class="bx bx-undo fw-bold"></i></button>`; // col 9 = Action
                 row.data(rowData).draw(false);
                 $(row.node()).addClass('table-success');
             }).fail(function(xhr) {
-                toastr.error(xhr.responseJSON?.message || 'Unable to add member.');
+                toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to add member.');
             });
         });
 
@@ -213,13 +212,13 @@
                         toastr.success(res.message);
                         const row = table.row(btn.closest('tr'));
                         const rowData = row.data();
-                        rowData[0] = '-';
-                        rowData[8] = `<button class="btn btn-sm btn-outline-success btn-add-student" data-id="${id}"><i class="bx bx-plus"></i></button>`;
+                        rowData[1] = '-'; // col 1 = Library Card No.
+                        rowData[9] = `<button class="btn btn-sm btn-outline-success btn-add-student" data-id="${id}"><i class="bx bx-plus fw-bold"></i></button>`; // col 9 = Action
                         row.data(rowData).draw(false);
                         $(row.node()).removeClass('table-success');
                     },
-                    error: function() {
-                        toastr.error('Unable to remove member.');
+                    error: function(xhr) {
+                        toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to remove member.');
                     }
                 });
             });

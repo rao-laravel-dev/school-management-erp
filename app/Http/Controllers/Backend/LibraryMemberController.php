@@ -91,6 +91,10 @@ class LibraryMemberController extends Controller
 
     public function removeStudent($id)
     {
+        if ($guard = $this->removeGuard('student', $id)) {
+            return $guard;
+        }
+
         LibraryMember::where('member_type', 'student')->where('member_id', $id)->delete();
         return response()->json(['message' => 'Student removed from library membership.']);
     }
@@ -164,8 +168,31 @@ class LibraryMemberController extends Controller
 
     public function removeStaff($userId)
     {
+        if ($guard = $this->removeGuard('staff', $userId)) {
+            return $guard;
+        }
+
         LibraryMember::where('member_type', 'staff')->where('member_id', $userId)->delete();
         return response()->json(['message' => 'Staff removed from library membership.']);
+    }
+
+    // ---------- SHARED: REMOVE GUARD (book_issues cascadeOnDelete, history delete na ho) ----------
+    private function removeGuard(string $type, $memberId)
+    {
+        $member = LibraryMember::where('member_type', $type)->where('member_id', $memberId)->first();
+        if (!$member) {
+            return null;
+        }
+
+        if ($member->bookIssues()->whereIn('status', ['issued', 'overdue', 'lost'])->exists()) {
+            return response()->json(['message' => 'This member has issued books. Return them first.'], 422);
+        }
+
+        if ($member->bookIssues()->exists()) {
+            return response()->json(['message' => 'This member has library history, it cannot be removed (history is kept).'], 422);
+        }
+
+        return null;
     }
 
     // ---------- SHARED: CARD NUMBER GENERATOR ----------
