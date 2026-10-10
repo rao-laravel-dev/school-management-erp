@@ -79,7 +79,7 @@ class AdmissionEnquiryController extends Controller
                 'status'              => 'pending', // Default status
             ]);
 
-            return redirect()->route('admission_enquiry.index')->with('success', 'Enquiry added successfully!');
+            return redirect()->route('admission-enquiry.index')->with('success', 'Enquiry added successfully!');
         } catch (Exception $e) {
             return redirect()->back()->withInput()->with('error', 'Something went wrong: ' . $e->getMessage());
         }

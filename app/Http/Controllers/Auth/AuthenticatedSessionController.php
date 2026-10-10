@@ -104,7 +104,7 @@ class AuthenticatedSessionController extends Controller
         } elseif ($user->hasRole('teacher')) {
             $redirectRoute = route('teacher.login');
         } elseif ($user->hasRole('student')) {
-            $redirectRoute = route('student.login');
+            $redirectRoute = route('students.login');
         }
     }
 

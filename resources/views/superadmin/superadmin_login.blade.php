@@ -57,7 +57,7 @@
                                     </div>
                                     <div class="form-body">
                                         <form class="row g-3" name="" id="" method="POST"
-                                            action="{{ route('adminlogin') }}">
+                                            action="{{ route('login') }}">
                                             @csrf
 
                                             <div class="col-12">
@@ -91,7 +91,7 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-6 text-end"> <a
-                                                    href="{{ route('adminpassword.request', ['role' => 'superadmin']) }}">Forgot Password ?</a>
+                                                    href="{{ route('password.request', ['role' => 'superadmin']) }}">Forgot Password ?</a>
                                             </div>
                                             <div class="col-12">
                                                 <div class="d-grid">

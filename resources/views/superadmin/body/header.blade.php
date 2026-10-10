@@ -596,7 +596,7 @@
 					</div>
 				</a>
 				<ul class="dropdown-menu dropdown-menu-end">
-					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('adminsuperadmin.profile') }}"><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('superadmin.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
 					<li><a class="dropdown-item d-flex align-items-center" href=""><i
@@ -608,7 +608,7 @@
 					<li>
 						<div class="dropdown-divider mb-0"></div>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('adminsuperadmin.logout')}}"><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('superadmin.logout')}}"><i
 								class="bx bx-log-out-circle"></i><span>Logout</span></a>
 					</li>
 				</ul>

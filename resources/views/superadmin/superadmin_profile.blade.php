@@ -1,4 +1,4 @@
-@extends('superadmin.dashboard')
+@extends('superadmin.layout.app')
 @section('content')
  <!--breadcrumb--> 
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
@@ -39,7 +39,7 @@
                     </div>
                     <div class="col-lg-8">
                         <div class="card">
-                            <form method="post" action="{{ route('adminsuperadmin.profile.update') }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('superadmin.profile.update') }}" enctype="multipart/form-data">
                                 @csrf
                             <div class="card-body">
                                 <div class="row mb-3">

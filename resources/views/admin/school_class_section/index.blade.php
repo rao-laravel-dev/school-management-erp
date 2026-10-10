@@ -118,9 +118,7 @@
             "timeOut": "5000"
         };
 
-        @if(session('message'))
-            toastr.{{ session('alert-type', 'success') }}("{{ session('message') }}");
-        @endif
+        // session message ka toastr admin layout dikhata hai, yahan dobara nahi (double toastr)
 
         @if($errors->any())
             let errorHtml = "";

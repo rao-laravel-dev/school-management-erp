@@ -48,7 +48,15 @@ class SchoolClassSectionController extends Controller
             $class = SchoolClass::findOrFail($request->school_class_id);
 
             // Sync without detaching taake purane records delete na hon, sirf naye add hon
-            $class->mappedSections()->syncWithoutDetaching($request->section_ids);
+            $result = $class->mappedSections()->syncWithoutDetaching($request->section_ids);
+
+            // sab sections pehle se mapped hon to success ki jagah info
+            if (empty($result['attached'])) {
+                return redirect()->back()->with([
+                    'message'    => 'Selected sections are already mapped to this class',
+                    'alert-type' => 'info'
+                ]);
+            }
 
             return redirect()->back()->with([
                 'message'    => 'Sections mapped to Class successfully!',
@@ -88,9 +96,24 @@ class SchoolClassSectionController extends Controller
 
         try {
             $class = SchoolClass::findOrFail($id);
+
+            // untick kiye hue sections (jo detach honge) mein students ya timetable ho to block
+            $removedIds = $class->mappedSections()->pluck('sections.id')->diff($request->section_ids);
+            $blocked = Section::whereIn('id', $removedIds)->get()->filter(function ($sec) use ($class) {
+                return DB::table('enrollments')->where('class_id', $class->id)->where('section_id', $sec->id)->whereNull('deleted_at')->exists()
+                    || DB::table('class_timetables')->where('school_class_id', $class->id)->where('section_id', $sec->id)->exists();
+            });
+
+            if ($blocked->isNotEmpty()) {
+                return redirect()->back()->with([
+                    'message'    => 'Cannot remove section ' . $blocked->pluck('name')->implode(', ') . ': students or timetable exist for it.',
+                    'alert-type' => 'error'
+                ]);
+            }
+
             $class->mappedSections()->sync($request->section_ids);
 
-            return redirect()->route('adminschool_class_section.index')->with([
+            return redirect()->route('school_class_section.index')->with([
                 'message'    => 'Section mapping updated successfully!', // Updated toastr text
                 'alert-type' => 'success'
             ]);

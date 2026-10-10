@@ -1,4 +1,4 @@
-@extends('superadmin.dashboard')
+@extends('superadmin.layout.app')
 
 @section('content')
 
@@ -26,7 +26,7 @@
 
         <div class="card-body">
 
-            <form method="POST" action="{{ route('adminsuperadmin.roles.store') }}">
+            <form method="POST" action="{{ route('superadmin.roles.store') }}">
                 @csrf
 
                 <div class="row">

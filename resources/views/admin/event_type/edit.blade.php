@@ -8,7 +8,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 p-0">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
-                <li class="breadcrumb-item"><a href="{{ route('admin.event-types.index') }}">Event Types</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('event_type.index') }}">Event Types</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Edit</li>
             </ol>
         </nav>
@@ -17,7 +17,7 @@
 
 <div class="card radius-10">
     <div class="card-body">
-        <form action="{{ route('admin.event-types.update', $eventType->id) }}" method="POST">
+        <form action="{{ route('event_type.update', $eventType->id) }}" method="POST">
             @csrf
             @method('PUT')
             @include('admin.event_types._form', ['eventType' => $eventType])

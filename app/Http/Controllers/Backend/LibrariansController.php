@@ -38,7 +38,7 @@ public function LibrarianLogout(Request $request)
 public function LibrarianLogin()
 {
     if (Auth::check()) {
-        return redirect()->route('adminlibrarian.dashboard');
+        return redirect()->route('librarian.dashboard');
     }
 
     return view('librarian.librarian_login');

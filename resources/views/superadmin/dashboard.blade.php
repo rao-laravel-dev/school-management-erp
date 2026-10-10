@@ -1,4 +1,4 @@
-@extends('superadmin.dashboard')
+@extends('superadmin.layout.app')
 @section('content')
 
 <!-- Cards Row -->

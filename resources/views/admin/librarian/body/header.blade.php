@@ -656,7 +656,7 @@
 					</div>
 				</a>
 				<ul class="dropdown-menu dropdown-menu-end">
-					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('adminlibrarian.profile') }}"><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('librarian.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
 					<li><a class="dropdown-item d-flex align-items-center" href=""><i
@@ -668,7 +668,7 @@
 					<li>
 						<div class="dropdown-divider mb-0"></div>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('adminlibrarian.logout')}}"><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('librarian.logout')}}"><i
 								class="bx bx-log-out-circle"></i><span>Logout</span></a>
 					</li>
 				</ul>

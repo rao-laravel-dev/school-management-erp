@@ -51,7 +51,7 @@
 									</div>
 									<div class="d-grid gap-2">
 										<button type="button" class="btn btn-primary">Send</button>
-										<a href="{{ route('adminlogin') }}" class="btn btn-light"><i class='bx bx-arrow-back me-1'></i>Back to
+										<a href="{{ route('login') }}" class="btn btn-light"><i class='bx bx-arrow-back me-1'></i>Back to
 											Login</a>
 									</div>
 								</div>

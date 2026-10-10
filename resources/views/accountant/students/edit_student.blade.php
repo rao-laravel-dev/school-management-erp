@@ -5,7 +5,7 @@
     <div class="page-breadcrumb d-flex justify-content-between align-items-center mb-3">
         <h4>Edit Student</h4>
 
-        <a href="{{ route('adminstudents.index') }}" class="btn btn-secondary">
+        <a href="{{ route('students.index') }}" class="btn btn-secondary">
             Back
         </a>
     </div>
@@ -13,7 +13,7 @@
     <div class="card">
         <div class="card-body">
 
-            <form action="{{ route('adminstudents.update', $student->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('students.update', $student->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="row">

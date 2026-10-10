@@ -54,7 +54,7 @@ class ParentsController extends Controller
  //dd($student->currentEnrollment);
 
     if (!$student) {
-        return redirect()->route('adminparent.dashboard')->with('error', 'Unauthorized access! You can only view your own children.');
+        return redirect()->route('parent.dashboard')->with('error', 'Unauthorized access! You can only view your own children.');
     }
     
     // 2. Set Session
@@ -143,7 +143,7 @@ return view('parent.student_details', compact(
     public function ParentLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('adminparent.dashboard');
+            return redirect()->route('parent.dashboard');
         }
 
         return view('parent.parents_login');

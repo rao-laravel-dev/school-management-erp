@@ -79,7 +79,7 @@
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Change Password</button> 
-                        <a href="{{ route('adminlogin') }}" class="btn btn-light">
+                        <a href="{{ route('login') }}" class="btn btn-light">
                             <i class='bx bx-arrow-back mr-1'></i>Back to Login
                         </a>
                     </div>

@@ -15,7 +15,7 @@
     {{-- Dashboard --}}
     @can('view dashboard')
     <li>
-        <a href="{{ route('adminsuperadmin.dashboard') }}">
+        <a href="{{ route('superadmin.dashboard') }}">
             <div class="parent-icon"><i class='bx bx-home-alt'></i></div>
             <div class="menu-title">Dashboard</div>
         </a>
@@ -52,14 +52,14 @@
         </a>
         <ul>
             <li>
-                <a href="{{ route('adminsuperadmin.roles.index') }}">
+                <a href="{{ route('superadmin.roles.index') }}">
                     <i class='bx bx-radio-circle'></i>All Roles
                 </a>
             </li>
 
             @can('add roles')
             <li>
-                <a href="{{ route('adminsuperadmin.roles.create') }}">
+                <a href="{{ route('superadmin.roles.create') }}">
                     <i class='bx bx-radio-circle'></i>Add Role
                 </a>
             </li>

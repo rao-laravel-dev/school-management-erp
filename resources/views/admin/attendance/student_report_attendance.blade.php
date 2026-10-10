@@ -7,7 +7,7 @@
     <div class="ps-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{{ route('adminstudents.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{{ route('student.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
                 <li class="breadcrumb-item active" aria-current="page">Attendance Report</li>
             </ol>
         </nav>
@@ -26,7 +26,7 @@
 
         <div class="card radius-10 mb-3">
             <div class="card-body">
-                <form method="GET" action="{{ route('adminstudents.attendance.report') }}" class="row align-items-end g-3">
+                <form method="GET" action="{{ route('student.attendance.report') }}" class="row align-items-end g-3">
                     <div class="col-md-2">
                         <label class="form-label">Start Date</label>
                         <input type="date" name="start_date" class="form-control" value="{{ $startDate }}">

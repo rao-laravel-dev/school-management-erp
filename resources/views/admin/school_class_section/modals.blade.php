@@ -54,7 +54,6 @@
         <div class="modal-content">
             <form action="{{ route('school_class_section.update', $row->id) }}" method="POST">
                 @csrf
-                @method('PUT')
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title"><i class="bx bx-edit"></i> Edit Mapping: {{ $row->name }}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>

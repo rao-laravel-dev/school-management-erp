@@ -10,7 +10,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-0">
                         <li class="breadcrumb-item">
-                            <a href="{{ route('admindashboard') }}">
+                            <a href="{{ route('dashboard') }}">
                                 <i class="bx bx-home-alt"></i>
                             </a>
                         </li>
@@ -27,7 +27,7 @@
     <h5 class="mb-0">All Students</h5>
 
     @can('add students')
-        <a href="{{ route('adminstudents.create') }}" class="btn btn-primary">
+        <a href="{{ route('students.create') }}" class="btn btn-primary">
             + Add Student
         </a>
     @endcan
@@ -79,14 +79,14 @@
                                     <!-- Actions -->
                                     <td>
     @can('edit students')
-        <a href="{{ route('adminstudents.edit', $student->id) }}" 
+        <a href="{{ route('students.edit', $student->id) }}" 
            class="btn btn-info btn-sm me-1">
             Edit
         </a>
     @endcan
 
     @can('delete students')
-        <a href="{{ route('adminstudents.delete', $student->id) }}" 
+        <a href="{{ route('students.delete', $student->id) }}" 
            class="btn btn-danger btn-sm deleteBtn">
             Delete
         </a>

@@ -22,14 +22,14 @@ class SuperAdminController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect()->route('adminsuperadmin.login');
+        return redirect()->route('superadmin.login');
     } 
     // End Method 
 
 
      public function SuperAdminLogin(Request $request){
         if (Auth::check()) {
-          return redirect()->route('adminsuperadmin.dashboard');
+          return redirect()->route('superadmin.dashboard');
         }
         return view('superadmin.superadmin_login');
        

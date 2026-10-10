@@ -89,7 +89,7 @@ class StudentProfileController extends Controller
     public function StudentLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('students.dashboard');
+            return redirect()->route('student.dashboard');
         }
 
         return view('student.student_login');

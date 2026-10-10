@@ -12,7 +12,7 @@
 	<!--navigation-->
 	<ul class="metismenu" id="menu">
 		<li>
-			<a href="{{ route('adminlibrarian.dashboard') }}" class="has-arrow">
+			<a href="{{ route('librarian.dashboard') }}" class="has-arrow">
 				<div class="parent-icon"><i class='bx bx-home-alt'></i>
 				</div>
 				<div class="menu-title">Dashboard</div>

@@ -28,7 +28,6 @@
             <div class="card-body">
                 <form action="{{ route('school_class_section.update', $mapping->id) }}" method="POST">
                     @csrf
-                    @method('PUT')
                     
                     <div class="form-group mb-3">
                         <label class="form-label">Class Name</label>
