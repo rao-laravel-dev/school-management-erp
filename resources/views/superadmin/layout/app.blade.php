@@ -22,6 +22,7 @@
 	<link href="{{asset('backend/assets/css/bootstrap-extended.css')}}" rel="stylesheet">
 	<link href="{{asset('backend/assets/css/app.css')}}" rel="stylesheet">
 	<link href="{{asset('backend/assets/css/icons.css')}}" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
 	<!-- Theme -->
 	<link href="{{asset('backend/assets/css/dark-theme.css')}}" rel="stylesheet"/>
@@ -95,6 +96,7 @@
 <script src="{{asset('backend/assets/plugins/chartjs/js/chart.js')}}"></script>
 
 <script src="{{asset('backend/assets/js/app.js')}}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
  <script>
         // AJAX ke liye CSRF token set kar rahe hain

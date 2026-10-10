@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ParentsController extends Controller
 {
@@ -180,24 +181,29 @@ return view('parent.student_details', compact(
         ];
 
         // check if new image uploaded
+        $newPhoto = null;
         if ($request->hasFile('photo')) {
-
-            // old image delete (safe path)
-            if ($user->photo) {
-                $imageService->delete($user->photo, 'uploads/parent_images');
+            // photo parent_profiles.father_photo mein hoti hai (User::photo_url wahi pehle dekhta hai), users.photo mein nahi
+            $profile = $user->parentProfile;
+            $oldPhoto = $profile ? $profile->father_photo : $user->photo;
+            if ($oldPhoto) {
+                $imageService->delete($oldPhoto, $profile ? 'uploads/parents' : 'uploads/parent_images');
             }
 
-            // upload new image via service
-            $data['photo'] = $imageService->upload(
-                $request->file('photo'),
-                'uploads/parent_images',
-                300,
-                300
-            );
+            $newPhoto = $imageService->upload($request->file('photo'), 'uploads/parents', 300, 300); // student edit page wala folder
+
+            if (!$profile) {
+                $data['photo'] = $newPhoto; // profile row nahi to users.photo mein hi rakho
+            }
         }
 
-        // update user record
-        $user->update($data);
+        // users + parent_profiles dono ek sath save
+        DB::transaction(function () use ($user, $data, $newPhoto) {
+            $user->update($data);
+            if ($newPhoto && $user->parentProfile) {
+                $user->parentProfile->update(['father_photo' => $newPhoto]);
+            }
+        });
 
         // redirect back with success message
         return redirect()->back()->with([

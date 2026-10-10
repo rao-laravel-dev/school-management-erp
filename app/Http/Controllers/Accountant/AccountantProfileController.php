@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AccountantProfileController extends Controller
 {
@@ -75,24 +76,29 @@ class AccountantProfileController extends Controller
     ];
 
     // check if new image uploaded
+    $newPhoto = null;
     if ($request->hasFile('photo')) {
-
-        // old image delete (safe path)
-        if ($user->photo) {
-            $imageService->delete($user->photo, 'uploads/accountant_images');
+        // photo accountants table mein hoti hai (User::photo_url wahi pehle dekhta hai), users.photo mein nahi
+        $profile = $user->accountant;
+        $oldPhoto = $profile ? $profile->photo : $user->photo;
+        if ($oldPhoto) {
+            $imageService->delete($oldPhoto, 'uploads/accountant_images');
         }
 
-        // upload new image via service
-        $data['photo'] = $imageService->upload(
-            $request->file('photo'),
-            'uploads/accountant_images',
-            300,
-            300
-        );
+        $newPhoto = $imageService->upload($request->file('photo'), 'uploads/accountant_images', 300, 300);
+
+        if (!$profile) {
+            $data['photo'] = $newPhoto; // profile row nahi to users.photo mein hi rakho
+        }
     }
 
-    // update user record
-    $user->update($data);
+    // users + accountant dono ek sath save
+    DB::transaction(function () use ($user, $data, $newPhoto) {
+        $user->update($data);
+        if ($newPhoto && $user->accountant) {
+            $user->accountant->update(['photo' => $newPhoto]);
+        }
+    });
 
     // redirect back with success message
     return redirect()->back()->with([

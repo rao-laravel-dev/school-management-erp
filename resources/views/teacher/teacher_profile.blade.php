@@ -38,7 +38,8 @@
                             <div class="row mb-3">
                                 <div class="col-sm-3"><h6 class="mb-0">Full Name</h6></div>
                                 <div class="col-sm-9 text-secondary">
-                                    <input type="text" name="profileName" class="form-control form-control-sm" value="{{ $teacher->user->name }}" />
+                                    <input type="text" name="profileName" class="form-control form-control-sm" value="{{ old('profileName', $teacher->user->name) }}" />
+                                    <span class="text-danger small">@error('profileName'){{ $message }}@enderror</span>
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -50,28 +51,32 @@
                             <div class="row mb-3">
                                 <div class="col-sm-3"><h6 class="mb-0">Phone</h6></div>
                                 <div class="col-sm-9 text-secondary">
-                                    <input type="text" class="form-control form-control-sm" name="profilePhone" value="{{ $teacher->user->phone }}" />
+                                    <input type="text" class="form-control form-control-sm" name="profilePhone" value="{{ old('profilePhone', $teacher->user->phone) }}" />
+                                    <span class="text-danger small">@error('profilePhone'){{ $message }}@enderror</span>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3"><h6 class="mb-0">Gender</h6></div>
                                 <div class="col-sm-9 text-secondary">
                                     <select name="gender" id="gender" class="form-select form-select-sm">
-                                        <option value="male" {{ $teacher->user->gender == 'male' ? 'selected' : '' }}>Male</option>
-                                        <option value="female" {{ $teacher->user->gender == 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="male" {{ old('gender', $teacher->user->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender', $teacher->user->gender) == 'female' ? 'selected' : '' }}>Female</option>
                                     </select>
+                                    <span class="text-danger small">@error('gender'){{ $message }}@enderror</span>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3"><h6 class="mb-0">Address</h6></div>
                                 <div class="col-sm-9 text-secondary">
-                                    <input type="text" class="form-control form-control-sm" name="address" value="{{ $teacher->user->address }}" />
+                                    <input type="text" class="form-control form-control-sm" name="address" value="{{ old('address', $teacher->user->address) }}" />
+                                    <span class="text-danger small">@error('address'){{ $message }}@enderror</span>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3"><h6 class="mb-0">Image</h6></div>
                                 <div class="col-sm-9 text-secondary">
                                     <input type="file" class="form-control form-control-sm" id="inputimage" name="photo" accept="image/*" />
+                                    <span class="text-danger small">@error('photo'){{ $message }}@enderror</span>
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -120,8 +125,12 @@
     </div>
 </div>
 
+@push('scripts')
 <script type="text/javascript">
     $(document).ready(function(){
+        @if($errors->any())
+            toastr.error(@json($errors->first()));
+        @endif
         $('#inputimage').change(function(e){
             var reader = new FileReader();
             reader.onload = function(e){
@@ -131,4 +140,5 @@
         });
     });
 </script>
+@endpush
 @endsection

@@ -1,6 +1,5 @@
 @extends('student.layout.app')
 @section('content')
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
  <!--breadcrumb--> 
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
             <div class="breadcrumb-title pe-3">{{ ucfirst(auth()->user()->roles->first()->name) }} Profile</div>
@@ -50,7 +49,8 @@
                                         <h6 class="mb-0">Full Name</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="profileName" class="form-control" value="{{ $profileData->name }}"  />
+                                        <input type="text" name="profileName" class="form-control" value="{{ old('profileName', $profileData->name) }}"  />
+                                        <span class="text-danger small">@error('profileName'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -66,7 +66,8 @@
                                         <h6 class="mb-0">Phone</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" class="form-control" name="profilePhone" value="{{ $profileData->phone }}" />
+                                        <input type="text" class="form-control" name="profilePhone" value="{{ old('profilePhone', $profileData->phone) }}" />
+                                        <span class="text-danger small">@error('profilePhone'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
                                  <div class="row mb-3">
@@ -75,9 +76,11 @@
                                 </div>
                                 <div class="col-sm-9 text-secondary">
                                     <select name="gender" id="gender" class="form-control">
-                                        <option value="male" {{ $profileData->gender == 'male' ? 'selected' : '' }}>Male</option>
-                                        <option value="female" {{ $profileData->gender == 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="" {{ empty(old('gender', $profileData->gender)) ? 'selected' : '' }}>Select</option>
+                                        <option value="male" {{ old('gender', $profileData->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender', $profileData->gender) == 'female' ? 'selected' : '' }}>Female</option>
                                     </select>
+                                    <span class="text-danger small">@error('gender'){{ $message }}@enderror</span>
                                 </div>
                             </div>
                                 
@@ -86,7 +89,8 @@
                                         <h6 class="mb-0">Address</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" class="form-control" name="address" value="{{ $profileData->address }}" />
+                                        <input type="text" class="form-control" name="address" value="{{ old('address', $profileData->address) }}" />
+                                        <span class="text-danger small">@error('address'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -95,6 +99,7 @@
                                     </div>
                                     <div class="col-sm-9 text-secondary">
                                         <input type="file" class="form-control" id="inputimage" name="photo" />
+                                        <span class="text-danger small">@error('photo'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -122,8 +127,14 @@
             </div>
         </div>
 
+@endsection
+
+@push('scripts')
 <script type="text/javascript">
     $(document).ready(function(){
+        @if($errors->any())
+            toastr.error(@json($errors->first()));
+        @endif
         $('#inputimage').change(function(e){
             var reader = new FileReader();
             reader.onload = function(e){
@@ -133,6 +144,4 @@
         });
     });
 </script>
-
-
-@endsection
+@endpush
