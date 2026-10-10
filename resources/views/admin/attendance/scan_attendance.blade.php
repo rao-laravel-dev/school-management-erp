@@ -51,7 +51,7 @@
         <div class="kiosk-body">
 
             <div class="kiosk-info-box">
-                <img id="kiosk-photo" src="/images/default-avatar.png" class="kiosk-photo-circle">
+                <img id="kiosk-photo" src="{{ asset('uploads/no_image.jpg') }}" class="kiosk-photo-circle">
 
                 <div class="kiosk-id-name" id="kiosk-id-name">-- | Waiting for scan...</div>
 
@@ -535,32 +535,32 @@
 
             if (person.type === 'staff') {
                 idValue = person.staff_id; // e.g. teacher_id / accountant_id / receptionist_id / librarian_id — resolved server-side
-                $('#kiosk-label-1').text('Designation');
-                $('#kiosk-value-1').text(person.designation ?? '-');
-                $('#kiosk-label-2').text('Department');
-                $('#kiosk-value-2').text(person.department ?? '-');
-                $('#kiosk-label-3').text('Phone');
-                $('#kiosk-value-3').text(person.phone ?? '-');
-                $('#kiosk-label-4').text('Joining Date');
-                $('#kiosk-value-4').text(person.joining_date ?? '-');
+                $('#kiosk-label-1').text('Role');
+                $('#kiosk-value-1').text(person.role || '-');
+                $('#kiosk-label-2').text('Staff ID');
+                $('#kiosk-value-2').text(person.staff_id || '-');
+                $('#kiosk-label-3').text('');
+                $('#kiosk-value-3').text('');
+                $('#kiosk-label-4').text('');
+                $('#kiosk-value-4').text('');
             } else {
-                idValue = person.roll_no ?? person.admission_no;
+                idValue = person.roll_no || person.admission_no;
                 $('#kiosk-label-1').text('Father Name');
-                $('#kiosk-value-1').text(person.father_name ?? '-');
+                $('#kiosk-value-1').text(person.father_name || '-');
                 $('#kiosk-label-2').text('Class / Section');
-                $('#kiosk-value-2').text(person.class_section ?? '-');
+                $('#kiosk-value-2').text(person.class_section || '-');
                 $('#kiosk-label-3').text('Group');
-                $('#kiosk-value-3').text(person.group ?? '-');
+                $('#kiosk-value-3').text(person.group || '-');
                 $('#kiosk-label-4').text('Admission Date');
-                $('#kiosk-value-4').text(person.admission_date ?? '-');
+                $('#kiosk-value-4').text(person.admission_date || '-');
             }
 
             let dateTime = [person.date, person.time].filter(Boolean).join(' , ');
             $('#kiosk-value-datetime').text(dateTime || '-');
             $('#kiosk-photo').attr('src', person.photo).off('error').on('error', function() {
-                $(this).attr('src', '/images/default-avatar.png');
+                $(this).attr('src', "{{ asset('uploads/no_image.jpg') }}");
             });
-            $('#kiosk-id-name').text(`${idValue ?? ''} | ${person.name}`);
+            $('#kiosk-id-name').text(`${idValue || ''} | ${person.name}`);
             $('#kiosk-status-box').attr('class', 'kiosk-status-box ' + statusClass).text(bigMsg);
         }
     })();

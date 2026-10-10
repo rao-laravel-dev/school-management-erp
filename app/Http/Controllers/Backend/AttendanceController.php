@@ -453,7 +453,7 @@ class AttendanceController extends Controller
             'device_id' => 'nullable|string',
         ]);
 
-        $code = trim($request->code);
+        $code = preg_replace('/\s+/', '', ltrim(trim($request->code), '#')); // leading "#" aur spaces hata do
 
         // STEP 1: QR/Barcode code se owner dhoondo — Student ya Staff dono isi table se aate hain
         $qrRecord = QrCode::where('code', $code)->first();
@@ -475,10 +475,17 @@ class AttendanceController extends Controller
 
         // STEP 3: Roll No (current session)
         $activeSessionId = $this->getActiveSessionId();
-        $enrollmentByRoll = Enrollment::where('roll_no', $code)
+        $enrollmentsByRoll = Enrollment::with('student')
+            ->where('roll_no', $code)
             ->where('academic_year_id', $activeSessionId)
-            ->first();
-        if ($enrollmentByRoll) {
+            ->where('enroll_status', 1) // sirf Active enrollment
+            ->whereHas('student') // soft-deleted student skip
+            ->get();
+        if ($enrollmentsByRoll->count() > 1) { // roll no sirf class+section ke andar unique hai
+            return response()->json(['status' => 'error', 'message' => 'Roll no matches more than one student. Use admission no.'], 422);
+        }
+        $enrollmentByRoll = $enrollmentsByRoll->first();
+        if ($enrollmentByRoll && $enrollmentByRoll->student) { // soft-deleted student = null, scan aage "Invalid code" par jaye
             return $this->handleStudentScan($enrollmentByRoll->student, $request->device_id);
         }
 
@@ -516,7 +523,7 @@ class AttendanceController extends Controller
         $activeSessionId = $this->getActiveSessionId();
         $student->load('parent');
 
-        $enrollment = Enrollment::with(['schoolClass', 'section'])
+        $enrollment = Enrollment::with(['schoolClass', 'section', 'group'])
             ->where('student_id', $student->id)
             ->where('academic_year_id', $activeSessionId)
             ->first();
@@ -537,7 +544,10 @@ class AttendanceController extends Controller
             'father_name'   => $student->parent->father_name ?? 'N/A',
             'class_section' => ($enrollment->schoolClass->name ?? '') . ' - ' . ($enrollment->section->name ?? ''),
             'roll_no'       => $enrollment->roll_no,
-            'photo'         => $student->photo ? asset('uploads/students/' . $student->photo) : asset('images/no-image.png'),
+            'admission_no'  => $student->admission_no,
+            'admission_date' => $student->admission_date ? Carbon::parse($student->admission_date)->format('d-m-Y') : null,
+            'group'         => optional($enrollment->group)->name,
+            'photo'         => $student->photo_url,
             'date'          => now()->format('d-m-Y'),
             'time'          => now()->format('h:i A'),
         ];
@@ -610,9 +620,11 @@ class AttendanceController extends Controller
     protected function handleStaffScan(User $staffUser, $deviceId)
     {
         $staffInfo = [
-            'name'  => $staffUser->name,
-            'role'  => optional($staffUser->roles->first())->name,
-            'photo' => asset('images/no-image.png'), // agar staff photo field hai to yahan replace kar dena
+            'type'     => 'staff', // kiosk JS isi se staff card render karta hai
+            'name'     => $staffUser->name,
+            'role'     => ucfirst((string) optional($staffUser->roles->first())->name),
+            'staff_id' => $staffUser->staff_code, // e.g. NAWAL004
+            'photo'    => $staffUser->photo_url, // Teachers list wala same source (User::photo_url)
             'date'  => now()->format('d-m-Y'),
             'time'  => now()->format('h:i A'),
         ];
