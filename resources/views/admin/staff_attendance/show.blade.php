@@ -12,9 +12,7 @@
 {{-- Staff info header --}}
 <div class="card mb-3">
     <div class="card-body d-flex align-items-center gap-3">
-        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:56px;height:56px;">
-            <i class='bx bx-user fs-3 text-primary'></i>
-        </div>
+        <img src="{{ $staff->photo_url }}" alt="{{ $staff->name }}" class="rounded-circle border" style="width:56px;height:56px;object-fit:cover;">
         <div>
             <h5 class="mb-0">{{ $staff->name }}</h5>
             <small class="text-muted">

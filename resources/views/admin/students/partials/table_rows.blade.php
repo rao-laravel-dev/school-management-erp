@@ -3,11 +3,7 @@
     <td class="text-center align-middle">{{ $loop->iteration }}</td>
     <td class="text-center align-middle">
         {{-- FIXED: Yahan $student ke bajaye $enrollment->student use karein --}}
-        @if(!empty($enrollment->student->photo) && file_exists(public_path('storage/uploads/students/'.$enrollment->student->photo)))
-        <img src="{{ url('storage/uploads/students/'.$enrollment->student->photo) }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Student">
-        @else
-        <img src="{{ url('uploads/no_image.jpg') }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="No Image">
-        @endif
+        <img src="{{ $enrollment->student->photo_url }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Student">
     </td>
 
     <td>

@@ -121,15 +121,40 @@ class User extends Authenticatable
     {
         $role = $this->roles->first()->name ?? null;
 
-        if ($role && method_exists($this, $role)) {
-            $related = $this->$role; // e.g. $this->teacher, $this->accountant
+        // Teacher: Teachers list wala same accessor (storage teacher_images -> public fallbacks)
+        if ($role === 'teacher' && $this->teacher) {
+            return $this->teacher->photo_url;
+        }
 
-            if ($related && $related->photo) {
-                return asset('uploads/' . $role . '_images/' . $related->photo);
+        // Parent: asli photo parent_profiles.father_photo mein hoti hai (student edit page wali), users.photo baad mein
+        if ($role === 'parent' && $this->parentProfile && $this->parentProfile->father_photo) {
+            return $this->parentProfile->father_photo_url;
+        }
+
+        // Accountant/Receptionist ki photo apni table mein, baqi roles (librarian/admin/...) ki users.photo mein
+        $photo = $this->photo;
+        if (in_array($role, ['accountant', 'receptionist'], true) && $this->$role && $this->$role->photo) {
+            $photo = $this->$role->photo;
+        }
+
+        if ($photo) {
+            // ImageService storage (public disk) pe likhta hai; purani photos public/uploads mein hain
+            $folders = [
+                'accountant'   => ['uploads/accountant_images', 'uploads/accountants'],
+                'receptionist' => ['uploads/receptionist_images', 'uploads/reception_images', 'uploads/receptionists'],
+            ][$role] ?? ['uploads/' . $role . '_images'];
+
+            foreach ($folders as $folder) {
+                if (\Storage::disk('public')->exists($folder . '/' . $photo)) {
+                    return asset('storage/' . $folder . '/' . $photo);
+                }
+                if (file_exists(public_path($folder . '/' . $photo))) {
+                    return asset($folder . '/' . $photo);
+                }
             }
         }
 
-        return asset('images/no-image.png');
+        return asset('uploads/no_image.jpg');
     }
 
     public function teacher()

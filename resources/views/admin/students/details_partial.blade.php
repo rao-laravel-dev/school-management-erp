@@ -3,7 +3,7 @@
     <div class="row g-2 mb-2">
         <div class="col-md-3">
             <div class="border rounded p-1 bg-light text-center">
-                <img src="{{ $student->photo && file_exists(public_path('storage/uploads/students/'.$student->photo)) ? asset('storage/uploads/students/'.$student->photo) : asset('uploads/no_image.jpg') }}"
+                <img src="{{ $student->photo_url }}"
                     class="img-fluid rounded" style="width: 100%; height: 160px; object-fit: cover;" alt="Profile">
             </div>
         </div>

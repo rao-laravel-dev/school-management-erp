@@ -18,7 +18,7 @@
 <div class="card radius-10 mb-3">
     <div class="card-body d-flex align-items-start flex-wrap">
         <div class="me-4">
-            <img src="{{ $student->photo && file_exists(public_path('uploads/students/'.$student->photo)) ? asset('uploads/students/'.$student->photo) : asset('uploads/no_image.jpg') }}"
+            <img src="{{ $student->photo_url }}"
                 alt="{{ $student->first_name }}"
                 class="rounded-3"
                 style="width: 160px; height: 160px; object-fit: cover; border-radius: 12px !important; border: 1px solid #dee2e6; padding: 3px; background: #fff;">

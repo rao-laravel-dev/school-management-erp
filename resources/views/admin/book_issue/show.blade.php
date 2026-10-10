@@ -26,9 +26,7 @@
                 <div class="card-body text-center bg-primary bg-gradient text-white rounded-top">
                     @php
                     if ($memberDetail) {
-                    $photoUrl = ($memberDetail->photo && file_exists(public_path('uploads/students/' . $memberDetail->photo)))
-                    ? asset('uploads/students/' . $memberDetail->photo)
-                    : asset('uploads/no_image.jpg');
+                    $photoUrl = $memberDetail->photo_url;
                     } elseif ($staffDetail && $staffDetail->photo) {
                     $photoUrl = asset('storage/' . $staffDetail->photo);
                     } else {

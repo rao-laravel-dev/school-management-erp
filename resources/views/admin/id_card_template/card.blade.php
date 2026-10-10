@@ -409,7 +409,7 @@
 
             <div class="id-card-body">
                 <div class="photo">
-                    <img src="{{ $student->photo ? asset('uploads/students/' . $student->photo) : asset('images/no-image.png') }}">
+                    <img src="{{ $student->photo_url }}">
                 </div>
 
                 <table>

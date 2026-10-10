@@ -84,7 +84,7 @@
                 <tr>
                     <td colspan="4">
                         @if($template->show_photo && $student?->photo)
-                            <img class="student-photo" src="{{ asset('uploads/students/' . $student->photo) }}">
+                            <img class="student-photo" src="{{ $student->photo_url }}">
                         @endif
 
                         @if($template->show_name)

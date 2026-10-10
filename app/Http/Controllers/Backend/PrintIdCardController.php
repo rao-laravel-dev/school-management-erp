@@ -49,9 +49,7 @@ class PrintIdCardController extends Controller
                 'admission_no'  => $student->admission_no,
                 'name'          => trim($student->first_name . ' ' . $student->last_name),
                 'roll_no'       => $enrollment->roll_no,
-                'photo'         => $student->photo
-                    ? asset('uploads/students/' . $student->photo)
-                    : asset('images/no-image.png'),
+                'photo'         => $student->photo_url, // accessor: storage + public dono paths check karta hai
             ];
         });
 

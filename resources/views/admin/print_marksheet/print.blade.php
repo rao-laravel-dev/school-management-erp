@@ -320,7 +320,7 @@
             </table>
 
             @if($template->show_photo)
-            <img src="{{ $student->photo ? asset('uploads/students/' . $student->photo) : asset('assets/img/default-avatar.png') }}" class="student-photo">
+            <img src="{{ $student->photo_url }}" class="student-photo">
             @endif
         </div>
 
