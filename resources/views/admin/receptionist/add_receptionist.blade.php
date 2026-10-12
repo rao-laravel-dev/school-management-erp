@@ -28,74 +28,74 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <label for="joining_date" class="form-label">Date of Joining</label>
-                    <input type="date" name="joining_date" id="joining_date" class="form-control" value="{{ old('joining_date', $currentDate) }}">
+                    <input type="date" name="joining_date" id="joining_date" class="form-control form-control-sm" value="{{ old('joining_date', $currentDate) }}">
                 </div>
 
                 {{-- Replaced Teacher ID with Receptionist ID --}}
                 <div class="col-md-3">
                     <label for="receptionist_id" class="form-label">Receptionist ID *</label>
-                    <input type="text" name="receptionist_id" id="receptionist_id_field" class="form-control @error('receptionist_id') is-invalid @enderror" value="{{ old('receptionist_id', $receptionistId ?? '') }}" placeholder="Enter First Name to generate ID..." readonly>
+                    <input type="text" name="receptionist_id" id="receptionist_id_field" class="form-control form-control-sm bg-light @error('receptionist_id') is-invalid @enderror" value="{{ old('receptionist_id', $receptionistId ?? '') }}" placeholder="Enter First Name to generate ID..." readonly>
                     @error('receptionist_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-3">
                     <label for="first_name" class="form-label">First Name *</label>
-                    <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" value="{{ old('first_name') }}">
+                    <input type="text" name="first_name" id="first_name" class="form-control form-control-sm @error('first_name') is-invalid @enderror" value="{{ old('first_name') }}">
                     @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="last_name" class="form-label">Last Name *</label>
-                    <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" value="{{ old('last_name') }}">
+                    <input type="text" name="last_name" id="last_name" class="form-control form-control-sm @error('last_name') is-invalid @enderror" value="{{ old('last_name') }}">
                     @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="father_name" class="form-label">Father Name *</label>
-                    <input type="text" name="father_name" id="father_name" class="form-control @error('father_name') is-invalid @enderror" value="{{ old('father_name') }}">
+                    <input type="text" name="father_name" id="father_name" class="form-control form-control-sm @error('father_name') is-invalid @enderror" value="{{ old('father_name') }}">
                     @error('father_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="mother_name" class="form-label">Mother Name</label>
-                    <input type="text" name="mother_name" id="mother_name" class="form-control" value="{{ old('mother_name') }}">
+                    <input type="text" name="mother_name" id="mother_name" class="form-control form-control-sm" value="{{ old('mother_name') }}">
                 </div>
                 <div class="col-md-3">
                     <label for="email" class="form-label">Email *</label>
-                    <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email') }}" autocomplete="username">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="cnic" class="form-label">CNIC *</label>
-                    <input type="text" name="cnic" id="cnic" class="form-control @error('cnic') is-invalid @enderror" value="{{ old('cnic') }}" placeholder="xxxxx-xxxxxxx-x">
+                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic') }}" placeholder="xxxxx-xxxxxxx-x">
                     @error('cnic')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="gender" class="form-label">Gender *</label>
-                    <select name="gender" id="gender" class="form-select">
+                    <select name="gender" id="gender" class="form-select form-select-sm">
                         <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
                         <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label for="dob" class="form-label">Date of Birth *</label>
-                    <input type="date" name="dob" id="dob" class="form-control @error('dob') is-invalid @enderror" value="{{ old('dob') }}">
+                    <input type="date" name="dob" id="dob" class="form-control form-control-sm @error('dob') is-invalid @enderror" value="{{ old('dob') }}">
                     @error('dob')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-3">
                     <label for="phone" class="form-label">Primary Phone *</label>
-                    <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="03xx-xxxxxxx">
+                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone') }}" placeholder="03xx-xxxxxxx">
                     @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 {{-- NEW PROFESSIONAL FIELD: Alternative / WhatsApp Number --}}
                 <div class="col-md-3">
                     <label for="alt_phone" class="form-label">WhatsApp / Alt Phone</label>
-                    <input type="text" name="alt_phone" id="alt_phone" class="form-control @error('alt_phone') is-invalid @enderror" value="{{ old('alt_phone') }}" placeholder="03xx-xxxxxxx">
+                    <input type="text" name="alt_phone" id="alt_phone" class="form-control form-control-sm @error('alt_phone') is-invalid @enderror" value="{{ old('alt_phone') }}" placeholder="03xx-xxxxxxx">
                     @error('alt_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-3">
                     <label for="marital_status" class="form-label">Marital Status</label>
-                    <select name="marital_status" id="marital_status" class="form-select">
+                    <select name="marital_status" id="marital_status" class="form-select form-select-sm">
                         <option value="single" {{ old('marital_status') == 'single' ? 'selected' : '' }}>Single</option>
                         <option value="married" {{ old('marital_status') == 'married' ? 'selected' : '' }}>Married</option>
                     </select>
@@ -104,7 +104,7 @@
                 {{-- NEW PROFESSIONAL FIELD: Assigned Desk/Counter Location --}}
                 <div class="col-md-3">
                     <label for="desk_number" class="form-label">Assigned Desk / Counter</label>
-                    <select name="desk_number" id="desk_number" class="form-select">
+                    <select name="desk_number" id="desk_number" class="form-select form-select-sm">
                         <option value="Main Reception" {{ old('desk_number') == 'Main Reception' ? 'selected' : '' }}>Main Reception Desk</option>
                         <option value="Counter 1" {{ old('desk_number') == 'Counter 1' ? 'selected' : '' }}>Front Counter 1</option>
                         <option value="Counter 2" {{ old('desk_number') == 'Counter 2' ? 'selected' : '' }}>Front Counter 2</option>
@@ -114,18 +114,18 @@
 
                 <div class="col-md-3">
                     <label for="work_experience" class="form-label">Work Experience</label>
-                    <input type="text" name="work_experience" id="work_experience" class="form-control" value="{{ old('work_experience') }}">
+                    <input type="text" name="work_experience" id="work_experience" class="form-control form-control-sm" value="{{ old('work_experience') }}">
                 </div>
                 <div class="col-md-3">
                     <label for="qualification" class="form-label">Qualification</label>
-                    <input type="text" name="qualification" id="qualification" class="form-control" value="{{ old('qualification') }}">
+                    <input type="text" name="qualification" id="qualification" class="form-control form-control-sm" value="{{ old('qualification') }}">
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label text-secondary small fw-semibold">Photo</label>
                     <div class="d-flex align-items-center gap-2">
                         <div class="flex-grow-1">
-                            <input type="file" name="photo" id="photo" class="form-control @error('photo') is-invalid @enderror" accept="image/*" onchange="previewImage(this)">
+                            <input type="file" name="photo" id="photo" class="form-control form-control-sm @error('photo') is-invalid @enderror" accept="image/*" onchange="previewImage(this)">
                             @error('photo')
                             <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div>
                             @enderror
@@ -141,11 +141,11 @@
 
                 <div class="col-md-4">
                     <label for="address" class="form-label">Address</label>
-                    <input type="text" name="address" id="address" class="form-control" value="{{ old('address') }}">
+                    <input type="text" name="address" id="address" class="form-control form-control-sm" value="{{ old('address') }}">
                 </div>
                 <div class="col-md-4">
                     <label for="permanent_address" class="form-label">Permanent Address</label>
-                    <input type="text" name="permanent_address" id="permanent_address" class="form-control" value="{{ old('permanent_address') }}">
+                    <input type="text" name="permanent_address" id="permanent_address" class="form-control form-control-sm" value="{{ old('permanent_address') }}">
                 </div>
             </div>
             {{-- END-PART 1: BASIC INFORMATION --}}
@@ -167,14 +167,14 @@
                         {{-- Emergency Name --}}
                         <div class="col-md-4">
                             <label for="emergency_name" class="form-label">Person Name</label>
-                            <input type="text" name="emergency_name" id="emergency_name" class="form-control @error('emergency_name') is-invalid @enderror" value="{{ old('emergency_name') }}" placeholder="Enter name">
+                            <input type="text" name="emergency_name" id="emergency_name" class="form-control form-control-sm @error('emergency_name') is-invalid @enderror" value="{{ old('emergency_name') }}" placeholder="Enter name">
                             @error('emergency_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         {{-- Emergency Relation --}}
                         <div class="col-md-4">
                             <label for="emergency_relation" class="form-label">Relation</label>
-                            <select name="emergency_relation" id="emergency_relation" class="form-select">
+                            <select name="emergency_relation" id="emergency_relation" class="form-select form-select-sm">
                                 <option value="">Select Relation</option>
                                 <option value="father" {{ old('emergency_relation') == 'father' ? 'selected' : '' }}>Father</option>
                                 <option value="mother" {{ old('emergency_relation') == 'mother' ? 'selected' : '' }}>Mother</option>
@@ -188,7 +188,7 @@
                         {{-- Emergency Phone --}}
                         <div class="col-md-4">
                             <label for="emergency_phone" class="form-label">Phone Number</label>
-                            <input type="tel" name="emergency_phone" id="emergency_phone" class="form-control @error('emergency_phone') is-invalid @enderror" value="{{ old('emergency_phone') }}" placeholder="03xx-xxxxxxx">
+                            <input type="tel" name="emergency_phone" id="emergency_phone" class="form-control form-control-sm @error('emergency_phone') is-invalid @enderror" value="{{ old('emergency_phone') }}" placeholder="03xx-xxxxxxx">
                             @error('emergency_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -200,12 +200,12 @@
                         </div>
                     </div>
                     <div class="row g-3 mb-4">
-                        <div class="col-md-4"><label for="basic_salary" class="form-label">Basic Salary *</label><input type="number" name="basic_salary" id="basic_salary" class="form-control @error('basic_salary') is-invalid @enderror" value="{{ old('basic_salary') }}">@error('basic_salary')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                        <div class="col-md-4"><label for="contract_type" class="form-label">Contract Type</label><select name="contract_type" id="contract_type" class="form-select">
-                                <option value="permanent">Permanent</option>
-                                <option value="contract">Contract</option>
+                        <div class="col-md-4"><label for="basic_salary" class="form-label">Basic Salary *</label><input type="number" name="basic_salary" id="basic_salary" class="form-control form-control-sm @error('basic_salary') is-invalid @enderror" value="{{ old('basic_salary') }}">@error('basic_salary')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                        <div class="col-md-4"><label for="contract_type" class="form-label">Contract Type</label><select name="contract_type" id="contract_type" class="form-select form-select-sm">
+                                <option value="permanent" {{ old('contract_type') == 'permanent' ? 'selected' : '' }}>Permanent</option>
+                                <option value="contract" {{ old('contract_type') == 'contract' ? 'selected' : '' }}>Contract</option>
                             </select></div>
-                        <div class="col-md-4"><label for="work_shift" class="form-label">Work Shift</label><input type="text" name="work_shift" id="work_shift" class="form-control" value="{{ old('work_shift') }}"></div>
+                        <div class="col-md-4"><label for="work_shift" class="form-label">Work Shift</label><input type="text" name="work_shift" id="work_shift" class="form-control form-control-sm" value="{{ old('work_shift') }}"></div>
                     </div>
 
 
@@ -226,26 +226,27 @@
                                 <input class="form-check-input" type="radio" name="bank_type" id="bank_type_wallet" value="microfinance_wallet" {{ old('bank_type') == 'microfinance_wallet' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="bank_type_wallet">Digital Wallet / Microfinance (Easypaisa, JazzCash, etc.)</label>
                             </div>
+                            @error('bank_type')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
                         {{-- Account Title --}}
                         <div class="col-md-4">
                             <label for="account_title" class="form-label">Account Title</label>
-                            <input type="text" name="account_title" id="account_title" class="form-control @error('account_title') is-invalid @enderror" value="{{ old('account_title') }}" placeholder="e.g., John Doe">
+                            <input type="text" name="account_title" id="account_title" class="form-control form-control-sm @error('account_title') is-invalid @enderror" value="{{ old('account_title') }}" placeholder="e.g., John Doe">
                             @error('account_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         {{-- Account / Mobile Number --}}
                         <div class="col-md-4">
                             <label for="account_number" id="acc_no_label" class="form-label">Account Number</label>
-                            <input type="text" name="account_number" id="account_number" class="form-control @error('account_number') is-invalid @enderror" value="{{ old('account_number') }}" placeholder="Account or Mobile No">
+                            <input type="text" name="account_number" id="account_number" class="form-control form-control-sm @error('account_number') is-invalid @enderror" value="{{ old('account_number') }}" placeholder="Account or Mobile No">
                             @error('account_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         {{-- Bank Name Dropdown --}}
                         <div class="col-md-4">
                             <label for="bank_name" class="form-label">Bank Name</label>
-                            <select name="bank_name" id="bank_name" class="form-select @error('bank_name') is-invalid @enderror">
+                            <select name="bank_name" id="bank_name" class="form-select form-select-sm @error('bank_name') is-invalid @enderror">
                                 <option value="">Select Bank / Wallet</option>
                                 <optgroup label="Commercial Banks" id="opt_commercial">
                                     <option value="Meezan Bank" {{ old('bank_name') == 'Meezan Bank' ? 'selected' : '' }}>Meezan Bank</option>
@@ -268,15 +269,15 @@
                         {{-- Extra Fields Wrapper for Toggle --}}
                         <div class="col-md-4 commercial-field">
                             <label for="iban" class="form-label">IBAN</label>
-                            <input type="text" name="iban" id="iban" class="form-control" value="{{ old('iban') }}" placeholder="PKXXMEZN00000XXXXXXXXX">
+                            <input type="text" name="iban" id="iban" class="form-control form-control-sm" value="{{ old('iban') }}" placeholder="PKXXMEZN00000XXXXXXXXX">
                         </div>
                         <div class="col-md-4 commercial-field">
                             <label for="branch_name" class="form-label">Branch Name</label>
-                            <input type="text" name="branch_name" id="branch_name" class="form-control" value="{{ old('branch_name') }}">
+                            <input type="text" name="branch_name" id="branch_name" class="form-control form-control-sm" value="{{ old('branch_name') }}">
                         </div>
                         <div class="col-md-4 commercial-field">
                             <label for="branch_code" class="form-label">Branch Code</label>
-                            <input type="text" name="branch_code" id="branch_code" class="form-control" value="{{ old('branch_code') }}">
+                            <input type="text" name="branch_code" id="branch_code" class="form-control form-control-sm" value="{{ old('branch_code') }}">
                         </div>
                     </div>
 
@@ -287,10 +288,10 @@
                         </div>
                     </div>
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6"><input type="text" name="fb_url" class="form-control" placeholder="Facebook URL" value="{{ old('fb_url') }}"></div>
-                        <div class="col-md-6"><input type="text" name="twitter_url" class="form-control" placeholder="Twitter URL" value="{{ old('twitter_url') }}"></div>
-                        <div class="col-md-6"><input type="text" name="linkedin_url" class="form-control" placeholder="LinkedIn URL" value="{{ old('linkedin_url') }}"></div>
-                        <div class="col-md-6"><input type="text" name="insta_url" class="form-control" placeholder="Instagram URL" value="{{ old('insta_url') }}"></div>
+                        <div class="col-md-6"><input type="text" name="fb_url" class="form-control form-control-sm" placeholder="Facebook URL" value="{{ old('fb_url') }}"></div>
+                        <div class="col-md-6"><input type="text" name="twitter_url" class="form-control form-control-sm" placeholder="Twitter URL" value="{{ old('twitter_url') }}"></div>
+                        <div class="col-md-6"><input type="text" name="linkedin_url" class="form-control form-control-sm" placeholder="LinkedIn URL" value="{{ old('linkedin_url') }}"></div>
+                        <div class="col-md-6"><input type="text" name="insta_url" class="form-control form-control-sm" placeholder="Instagram URL" value="{{ old('insta_url') }}"></div>
                     </div>
 
                     {{-- DOCUMENTS SECTION --}}
@@ -299,15 +300,45 @@
                             <h5 class="text-primary border-bottom pb-2">Documents</h5>
                         </div>
                     </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6"><label for="doc_resume" class="form-label">Resume</label><input type="file" name="doc_resume" id="doc_resume" class="form-control form-control-sm"></div>
+                        <div class="col-md-6"><label for="doc_joining" class="form-label">Joining Letter</label><input type="file" name="doc_joining" id="doc_joining" class="form-control form-control-sm"></div>
+                    </div>
+
+                    {{-- LOGIN SECURITY SETUP --}}
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Login Security Setup</h5>
+                        </div>
+                    </div>
                     <div class="row g-3">
-                        <div class="col-md-6"><label for="doc_resume" class="form-label">Resume</label><input type="file" name="doc_resume" id="doc_resume" class="form-control"></div>
-                        <div class="col-md-6"><label for="doc_joining" class="form-label">Joining Letter</label><input type="file" name="doc_joining" id="doc_joining" class="form-control"></div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Receptionist System Password *</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="Min 8 characters" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password">
+                                    <i class="bx bx-hide" id="password_icon"></i>
+                                </button>
+                            </div>
+                            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password_confirmation" class="form-label">Confirm Password *</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="Re-type password" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password_confirmation">
+                                    <i class="bx bx-hide" id="password_confirmation_icon"></i>
+                                </button>
+                            </div>
+                            @error('password_confirmation')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-success px-4">Save Receptionist Profile</button>
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ route('receptionist.index') }}" class="btn btn-sm btn-secondary px-4">Cancel</a>
+                <button type="submit" class="btn btn-sm btn-success px-4">Save Receptionist Profile</button>
             </div>
         </form>
     </div>
@@ -348,7 +379,13 @@
         });
 
         // Toastr Notifications
-        @if(session('error'))
+        @if($errors->any())
+        toastr.error("Please check the highlighted fields.", "Validation Error", {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right"
+        });
+        @elseif(session('error'))
         toastr.error("{{ session('error') }}", "Validation Error", {
             "closeButton": true,
             "progressBar": true,
@@ -359,6 +396,44 @@
         @if(session('success'))
         toastr.success("{{ session('success') }}");
         @endif
+
+        // Pehle error wala field: #moreDetails kholo, scroll + focus
+        let firstError = $('.is-invalid').first();
+        if (firstError.length) {
+            let scrollToError = function() {
+                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                firstError.trigger('focus');
+            };
+            let errorPanel = firstError.closest('.collapse');
+            if (errorPanel.length && !errorPanel.hasClass('show')) {
+                errorPanel.one('shown.bs.collapse', scrollToError);
+                bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+            } else {
+                scrollToError();
+            }
+        }
+
+        // Field change/input par us ka is-invalid aur error text hata do (input, select, file, input-group sab)
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+        });
+
+        // Password show/hide eye toggle
+        $('.toggle-password').on('click', function() {
+            var target = $('#' + $(this).data('target'));
+            var icon = $(this).find('i');
+
+            if (target.attr('type') === 'password') {
+                target.attr('type', 'text');
+                icon.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                target.attr('type', 'password');
+                icon.removeClass('bx-show').addClass('bx-hide');
+            }
+        });
 
         // Styling Receptionist ID
         $('#receptionist_id_field').css({

@@ -55,9 +55,11 @@
         </div>
     </div>
     <div class="col text-end ms-auto">
-        <a href="{{ route('receptionist.create') }}" class="btn btn-primary px-4 shadow-sm">
+        @can('manage-receptionist')
+        <a href="{{ route('receptionist.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
             <i class='bx bx-plus'></i> Add Receptionist
         </a>
+        @endcan
     </div>
 </div>
 
@@ -70,12 +72,12 @@
                 <div class="d-flex align-items-center gap-2">
                     {{-- Trash button pe permission check --}}
                     @can('manage-receptionist')
-                    <a href="{{ route('receptionist.trash') }}" class="btn btn-warning btn-sm">
-                        <i class="bx bx-trash"></i> View Trash
+                    <a href="{{ route('receptionist.trash') }}" class="btn btn-danger btn-sm">
+                        <i class="bx bx-trash"></i> Trash Bin
                     </a>
                     @endcan
 
-                    <span class="badge bg-primary" id="directory-badge">
+                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge">
                         Records: {{ $receptionists->count() }}
                     </span>
                 </div>

@@ -139,6 +139,7 @@ class ReceptionController extends Controller
             'emergency_relation' => 'nullable|string|max:100',
             'emergency_phone'    => 'required|string|max:20',
             'dob'                => 'required|date',
+            'password'           => 'required|string|min:8|confirmed',
             'basic_salary'       => 'required|numeric|min:0',
             'bank_type'          => 'required|in:commercial,microfinance_wallet',
             'account_title'      => 'required|string|max:255',
@@ -170,7 +171,7 @@ class ReceptionController extends Controller
                 'name'     => $request->first_name . ' ' . $request->last_name,
                 'email'    => $request->email,
                 'username' => $username,
-                'password' => Hash::make('receptionist123'), // Default Password
+                'password' => Hash::make($request->password), // Admin ka set kiya hua password
                 'gender'   => $request->gender,
                 'status'   => 2,
             ]);
@@ -238,7 +239,7 @@ class ReceptionController extends Controller
             DB::commit();
 
             // Consistent Toastr Response Key
-            return redirect()->route('receptionist.index')->with('success', 'Receptionist profile created successfully! ID: ' . $receptionistId);
+            return redirect()->route('receptionist.index')->with('toastr-success', 'Receptionist profile created successfully! ID: ' . $receptionistId);
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Database Error: ' . $e->getMessage())->withInput();
@@ -264,6 +265,7 @@ class ReceptionController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name'  => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email,' . $user->id,
             'phone'      => 'required|string',
             'gender'     => 'required',
@@ -342,7 +344,7 @@ class ReceptionController extends Controller
             ]
             );
 
-        return redirect()->route('receptionist.index')->with('success', 'Receptionist Profile Updated Successfully!');
+        return redirect()->route('receptionist.index')->with('toastr-success', 'Receptionist Profile Updated Successfully!');
     }
 
     // 3. Dynamic AJAX Status Toggle (Approve / Reject / Toggle)
