@@ -44,9 +44,9 @@
 										<form method="POST" action="{{ route('login') }}" class="row g-1">
 											@csrf
 											<div class="col-12">
-												<label for="email" class="form-label">Email, CNIC, or Roll No</label>
+												<label for="email" class="form-label">Email (Staff), CNIC (Parent) or Admission No (Student)</label>
 												<input type="text" class="form-control @error('email') is-invalid @enderror" name="email" id="email"
-													value="{{ old('email') }}" placeholder="Enter Email, CNIC or Roll No">
+													value="{{ old('email') }}" placeholder="Enter Email, CNIC or Admission No">
 												<span class="text-danger text-uppercase">{{ $errors->first('email') }}</span>
 											</div>
 											<div class="col-12">

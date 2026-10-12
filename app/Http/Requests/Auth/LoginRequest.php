@@ -40,6 +40,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Staff (student/parent ke ilawa har role) sirf email se login karega: staff ID/username (e.g. RIZWAN002) block
+        if (! filter_var($loginValue, FILTER_VALIDATE_EMAIL) && ! Auth::user()->hasAnyRole(['student', 'parent'])) {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Staff must log in with email.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
 
         // Inactive (0) / pending (2) user ko login na karne do (superadmin exempt)

@@ -61,10 +61,10 @@
                                             @csrf
 
                                             <div class="col-12">
-                                                <label for="email" class="form-label">Email / CNIC / Roll No</label>
+                                                <label for="email" class="form-label">Admission No</label>
                                                 <input type="text"
                                                     class="form-control @error('email') is-invalid @enderror"
-                                                    name="email" id="email" placeholder="Email, CNIC or Roll No">
+                                                    name="email" id="email" placeholder="Enter Admission No">
                                                 @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
