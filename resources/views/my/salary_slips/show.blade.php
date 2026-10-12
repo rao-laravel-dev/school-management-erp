@@ -23,7 +23,7 @@
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered">
-                <tr><th style="width:250px;">Staff Name</th><td>{{ $slip->user->name }}</td></tr>
+                <tr><th style="width:250px;">Staff Name</th><td>{{ $slip->user->name }}@if($slip->user->isStaffTrashed()) <span class="badge bg-danger ms-1">Trashed</span>@endif</td></tr>
                 <tr><th>Role</th><td>{{ ucfirst($slip->user->roles->first()->name ?? '-') }}</td></tr>
                 <tr><th>Month</th><td>{{ \Carbon\Carbon::parse($slip->month)->format('F Y') }}</td></tr>
                 <tr><th>Basic Salary</th><td>{{ number_format($slip->basic_salary, 2) }}</td></tr>

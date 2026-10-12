@@ -95,8 +95,13 @@
                         <td>{{ $i + 1 }}</td>
                         <td>{{ \Carbon\Carbon::parse($record->date)->format('d-m-Y') }}</td>
                         <td>{{ $record->staff->staff_code ?? '-' }}</td>
-                        <td>{{ $record->staff->name ?? '-' }}</td>
-                        <td>{{ $record->staff->roles->pluck('name')->implode(', ') ?? '-' }}</td>
+                        <td>
+                            {{ $record->staff->name ?? '-' }}
+                            @if($record->staff && $record->staff->isStaffTrashed())
+                                <span class="badge bg-danger ms-1">Trashed</span>
+                            @endif
+                        </td>
+                        <td>{{ $record->staff ? $record->staff->roles->pluck('name')->implode(', ') : '-' }}</td>
                         <td>
                             <span class="badge bg-{{ ['present'=>'success','absent'=>'danger','half_day'=>'info','leave'=>'warning'][$record->status] }}">
                                 {{ ucfirst(str_replace('_', ' ', $record->status)) }}
@@ -108,7 +113,7 @@
                         <td>{{ $record->markedBy->name ?? '-' }}</td>
                         <td>
                             @can('manage-staff-attendance')
-                            <a href="{{ route('staff_attendance.edit', ['date' => $record->date, 'role' => $record->staff->roles->pluck('name')->first()]) }}" class="btn btn-sm btn-outline-primary">
+                            <a href="{{ route('staff_attendance.edit', ['date' => $record->date, 'role' => $record->staff ? $record->staff->roles->pluck('name')->first() : null]) }}" class="btn btn-sm btn-outline-primary">
                                 <i class='bx bx-edit'></i>
                             </a>
                             @endcan

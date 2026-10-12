@@ -109,12 +109,32 @@ class User extends Authenticatable
     {
         $roleName = $this->roles->first()->name ?? null;
 
+        // WithTrashed profile: soft-deleted staff ki history mein bhi Staff ID dikhe
         return match ($roleName) {
-            'teacher'      => $this->teacher?->teacher_id ?? '-',
-            'accountant'   => $this->accountant?->accountant_id ?? '-',
-            'receptionist' => $this->receptionist?->receptionist_id ?? '-',
+            'teacher'      => $this->teacherWithTrashed?->teacher_id ?? '-',
+            'accountant'   => $this->accountantWithTrashed?->accountant_id ?? '-',
+            'receptionist' => $this->receptionistWithTrashed?->receptionist_id ?? '-',
             default        => '-',
         };
+    }
+
+    // Trashed badge: users row trashed ya staff profile (teacher/accountant/receptionist) soft-deleted
+    public function isStaffTrashed(): bool
+    {
+        if ($this->trashed()) {
+            return true;
+        }
+
+        $roleName = $this->roles->first()->name ?? null;
+
+        $profile = match ($roleName) {
+            'teacher'      => $this->teacherWithTrashed,
+            'accountant'   => $this->accountantWithTrashed,
+            'receptionist' => $this->receptionistWithTrashed,
+            default        => null,
+        };
+
+        return $profile ? $profile->trashed() : false;
     }
 
     public function getPhotoUrlAttribute()
@@ -198,6 +218,22 @@ class User extends Authenticatable
     public function accountant()
     {
         return $this->hasOne(Accountant::class, 'user_id', 'id');
+    }
+
+    // WithTrashed versions: staff_code / isStaffTrashed() soft-deleted profile ke liye (active lists ke relations unchanged)
+    public function teacherWithTrashed()
+    {
+        return $this->hasOne(Teacher::class, 'user_id')->withTrashed();
+    }
+
+    public function receptionistWithTrashed()
+    {
+        return $this->hasOne(Receptionist::class, 'user_id', 'id')->withTrashed();
+    }
+
+    public function accountantWithTrashed()
+    {
+        return $this->hasOne(Accountant::class, 'user_id', 'id')->withTrashed();
     }
 
     public function timetables()

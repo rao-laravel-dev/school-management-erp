@@ -115,7 +115,12 @@
                 <tbody>
                     @forelse($slips as $slip)
                     <tr>
-                        <td>{{ $slip->user->name }}</td>
+                        <td>
+                            {{ $slip->user->name }}
+                            @if($slip->user->isStaffTrashed())
+                                <span class="badge bg-danger ms-1">Trashed</span>
+                            @endif
+                        </td>
                         <td>{{ ucfirst($slip->user->roles->first()->name ?? '-') }}</td>
                         <td>{{ number_format($slip->net_salary, 2) }}</td>
                         <td>

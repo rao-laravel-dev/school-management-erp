@@ -28,7 +28,8 @@ class SalarySlip extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        // withTrashed: soft-deleted staff ki salary slip history null crash na kare
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     public function generatedBy()

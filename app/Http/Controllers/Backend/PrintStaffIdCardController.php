@@ -27,7 +27,7 @@ class PrintStaffIdCardController extends Controller
     {
         $staffMembers = User::role($role)
             ->where('status', 1)
-            ->with(['teacher', 'accountant', 'receptionist', 'roles']) // roles: staff_code accessor N+1 se bachne ke liye
+            ->with(['teacher', 'accountant', 'receptionist', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'roles']) // roles: staff_code accessor N+1 se bachne ke liye
             ->get();
 
         $staff =$staffMembers->map(function ($user) {
@@ -56,7 +56,7 @@ class PrintStaffIdCardController extends Controller
         $template = StaffIdCardTemplate::findOrFail($request->template_id);
 
         $staffMembers = User::whereIn('id', $request->staff_ids)
-            ->with(['teacher', 'accountant', 'receptionist', 'roles'])
+            ->with(['teacher', 'accountant', 'receptionist', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'roles'])
             ->get();
 
         return view('admin.staff_id_card_template.card', compact('template', 'staffMembers'));

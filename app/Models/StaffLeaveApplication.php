@@ -16,6 +16,6 @@ class StaffLeaveApplication extends Model
 public function user()
 {
     // 'user_id' aapke staff_leave_applications table ka column hai
-    return $this->belongsTo(User::class, 'user_id');
+    return $this->belongsTo(User::class, 'user_id')->withTrashed();
 }
 }

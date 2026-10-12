@@ -17,7 +17,8 @@ class StaffAttendance extends Model
 
     public function staff()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        // withTrashed: soft-deleted staff ki purani attendance history null crash na kare
+        return $this->belongsTo(User::class, 'user_id')->withTrashed();
     }
 
     public function markedBy()
