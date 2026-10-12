@@ -234,6 +234,7 @@ class AccountantController extends Controller
         $request->validate([
             'first_name'     => 'required|string|max:255',
             'last_name'      => 'required|string|max:255',
+            'father_name'    => 'required|string|max:255',
             'email'          => 'required|email|unique:users,email,' . $user->id,
             'cnic'           => 'required|string|unique:accountants,cnic,' . $accountant->id,
             'phone'              => 'required|string|max:15',
@@ -271,6 +272,7 @@ class AccountantController extends Controller
                 'last_name'          => $request->last_name,
                 'father_name'        => $request->father_name,
                 'mother_name'        => $request->mother_name,
+                'email'              => $request->email, // index list accountants.email se padhti hai, sirf users.email update hoti thi
                 'cnic'               => $request->cnic,
                 'dob'                => $request->dob,
                 'marital_status'     => $request->marital_status,
@@ -306,13 +308,24 @@ class AccountantController extends Controller
                     'bank_name'      => $request->bank_name,
                     'account_title'  => $request->account_title,
                     'account_number' => $request->account_number,
+                    'iban'           => $request->bank_type == 'commercial' ? $request->iban : null,
+                    'branch_name'    => $request->bank_type == 'commercial' ? $request->branch_name : null,
+                    'branch_code'    => $request->bank_type == 'commercial' ? $request->branch_code : null,
                 ]
             );
 
             DB::commit();
+            // AJAX ko JSON chahiye (redirect follow hoke fake success dikhata tha)
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Accountant updated successfully!']);
+            }
             return redirect()->route('accountant.index')->with('toastr-success', 'Accountant updated successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('UpdateAccountant failed: ' . $e->getMessage(), ['accountant_id' => $id]); // XHR redirect flash error chhupa deta tha
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Update failed: ' . $e->getMessage()], 500);
+            }
             return back()->with('toastr-error', 'Update failed: ' . $e->getMessage());
         }
     }
