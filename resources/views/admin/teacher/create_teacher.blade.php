@@ -27,7 +27,7 @@
 
                 <div class="col-md-3">
                     <label for="teacher_id" class="form-label">Teacher ID *</label>
-                    <input type="text" name="teacher_id" id="teacher_id_field" class="form-control form-control-sm @error('teacher_id') is-invalid @enderror" value="{{ old('teacher_id', $teacherId) }}" placeholder="Enter First Name to generate ID..." readonly>
+                    <input type="text" name="teacher_id" id="teacher_id_field" class="form-control form-control-sm bg-light @error('teacher_id') is-invalid @enderror" value="{{ old('teacher_id', $teacherId) }}" placeholder="Enter First Name to generate ID..." readonly>
                     @error('teacher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -52,7 +52,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="email" class="form-label">Email *</label>
-                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email') }}" autocomplete="username">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
@@ -165,8 +165,8 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-4"><label for="basic_salary" class="form-label">Basic Salary *</label><input type="number" name="basic_salary" id="basic_salary" class="form-control form-control-sm @error('basic_salary') is-invalid @enderror" value="{{ old('basic_salary') }}">@error('basic_salary')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                         <div class="col-md-4"><label for="contract_type" class="form-label">Contract Type</label><select name="contract_type" id="contract_type" class="form-select form-select-sm">
-                                <option value="permanent">Permanent</option>
-                                <option value="contract">Contract</option>
+                                <option value="permanent" {{ old('contract_type') == 'permanent' ? 'selected' : '' }}>Permanent</option>
+                                <option value="contract" {{ old('contract_type') == 'contract' ? 'selected' : '' }}>Contract</option>
                             </select></div>
                         <div class="col-md-4"><label for="work_shift" class="form-label">Work Shift</label><input type="text" name="work_shift" id="work_shift" class="form-control form-control-sm" value="{{ old('work_shift') }}"></div>
                     </div>
@@ -267,7 +267,7 @@
                         <div class="col-md-6">
                             <label class="form-label" for="password">Teacher System Password <span class="text-danger">*</span></label>
                             <div class="input-group input-group-sm">
-                                <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="••••••••">
+                                <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="••••••••" autocomplete="new-password">
                                 <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password">
                                     <i class="bx bx-hide" id="password_icon"></i>
                                 </button>
@@ -278,7 +278,7 @@
                         <div class="col-md-6">
                             <label class="form-label" for="password_confirmation">Confirm Password <span class="text-danger">*</span></label>
                             <div class="input-group input-group-sm">
-                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="••••••••">
+                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="••••••••" autocomplete="new-password">
                                 <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password_confirmation">
                                     <i class="bx bx-hide" id="password_confirmation_icon"></i>
                                 </button>
@@ -290,7 +290,8 @@
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ route('teacher.index') }}" class="btn btn-sm btn-secondary px-4">Cancel</a>
                 <button type="submit" class="btn btn-sm btn-success px-4">Save Teacher Profile</button>
             </div>
         </form>
@@ -336,9 +337,9 @@
             toastr.success("{{ session('toastr-success') }}");
         @endif
 
-        // Show ONLY the first validation error in a single clean toast
+        // Validation fail hone par ek hi clean toast
         @if($errors->any())
-            toastr.error("{{ $errors->first() }}", "Validation Error", {
+            toastr.error("Please check the highlighted fields.", "Validation Error", {
                 "closeButton": true,
                 "progressBar": true,
                 "positionClass": "toast-top-right",
@@ -347,12 +348,28 @@
         @endif
 
         // Real-time error removal on input / change
-        $('input, select, textarea').on('input change', function() {
-            if ($(this).hasClass('is-invalid')) {
-                $(this).removeClass('is-invalid');
-                $(this).siblings('.invalid-feedback').hide();
-            }
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
         });
+
+        // Pehle error wala field: #moreDetails kholo, scroll + focus
+        let firstError = $('.is-invalid').first();
+        if (firstError.length) {
+            let scrollToError = function() {
+                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                firstError.trigger('focus');
+            };
+            let errorPanel = firstError.closest('.collapse');
+            if (errorPanel.length && !errorPanel.hasClass('show')) {
+                errorPanel.one('shown.bs.collapse', scrollToError);
+                bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+            } else {
+                scrollToError();
+            }
+        }
 
         $('#teacher_id_field').css({
             'color': '#00bc2f',

@@ -242,6 +242,7 @@ class TeachersController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name'   => 'required|string|max:255',
             'last_name'    => 'required|string|max:255',
+            'father_name'  => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email,' . $user->id,
             'cnic'         => 'required|string|max:15|unique:teachers,cnic,' . $teacher->id,
             'phone'        => 'required|string|max:15',
