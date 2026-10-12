@@ -409,7 +409,7 @@ public function ReceptionistDestroy($id)
     // 2. Ab soft delete karein (Receptionist table mein deleted_at fill ho jayega)
     $receptionist->delete(); 
     
-    return redirect()->back()->with('success', 'Receptionist moved to trash!');
+    return redirect()->back()->with('toastr-success', 'Receptionist moved to trash!');
 }
 
 // 2. Show Trash List
@@ -432,7 +432,8 @@ public function RestoreReceptionist($id)
         $receptionist->user->update(['status' => 1]);
     }
 
-    return redirect()->back()->with('success', 'Receptionist restored and activated!');
+    // Trash page koi flash key render nahi karta; admin layout 'message' + 'alert-type' render karta hai
+    return redirect()->back()->with('message', 'Receptionist restored and activated!')->with('alert-type', 'success');
 }
 
 // 4. Permanent Delete
@@ -441,6 +442,6 @@ public function ForceDeleteReceptionist($id)
     $receptionist = Receptionist::withTrashed()->find($id);
     // Physical file delete logic yahan aayega (unlink...)
     $receptionist->forceDelete();
-    return redirect()->back()->with('success', 'Receptionist permanently removed!');
+    return redirect()->back()->with('message', 'Receptionist permanently removed!')->with('alert-type', 'success');
 }
 }
