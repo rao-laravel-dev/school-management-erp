@@ -25,8 +25,6 @@
             @csrf
             
             
-            {{-- Role hidden field --}}
-            <input type="hidden" name="role" value="receptionist">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0 text-primary">Edit Receptionist Information</h5>

@@ -155,7 +155,8 @@ class TeachersController extends Controller
                 'status'   => 2,
             ]);
 
-            $user->assignRole($request->role ?? 'teacher');
+            // Role hamesha server se, request ka role ignore
+            $user->assignRole('teacher');
 
             $photoName = null;
             if ($request->hasFile('photo')) {

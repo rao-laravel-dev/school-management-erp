@@ -18,7 +18,6 @@
     <div class="card-body">
         <form action="{{ route('accountant.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="role" value="accountant">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0 text-primary">Basic Information</h5>

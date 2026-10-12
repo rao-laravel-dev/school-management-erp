@@ -176,7 +176,8 @@ class ReceptionController extends Controller
             ]);
 
             // Spatie Role Assigning
-            $user->assignRole($request->role ?? 'receptionist');
+            // Role hamesha server se, request ka role ignore
+            $user->assignRole('receptionist');
 
             // Step 2: Handle Photo Upload
             $photoName = null;

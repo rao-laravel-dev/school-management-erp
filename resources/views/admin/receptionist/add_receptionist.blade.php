@@ -17,8 +17,6 @@
     <div class="card-body">
         <form action="{{ route('receptionist.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            {{-- Role hidden field updated for receptionist --}}
-            <input type="hidden" name="role" value="receptionist">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0 text-primary">Basic Information</h5>
