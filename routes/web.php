@@ -270,15 +270,15 @@ Route::middleware(['auth'])->group(function () {
 
         Route::middleware(['can:access-accountant'])->group(function () {
             Route::get('/', 'AllAccountant')->name('index');
-            Route::get('/add', 'AddAccountant')->name('create');
-            Route::get('/get-accountant-id', 'getGeneratedId')->name('get-accountant-id');
             Route::get('/get-details/{id}', 'getDetails')->name('get-details');
-            Route::post('/store', 'StoreAccountant')->name('store');
-            Route::get('/edit/{id}', 'EditAccountant')->name('edit');
-            Route::put('/update/{id}', 'UpdateAccountant')->name('update');
         });
 
         Route::middleware(['can:manage-accountant'])->group(function () {
+            Route::get('/add', 'AddAccountant')->name('create'); // MOVED 11-10-26 (admin only)
+            Route::get('/get-accountant-id', 'getGeneratedId')->name('get-accountant-id'); // MOVED 11-10-26
+            Route::post('/store', 'StoreAccountant')->name('store'); // MOVED 11-10-26
+            Route::get('/edit/{id}', 'EditAccountant')->name('edit'); // MOVED 11-10-26
+            Route::put('/update/{id}', 'UpdateAccountant')->name('update'); // MOVED 11-10-26
             Route::post('/status/{id}', 'AccountantStatus')->name('status');
             Route::get('/delete/{id}', 'AccountantDestroy')->name('delete');
             Route::get('/trash', 'AccountantTrash')->name('trash');
@@ -382,16 +382,16 @@ Route::middleware(['auth'])->group(function () {
         // 1. General Access: Data Entry aur View (Staff/Manager)
         Route::middleware(['can:access-receptionist'])->group(function () {
             Route::get('/', 'AllReceptionist')->name('index');
-            Route::get('/add', 'AddReceptionist')->name('create');
-            Route::get('/get-receptionist-id', 'getGeneratedId')->name('get-receptionist-id');
             Route::get('/get-details/{id}', 'getDetails')->name('get-details');
-            Route::post('/store', 'StoreReceptionist')->name('store');
-            Route::get('/edit/{id}', 'EditReceptionist')->name('edit');
-            Route::post('/update/{id}', 'UpdateReceptionist')->name('update');
         });
 
-        // 2. Critical Access: Status + Deletion + Trash (Admin/Management)
+        // 2. Critical Access: Add/Edit + Status + Deletion + Trash (Admin/Management)
         Route::middleware(['can:manage-receptionist'])->group(function () {
+            Route::get('/add', 'AddReceptionist')->name('create'); // MOVED 11-10-26 (admin only)
+            Route::get('/get-receptionist-id', 'getGeneratedId')->name('get-receptionist-id'); // MOVED 11-10-26
+            Route::post('/store', 'StoreReceptionist')->name('store'); // MOVED 11-10-26
+            Route::get('/edit/{id}', 'EditReceptionist')->name('edit'); // MOVED 11-10-26
+            Route::post('/update/{id}', 'UpdateReceptionist')->name('update'); // MOVED 11-10-26
             Route::post('/status/{id}', 'ReceptionistStatus')->name('status'); // Status critical hai
             Route::get('/delete/{id}', 'ReceptionistDestroy')->name('delete');
             Route::get('/trash', 'TrashReceptionist')->name('trash');
@@ -409,18 +409,18 @@ Route::middleware(['auth'])->group(function () {
         // 1. Teacher CRUD (TeachersController)
         Route::middleware(['can:access-teacher'])->controller(TeachersController::class)->group(function () {
             Route::get('/', 'AllTeacher')->name('index');
-            Route::get('/create', 'AddTeacher')->name('create');
-            Route::get('/get-teacher-id', 'getGeneratedId')->name('get-teacher-id');
             Route::get('/get-details/{id}', 'getDetails')->name('get-details');
-            Route::post('/store', 'StoreTeacher')->name('store');
-            Route::get('/edit/{id}', 'EditTeacher')->name('edit');
-            Route::post('/update/{id}', 'UpdateTeacher')->name('update');
         });
 
 
 
         // 2. Critical Access (Admin)
         Route::middleware(['can:manage-teacher'])->controller(TeachersController::class)->group(function () {
+            Route::get('/create', 'AddTeacher')->name('create'); // MOVED 11-10-26 (admin only)
+            Route::get('/get-teacher-id', 'getGeneratedId')->name('get-teacher-id'); // MOVED 11-10-26
+            Route::post('/store', 'StoreTeacher')->name('store'); // MOVED 11-10-26
+            Route::get('/edit/{id}', 'EditTeacher')->name('edit'); // MOVED 11-10-26
+            Route::post('/update/{id}', 'UpdateTeacher')->name('update'); // MOVED 11-10-26
             Route::post('/status/{id}', 'TeacherStatus')->name('status');
             Route::get('/trash', 'TeacherTrash')->name('trash');
             Route::get('/restore/{id}', 'TeacherRestore')->name('restore');

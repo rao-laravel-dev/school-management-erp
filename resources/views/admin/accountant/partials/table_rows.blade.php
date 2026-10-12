@@ -43,7 +43,7 @@
 
     <td>
         <div class="d-flex gap-2">
-            @can('access-accountant')
+            @can('manage-accountant')
                 <a href="{{ route('accountant.edit', $accountant->id) }}" class="btn btn-sm btn-outline-primary">
                     <i class="bx bx-edit"></i>
                 </a>

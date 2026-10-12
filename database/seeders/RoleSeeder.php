@@ -282,7 +282,6 @@ class RoleSeeder extends Seeder
             'access-academics',
             'access-attendance',
             'access-marksheet-templates',
-            'access-teacher',
             'access-profile',     // Nayi permission
             'access-assignments'  // Nayi permission
         ]);

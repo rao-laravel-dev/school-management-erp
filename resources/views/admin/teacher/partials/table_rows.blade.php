@@ -54,8 +54,8 @@
 
 <td>
     <div class="d-flex gap-2">
-        {{-- Edit ke liye 'access-teacher' ya 'manage-teacher' dono chal sakte hain --}}
-        @can('access-teacher')
+        {{-- Edit ab sirf 'manage-teacher' (admin) ke liye, route bhi manage group mein hai --}}
+        @can('manage-teacher')
             <a href="{{ route('teacher.edit', $teacher->id) }}" class="btn btn-sm btn-outline-primary">
                 <i class="bx bx-edit"></i>
             </a>

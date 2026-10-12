@@ -63,9 +63,11 @@
     </div>
 
     <div class="col text-end ms-auto">
+        @can('manage-teacher')
         <a href="{{ route('teacher.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
             <i class='bx bx-plus'></i> Add New Teacher
         </a>
+        @endcan
     </div>
 </div>
 

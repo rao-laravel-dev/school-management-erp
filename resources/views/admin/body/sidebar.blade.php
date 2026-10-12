@@ -22,7 +22,9 @@
                 <div class="menu-title">Receptionist Details</div>
             </a>
             <ul>
+                @can('manage-receptionist')
                 <li><a href="{{ route('receptionist.create') }}"><i class='bx bx-radio-circle'></i>Add Receptionist</a></li>
+                @endcan
                 <li><a href="{{ route('receptionist.index') }}"><i class='bx bx-radio-circle'></i>Receptionist Details</a></li>
             </ul>
         </li>
@@ -36,7 +38,9 @@
             </a>
             <ul>
                 <li><a href="{{ route('accountant.index') }}"><i class='bx bx-radio-circle'></i>All Accountants</a></li>
+                @can('manage-accountant')
                 <li><a href="{{ route('accountant.create') }}"><i class='bx bx-radio-circle'></i>Add Accountant</a></li>
+                @endcan
             </ul>
         </li>
         @endif
@@ -79,7 +83,9 @@
             <ul>
                 @can('access-teacher')
                 <li><a href="{{ route('teacher.index') }}"><i class='bx bx-radio-circle'></i>All Teachers</a></li>
+                @can('manage-teacher')
                 <li><a href="{{ route('teacher.create') }}"><i class='bx bx-radio-circle'></i>Add Teacher</a></li>
+                @endcan
                 @endcan
 
                 @can('access-teacher-assignment')

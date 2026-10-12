@@ -49,7 +49,7 @@
                 @can('access-teacher')
                 <li><a href="{{ route('teacher.index') }}"><i class='bx bx-radio-circle'></i>All Teachers</a></li>
                 @endcan
-                @can('access-teacher')
+                @can('manage-teacher')
                 <li><a href="{{ route('teacher.create') }}"><i class='bx bx-radio-circle'></i>Add Teacher</a></li>
                 @endcan
 
