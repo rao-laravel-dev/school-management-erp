@@ -69,9 +69,11 @@
     </div>
 
     <div class="col text-end ms-auto">
-        <a href="{{ route('accountant.create') }}" class="btn btn-primary px-4 shadow-sm">
+        @can('manage-accountant')
+        <a href="{{ route('accountant.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
             <i class='bx bx-plus'></i> Add New Accountant
         </a>
+        @endcan
     </div>
 </div>
 

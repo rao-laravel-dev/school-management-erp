@@ -44,22 +44,34 @@ class AccountantController extends Controller
         return view('admin.accountant.create_acc', compact('currentDate', 'accountantId'));
     }
 
-    // 3. Generate ID (AJAX Request)
+    // ID server par banti hai (store mein bhi yahi), client ki value par bharosa nahi
+    private function generateAccountantId($firstName = null, $lastName = null)
+    {
+        // Naam ko upper case mein convert karein aur spaces/symbols khatam kar dein
+        // Agar first_name khali ho to default 'ACC' prefix (teacher/receptionist jaisa)
+        $first = !empty($firstName) ? strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName)) : 'ACC';
+
+        // Max existing number nikalen (withTrashed) takki delete ke baad bhi ID duplicate na ho
+        $maxNumber = Accountant::withTrashed()
+            ->get(['accountant_id'])
+            ->map(function ($a) {
+                return preg_match('/(\d+)$/', (string) $a->accountant_id, $m) ? (int) $m[1] : 0;
+            })
+            ->max();
+
+        $uniqueNumber = str_pad($maxNumber + 1, 3, '0', STR_PAD_LEFT);
+
+        // Final Format: FIRSTNAME + 001 (receptionist/teacher jaisa)
+        // Misal: KHAWAR + 004 = KHAWAR004
+        return $first . $uniqueNumber;
+    }
+
+    // 3. Generate ID (AJAX Request) - sirf preview, save par dobara server banata hai
     public function getGeneratedId(Request $request)
     {
-        // Naam ko upper case mein convert karein aur spaces khatam kar dein
-        $firstName = str_replace(' ', '', strtoupper($request->first_name));
-        $lastName = str_replace(' ', '', strtoupper($request->last_name));
-
-        // Count se unique ID number (3 digits ka)
-        $count = Accountant::count() + 1;
-        $uniqueNumber = str_pad($count, 3, '0', STR_PAD_LEFT);
-
-        // Final Format: ACC + FIRSTNAME + LASTNAME + 001
-        // Misal: ACC + MUHAMMAD + SIDDIQUE + 001 = ACCMUHAMMADSIDDIQUE001
-        $id = 'ACC' . $firstName . $lastName . $uniqueNumber;
-
-        return response()->json(['accountant_id' => $id]);
+        return response()->json([
+            'accountant_id' => $this->generateAccountantId($request->first_name, $request->last_name),
+        ]);
     }
 
     // 4. Store Accountant
@@ -68,6 +80,7 @@ class AccountantController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name'     => 'required|string|max:255',
             'last_name'      => 'required|string|max:255',
+            'father_name'    => 'required|string|max:255',
             'email'          => 'required|email|unique:users,email',
             'cnic'           => 'required|string|max:15|unique:accountants,cnic', // Table name check karein
             'phone'          => 'required|string|max:15',
@@ -75,6 +88,7 @@ class AccountantController extends Controller
             'emergency_relation' => 'nullable|string|max:100',
             'emergency_phone'    => 'required|string|max:20',
             'dob'            => 'required|date',
+            'password'       => 'required|string|min:8|confirmed',
             'basic_salary'   => 'required|numeric|min:0',
             'bank_type'      => 'required|in:commercial,microfinance_wallet',
             'account_title'  => 'required|string|max:255',
@@ -84,6 +98,10 @@ class AccountantController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // AJAX form ko JSON errors chahiye (warna 302 follow hoke "added successfully" dikhta tha)
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            }
             return back()->withErrors($validator)->withInput()->with('toastr-error', 'Validation failed.');
         }
 
@@ -95,13 +113,15 @@ class AccountantController extends Controller
 
         DB::beginTransaction();
         try {
+            // ID server se, request ki accountant_id ignore
+            $accountantId = $this->generateAccountantId($request->first_name, $request->last_name);
+
             // 2. Create User
             $user = User::create([
                 'name'     => $request->first_name . ' ' . $request->last_name,
                 'email'    => $request->email,
-                'username' => $request->accountant_id, // Generated ID
-                'password' => Hash::make('accountant123'),
-                'role'     => 'accountant',
+                'username' => $accountantId, // Generated ID
+                'password' => Hash::make($request->password),
                 'status'   => 2,
             ]);
 
@@ -110,7 +130,7 @@ class AccountantController extends Controller
             // 3. Save Accountant Profile
             Accountant::create([
                 'user_id'           => $user->id,
-                'accountant_id'     => $request->accountant_id,
+                'accountant_id'     => $accountantId,
                 'first_name'        => $request->first_name,
                 'last_name'         => $request->last_name,
                 'father_name'       => $request->father_name,
@@ -147,6 +167,9 @@ class AccountantController extends Controller
                 'bank_name'      => $request->bank_name,
                 'account_title'  => $request->account_title,
                 'account_number' => $request->account_number,
+                'iban'           => $request->bank_type == 'commercial' ? $request->iban : null,
+                'branch_name'    => $request->bank_type == 'commercial' ? $request->branch_name : null,
+                'branch_code'    => $request->bank_type == 'commercial' ? $request->branch_code : null,
             ]);
 
             DB::commit();
@@ -154,6 +177,9 @@ class AccountantController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             // Agar error aaye aur photo upload ho gayi ho to usse delete krne ke liye logic yahan likh sakte hain
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            }
             return back()->with('toastr-error', 'Error: ' . $e->getMessage())->withInput();
         }
     }
