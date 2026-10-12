@@ -404,7 +404,8 @@ public function TeacherDestroy($id)
     public function TeacherRestore($id)
     {
         Teacher::withTrashed()->findOrFail($id)->restore();
-        return redirect()->back()->with('success', 'Teacher restored successfully.');
+        // Trash page koi flash key render nahi karta; admin layout 'message' + 'alert-type' render karta hai
+        return redirect()->back()->with('message', 'Teacher restored successfully.')->with('alert-type', 'success');
     }
 
     // 4. Force Delete (Database se hamesha ke liye khatam)
@@ -414,30 +415,57 @@ public function TeacherDestroy($id)
             // 1. Teacher dhoondein (Trash mein se)
             $teacher = Teacher::onlyTrashed()->findOrFail($id);
 
-            // 2. Linked User dhoondein aur delete karein
+            // History guard: user delete se salary slips / attendance / leaves cascade ho jati hain, isliye history ho to delete na karein
             if ($teacher->user_id) {
-                $user = \App\Models\User::find($teacher->user_id);
-                if ($user) {
-                    // Check karein ke kya User model mein SoftDeletes trait hai
-                    if (in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($user))) {
-                        $user->forceDelete(); // Agar soft delete hai, to forceDelete karein
-                    } else {
-                        $user->delete(); // Agar simple delete hai, to delete karein
-                    }
-                }
+                $hasHistory = \App\Models\SalarySlip::where('user_id', $teacher->user_id)->exists()
+                    || \App\Models\StaffAttendance::where('user_id', $teacher->user_id)->exists()
+                    || \App\Models\StaffLeaveApplication::where('user_id', $teacher->user_id)->exists()
+                    || DB::table('print_report_cards')->where('issued_by', $teacher->user_id)->exists()
+                    || DB::table('home_works')->where('created_by', $teacher->user_id)->exists()
+                    || DB::table('lesson_plan_comments')->where('user_id', $teacher->user_id)->exists();
+            } else {
+                $hasHistory = false;
             }
 
-            // 3. File cleanup (Teacher photo)
+            // Teacher ki apni history: timetable, lesson plans, class/subject assignments (teacher_id = teachers.id)
+            $hasHistory = $hasHistory
+                || DB::table('class_timetables')->where('teacher_id', $teacher->id)->exists()
+                || DB::table('lesson_plans')->where('teacher_id', $teacher->id)->exists()
+                || DB::table('teacher_assignments')->where('teacher_id', $teacher->id)->exists();
+
+            if ($hasHistory) {
+                return redirect()->back()->with('message', 'Cannot delete permanently: this teacher has salary, attendance, leave, report card, timetable, lesson plan, homework or assignment history. Keep the record in trash.')->with('alert-type', 'error');
+            }
+
+            // 2 + 4. Linked User aur Teacher ek transaction mein delete karein (FK error par user delete bhi rollback ho)
+            DB::transaction(function () use ($teacher) {
+                // Linked User dhoondein aur delete karein
+                if ($teacher->user_id) {
+                    $user = \App\Models\User::find($teacher->user_id);
+                    if ($user) {
+                        // Check karein ke kya User model mein SoftDeletes trait hai
+                        if (in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($user))) {
+                            $user->forceDelete(); // Agar soft delete hai, to forceDelete karein
+                        } else {
+                            $user->delete(); // Agar simple delete hai, to delete karein
+                        }
+                    }
+                }
+
+                // Teacher permanently delete karein
+                $teacher->forceDelete();
+            });
+
+            // 3. File cleanup (Teacher photo), sirf transaction success hone ke baad
             if ($teacher->photo) {
                 $this->imageService->delete($teacher->photo, 'teacher_images');
             }
 
-            // 4. Teacher permanently delete karein
-            $teacher->forceDelete();
-
-            return redirect()->back()->with('success', 'Teacher and associated User permanently deleted.');
+            // Trash page koi flash key render nahi karta; admin layout 'message' + 'alert-type' render karta hai
+            return redirect()->back()->with('message', 'Teacher and associated User permanently deleted.')->with('alert-type', 'success');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+            \Log::error('TeacherForceDelete failed: ' . $e->getMessage(), ['teacher_id' => $id]);
+            return redirect()->back()->with('message', 'Something went wrong: ' . $e->getMessage())->with('alert-type', 'error');
         }
     }
 }

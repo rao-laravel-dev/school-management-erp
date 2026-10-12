@@ -349,14 +349,16 @@ class AccountantController extends Controller
     {
         Accountant::findOrFail($id)->delete();
 
-        return redirect()->back()->with('success', 'Accountant moved to trash.');
+        // Redirect index par jata hai, index sirf 'toastr-success' / 'toastr-error' render karta hai
+        return redirect()->back()->with('toastr-success', 'Accountant moved to trash.');
     }
 
     // 4. Restore
     public function AccountantRestore($id)
     {
         Accountant::withTrashed()->findOrFail($id)->restore();
-        return redirect()->back()->with('success', 'Accountant restored successfully.');
+        // Trash page koi flash key render nahi karta; admin layout 'message' + 'alert-type' render karta hai
+        return redirect()->back()->with('message', 'Accountant restored successfully.')->with('alert-type', 'success');
     }
 
     // 5. Force Delete (Permanent)
@@ -366,30 +368,49 @@ class AccountantController extends Controller
             // 1. Accountant dhoondein (Trash mein se)
             $accountant = Accountant::onlyTrashed()->findOrFail($id);
 
-            // 2. Linked User dhoondein aur delete karein
+            // History guard: user delete se salary slips / attendance / leaves cascade ho jati hain, isliye history ho to delete na karein
             if ($accountant->user_id) {
-                $user = \App\Models\User::find($accountant->user_id);
-                if ($user) {
-                    // Check karein ke kya User model mein SoftDeletes trait hai
-                    if (in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($user))) {
-                        $user->forceDelete(); // Agar soft delete hai, to forceDelete karein
-                    } else {
-                        $user->delete(); // Agar simple delete hai, to delete karein
-                    }
+                $hasHistory = \App\Models\SalarySlip::where('user_id', $accountant->user_id)->exists()
+                    || \App\Models\StaffAttendance::where('user_id', $accountant->user_id)->exists()
+                    || \App\Models\StaffLeaveApplication::where('user_id', $accountant->user_id)->exists()
+                    || DB::table('print_report_cards')->where('issued_by', $accountant->user_id)->exists();
+                if ($hasHistory) {
+                    return redirect()->back()->with('message', 'Cannot delete permanently: this accountant has salary, attendance, leave or report card history. Keep the record in trash.')->with('alert-type', 'error');
                 }
             }
 
-            // 3. File cleanup
+            // 2 + 4. Linked User aur Accountant ek transaction mein delete karein (FK error par user delete bhi rollback ho)
+            DB::transaction(function () use ($accountant) {
+                // Linked User dhoondein aur delete karein
+                if ($accountant->user_id) {
+                    $user = \App\Models\User::find($accountant->user_id);
+                    if ($user) {
+                        // Check karein ke kya User model mein SoftDeletes trait hai
+                        if (in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($user))) {
+                            $user->forceDelete(); // Agar soft delete hai, to forceDelete karein
+                        } else {
+                            $user->delete(); // Agar simple delete hai, to delete karein
+                        }
+                    }
+                }
+
+                // Accountant permanently delete karein
+                $accountant->forceDelete();
+            });
+
+            // 3. File cleanup, sirf transaction success hone ke baad
             if ($accountant->photo && File::exists(public_path('uploads/accountant_images/' . $accountant->photo))) {
                 File::delete(public_path('uploads/accountant_images/' . $accountant->photo));
             }
+            // Storage disk (ImageService) wali photo bhi delete
+            if ($accountant->photo) {
+                $this->imageService->delete($accountant->photo, 'uploads/accountant_images');
+            }
 
-            // 4. Accountant permanently delete karein
-            $accountant->forceDelete();
-
-            return redirect()->back()->with('success', 'Accountant and User permanently deleted successfully.');
+            return redirect()->back()->with('message', 'Accountant and User permanently deleted successfully.')->with('alert-type', 'success');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+            \Log::error('AccountantForceDelete failed: ' . $e->getMessage(), ['accountant_id' => $id]);
+            return redirect()->back()->with('message', 'Something went wrong: ' . $e->getMessage())->with('alert-type', 'error');
         }
     }
 }

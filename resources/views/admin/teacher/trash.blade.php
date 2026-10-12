@@ -60,7 +60,7 @@
                                         <a href="{{ route('teacher.restore', $item->id) }}" class="btn btn-sm btn-outline-success" title="Restore">
                                             <i class="bx bx-refresh my-0"></i>
                                         </a>
-                                        <a href="{{ route('teacher.force-delete', $item->id) }}" class="btn btn-sm btn-outline-danger" id="delete" title="Permanent Delete">
+                                        <a href="{{ route('teacher.force-delete', $item->id) }}" class="btn btn-sm btn-outline-danger force-delete-btn" title="Permanent Delete">
                                             <i class="bx bx-trash my-0"></i>
                                         </a>
                                     </div>
