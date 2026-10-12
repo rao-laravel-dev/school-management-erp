@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-md-4">
             <div class="p-2 border rounded bg-light text-center">
-                <img src="{{ file_exists(public_path('uploads/receptionists/'.$receptionist->photo)) ? asset('uploads/receptionists/'.$receptionist->photo) : asset('uploads/no_image.jpg') }}"
+                <img src="{{ $receptionist->photo_url }}"
                     class="img-fluid rounded" style="width: 100%; height: 180px; object-fit: cover;" alt="Profile">
             </div>
         </div>

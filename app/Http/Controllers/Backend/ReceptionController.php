@@ -277,10 +277,12 @@ class ReceptionController extends Controller
             if ($receptionist->photo && file_exists(public_path('uploads/receptionist_images/' . $receptionist->photo))) {
                 @unlink(public_path('uploads/receptionist_images/' . $receptionist->photo));
             }
+            // Store wala pattern: purani photo storage disk se bhi delete, nayi ImageService se (store ke same folder mein)
+            if ($receptionist->photo) {
+                $this->imageService->delete($receptionist->photo, 'uploads/receptionist_images');
+            }
 
-            $file = $request->file('photo');
-            $photoName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/receptionist_images'), $photoName);
+            $photoName = $this->imageService->upload($request->file('photo'), 'uploads/receptionist_images', 300, 300);
         }
 
         // A. User Table Update

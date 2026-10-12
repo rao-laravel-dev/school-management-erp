@@ -232,6 +232,10 @@ class AccountantController extends Controller
                 if ($photoName && file_exists(public_path('uploads/accountant_images/' . $photoName))) {
                     unlink(public_path('uploads/accountant_images/' . $photoName));
                 }
+                // Purani photo storage disk se bhi delete (store ImageService se wahin save karta hai)
+                if ($photoName) {
+                    $this->imageService->delete($photoName, 'uploads/accountant_images');
+                }
                 $photoName = $this->imageService->upload($request->file('photo'), 'uploads/accountant_images', 300, 300);
             }
 

@@ -52,6 +52,26 @@ class Receptionist extends Model
     return $this->belongsTo(User::class, 'user_id', 'id');
 }
 
+    // Photo URL Accessor (Teacher wala pattern) — storage/uploads/receptionist_images, phir public purane folders, warna no_image.jpg
+    protected function photoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function () {
+                if ($this->photo) {
+                    foreach (['uploads/receptionist_images', 'uploads/reception_images', 'uploads/receptionists'] as $folder) {
+                        if (\Storage::disk('public')->exists($folder . '/' . $this->photo)) {
+                            return asset('storage/' . $folder . '/' . $this->photo);
+                        }
+                        if (file_exists(public_path($folder . '/' . $this->photo))) {
+                            return asset($folder . '/' . $this->photo);
+                        }
+                    }
+                }
+                return asset('uploads/no_image.jpg');
+            }
+        );
+    }
+
     // 2. Salary Relation (Agar model ka naam StaffSalary hai)
     public function salary()
     {

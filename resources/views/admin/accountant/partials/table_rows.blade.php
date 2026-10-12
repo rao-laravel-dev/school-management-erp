@@ -1,8 +1,7 @@
 @forelse($accountants as $accountant)
 <tr>
     <td class="text-center align-middle">
-        <img src="{{ $accountant->photo && file_exists(public_path('uploads/accountants/'.$accountant->photo)) 
-                ? asset('uploads/accountants/'.$accountant->photo) : asset('uploads/no_image.jpg') }}"
+        <img src="{{ $accountant->photo_url }}"
             class="rounded shadow-sm p-1 border" style="width: 45px; height: 45px; object-fit: cover;" alt="Accountant">
     </td>
     <td>

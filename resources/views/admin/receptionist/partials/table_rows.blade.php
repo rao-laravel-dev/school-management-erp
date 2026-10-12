@@ -1,12 +1,8 @@
 @forelse($receptionists as $receptionist)
 <tr>
     <td class="text-center align-middle">
-        @if(!empty($receptionist->photo) && file_exists(public_path('uploads/receptionists/'.$receptionist->photo)))
         {{-- rounded-circle hata kar sirf rounded likha hai --}}
-        <img src="{{ url('uploads/receptionists/'.$receptionist->photo) }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Receptionist">
-        @else
-        <img src="{{ url('uploads/no_image.jpg') }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="No Image">
-        @endif
+        <img src="{{ $receptionist->photo_url }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Receptionist">
     </td>
 
     <td>

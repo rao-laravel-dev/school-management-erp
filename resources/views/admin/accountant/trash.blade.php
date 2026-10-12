@@ -43,11 +43,7 @@
                                 <td>{{ $key + 1 }}</td>
                                 <td class="text-center align-middle">
                                     {{-- Accountant photo path update --}}
-                                    @if(!empty($item->photo) && file_exists(public_path('uploads/accountants/'.$item->photo)))
-                                    <img src="{{ url('uploads/accountants/'.$item->photo) }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Photo">
-                                    @else
-                                    <img src="{{ url('uploads/no_image.jpg') }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="No Image">
-                                    @endif
+                                    <img src="{{ $item->photo_url }}" class="rounded shadow-sm p-1 border" width="45" height="45" alt="Photo">
                                 </td>
                                 <td>
                                     <div class="text-primary fw-bold">{{ ucfirst($item->first_name) }} {{ ucfirst($item->last_name) }}</div>

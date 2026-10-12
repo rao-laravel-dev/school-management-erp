@@ -67,6 +67,26 @@ class Accountant extends Model
     }
 
 
+    // Photo URL Accessor (Teacher wala pattern) — storage/uploads/accountant_images, phir public purane folders, warna no_image.jpg
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if ($this->photo) {
+                    foreach (['uploads/accountant_images', 'uploads/accountants'] as $folder) {
+                        if (\Storage::disk('public')->exists($folder . '/' . $this->photo)) {
+                            return asset('storage/' . $folder . '/' . $this->photo);
+                        }
+                        if (file_exists(public_path($folder . '/' . $this->photo))) {
+                            return asset($folder . '/' . $this->photo);
+                        }
+                    }
+                }
+                return asset('uploads/no_image.jpg');
+            }
+        );
+    }
+
     // First Name Accessor
     protected function firstName(): Attribute
     {
