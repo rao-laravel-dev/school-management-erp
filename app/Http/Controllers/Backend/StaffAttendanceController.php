@@ -170,18 +170,27 @@ class StaffAttendanceController extends Controller
                     }
 
                     // Row already exist karti hai — sirf tab update karo jab kuch actually change hua ho
+                    // time_out dono taraf 'H:i' (null aur '' same): kiosk ka H:i:s seconds ke saath bhi unchanged ginay
+                    $oldTime     = $existing->time_out ? $existing->time_out->format('H:i') : null;
+                    $newTime     = $timeOut ? substr($timeOut, 0, 5) : null;
+                    $timeChanged = $oldTime !== $newTime;
+                    // marked_at = asli check-in/marking time: sirf absent/leave (ya null) se present/half_day par jaaye to now(),
+                    // baqi edits (remarks, time_out, present -> half_day) mein purana rahe. Editor = marked_by + updated_at
+                    $setMarkedAt = (in_array($existing->status, ['absent', 'leave'], true) || is_null($existing->marked_at))
+                        && in_array($status, ['present', 'half_day'], true);
+
                     $changed = $existing->status   !== $status
-                        || $existing->time_out !== $timeOut
+                        || $timeChanged
                         || $existing->remarks  !== $remarks;
 
                     if ($changed) {
                         $existing->update([
                             'status'    => $status,
-                            'time_out'  => $timeOut,
+                            'time_out'  => $timeChanged ? $timeOut : $existing->getRawOriginal('time_out'), // unchanged = kiosk seconds intact
+
                             'remarks'   => $remarks,
                             'marked_by' => auth()->id(),
-                            'marked_at' => now(),
-                        ]);
+                        ] + ($setMarkedAt ? ['marked_at' => now()] : []));
                     }
                     // Agar $changed false hai to skip — purana marked_at/marked_by intact rahega
                 }
@@ -242,18 +251,26 @@ class StaffAttendanceController extends Controller
                         continue;
                     }
 
+                    // time_out dono taraf 'H:i' (null aur '' same), same rule jo StoreAttendance mein hai
+                    $oldTime     = $existing->time_out ? $existing->time_out->format('H:i') : null;
+                    $newTime     = $timeOut ? substr($timeOut, 0, 5) : null;
+                    $timeChanged = $oldTime !== $newTime;
+                    // marked_at = asli check-in/marking time: sirf absent/leave (ya null) se present/half_day par jaaye to now(),
+                    // baqi edits (remarks, time_out, present -> half_day) mein purana rahe. Editor = marked_by + updated_at
+                    $setMarkedAt = (in_array($existing->status, ['absent', 'leave'], true) || is_null($existing->marked_at))
+                        && in_array($status, ['present', 'half_day'], true);
+
                     $changed = $existing->status   !== $status
-                        || $existing->time_out !== $timeOut
+                        || $timeChanged
                         || $existing->remarks  !== $remarks;
 
                     if ($changed) {
                         $existing->update([
                             'status'    => $status,
-                            'time_out'  => $timeOut,
+                            'time_out'  => $timeChanged ? $timeOut : $existing->getRawOriginal('time_out'), // unchanged = kiosk seconds intact
                             'remarks'   => $remarks,
                             'marked_by' => auth()->id(),
-                            'marked_at' => now(),
-                        ]);
+                        ] + ($setMarkedAt ? ['marked_at' => now()] : []));
                     }
                 }
             });

@@ -160,7 +160,7 @@
                             <td>
                                 <input type="time" name="time_out[{{ $staff->id }}]"
                                     class="form-control form-control-sm time-out-field"
-                                    value="{{ $att->time_out ?? '' }}">
+                                    value="{{ $att && $att->time_out ? $att->time_out->format('H:i') : '' }}">
                             </td>
                             <td>
                                 <input type="text" name="remarks[{{ $staff->id }}]"
