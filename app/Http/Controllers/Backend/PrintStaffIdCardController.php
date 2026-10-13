@@ -31,14 +31,11 @@ class PrintStaffIdCardController extends Controller
             ->get();
 
         $staff =$staffMembers->map(function ($user) {
-            $photo  = $user->teacher->photo ?? $user->accountant->photo ?? $user->receptionist->photo ?? null;
-            $folder = $user->teacher ? 'teacher_images' : ($user->accountant ? 'accountants' : ($user->receptionist ? 'receptionists' : null));
-
             return [
                 'id'       => $user->id,
                 'staff_id' => $user->staff_code,
                 'name'     => strtoupper($user->name),
-                'photo'    => $user->teacher ? $user->teacher->photo_url : ($photo && $folder ? asset('uploads/' . $folder . '/' . $photo) : asset('images/no-image.png')),
+                'photo'    => $user->photo_url, // User accessor: sab staff roles (teacher/accountant/receptionist/librarian)
             ];
         });
 
