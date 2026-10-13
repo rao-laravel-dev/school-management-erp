@@ -69,15 +69,21 @@ Route::get('/dashboard', function () {
     if ($user->hasRole('receptionist'))
         return redirect()->route('reception.dashboard');
 
-    // Student ke liye thoda behtar logic:
-    if ($user->hasRole('student')) {
-        // Agar woh pehle se dashboard par nahi hai, tabhi redirect karein
-        if (!request()->is('student.dashboard')) {
-            return redirect()->route('student.dashboard');
-        }
-        // Agar pehle se wahan hai, toh kuch na karein (ya yahan se bhi return kar sakte hain)
-        return;
-    }
+    if ($user->hasRole('accountant'))
+        return redirect()->route('accountant.dashboard');
+
+    if ($user->hasRole('librarian'))
+        return redirect()->route('librarian.dashboard');
+
+    if ($user->hasRole('teacher'))
+        return redirect()->route('teacher.dashboard');
+
+    if ($user->hasRole('parent'))
+        return redirect()->route('parent.dashboard');
+
+    // Student: seedha apne dashboard par (pehle bare `return;` null deta tha)
+    if ($user->hasRole('student'))
+        return redirect()->route('student.dashboard');
 
     // Default Fallback (agar koi role match na kare)
     return view('dashboard');
