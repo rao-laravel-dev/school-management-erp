@@ -114,6 +114,7 @@ class User extends Authenticatable
             'teacher'      => $this->teacherWithTrashed?->teacher_id ?? '-',
             'accountant'   => $this->accountantWithTrashed?->accountant_id ?? '-',
             'receptionist' => $this->receptionistWithTrashed?->receptionist_id ?? '-',
+            'librarian'    => $this->librarianWithTrashed?->librarian_id ?? '-',
             default        => '-',
         };
     }
@@ -131,6 +132,7 @@ class User extends Authenticatable
             'teacher'      => $this->teacherWithTrashed,
             'accountant'   => $this->accountantWithTrashed,
             'receptionist' => $this->receptionistWithTrashed,
+            'librarian'    => $this->librarianWithTrashed,
             default        => null,
         };
 
@@ -153,7 +155,7 @@ class User extends Authenticatable
 
         // Accountant/Receptionist ki photo apni table mein, baqi roles (librarian/admin/...) ki users.photo mein
         $photo = $this->photo;
-        if (in_array($role, ['accountant', 'receptionist'], true) && $this->$role && $this->$role->photo) {
+        if (in_array($role, ['accountant', 'receptionist', 'librarian'], true) && $this->$role && $this->$role->photo) {
             $photo = $this->$role->photo;
         }
 
@@ -220,6 +222,11 @@ class User extends Authenticatable
         return $this->hasOne(Accountant::class, 'user_id', 'id');
     }
 
+    public function librarian()
+    {
+        return $this->hasOne(Librarian::class, 'user_id', 'id');
+    }
+
     // WithTrashed versions: staff_code / isStaffTrashed() soft-deleted profile ke liye (active lists ke relations unchanged)
     public function teacherWithTrashed()
     {
@@ -234,6 +241,11 @@ class User extends Authenticatable
     public function accountantWithTrashed()
     {
         return $this->hasOne(Accountant::class, 'user_id', 'id')->withTrashed();
+    }
+
+    public function librarianWithTrashed()
+    {
+        return $this->hasOne(Librarian::class, 'user_id', 'id')->withTrashed();
     }
 
     public function timetables()

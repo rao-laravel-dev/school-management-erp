@@ -45,6 +45,22 @@
         </li>
         @endif
 
+        {{-- Librarian Management (admin CRUD) --}}
+        @can('access-librarian')
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-book-reader'></i></div>
+                <div class="menu-title">Librarian Management</div>
+            </a>
+            <ul>
+                <li><a href="{{ route('librarians.index') }}"><i class='bx bx-radio-circle'></i>All Librarians</a></li>
+                @can('manage-librarian')
+                <li><a href="{{ route('librarians.create') }}"><i class='bx bx-radio-circle'></i>Add Librarian</a></li>
+                @endcan
+            </ul>
+        </li>
+        @endcan
+
         {{-- Student Information Section --}}
         @if(auth()->user()->can('access-students') || auth()->user()->can('access-student-categories') || auth()->user()->can('access-student-houses') || auth()->user()->can('access-student-import'))
         <li>

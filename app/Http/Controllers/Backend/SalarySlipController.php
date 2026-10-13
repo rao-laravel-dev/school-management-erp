@@ -27,7 +27,7 @@ class SalarySlipController extends Controller
         $role = $request->input('role');
         $status = $request->input('status');
  
-        $slips = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed'])
+        $slips = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'user.librarianWithTrashed'])
             ->where('month', $month)
             ->when($role, function ($q) use ($role) {
                 $q->whereHas('user.roles', fn($r) => $r->where('name', $role));
@@ -128,7 +128,7 @@ class SalarySlipController extends Controller
      */
     public function show($id)
     {
-        $slip = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'generatedBy', 'paidBy', 'transaction.bankAccount'])
+        $slip = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'user.librarianWithTrashed', 'generatedBy', 'paidBy', 'transaction.bankAccount'])
             ->findOrFail($id);
  
         return view('admin.salary_slips.show', compact('slip'));
@@ -245,7 +245,7 @@ class SalarySlipController extends Controller
     // My Salary Slip detail / print (owner check: kisi aur ki slip par 403)
     public function myShow($id)
     {
-        $slip = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'paidBy', 'transaction'])->findOrFail($id);
+        $slip = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'user.librarianWithTrashed', 'paidBy', 'transaction'])->findOrFail($id);
 
         abort_if((int) $slip->user_id !== (int) auth()->id(), 403);
 

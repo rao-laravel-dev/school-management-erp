@@ -14,7 +14,8 @@ class EnsureUserIsActive
     {
         $user = $request->user();
 
-        if (! $user || ! $user->isLoginBlocked()) {
+        // isStaffTrashed: soft-deleted staff profile wale user ka live session bhi band
+        if (! $user || (! $user->isLoginBlocked() && ! $user->isStaffTrashed())) {
             return $next($request);
         }
 

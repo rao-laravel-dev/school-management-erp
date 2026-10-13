@@ -22,14 +22,14 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex flex-column align-items-center text-center">
-                                    <img src="{{ $profileData->photo_url }}" alt="Librarian Profile Image" class="rounded-circle p-1 bg-primary" width="110">
+                                    <img src="{{ $librarian->photo_url }}" alt="Librarian Profile Image" class="rounded-circle p-1 bg-primary" width="110">
                                 
                                     <div class="mt-3">
 
-                                        <h4>{{ $profileData->name }}</h4>
-                                        <p class="text-secondary mb-1">{{ $profileData->username }}</p>
-                                       
-                                        <p class="text-secondary mb-1">Since {{ $profileData->created_at }}</p>
+                                        <h4>{{ $librarian->name }}</h4>
+                                        <p class="text-secondary mb-1">{{ $librarian->librarian_id }}</p>
+
+                                        <p class="text-secondary mb-1">Joined {{ $librarian->joining_date ? $librarian->joining_date->format('d-m-Y') : '-' }}</p>
                                     </div>
                                 </div>
                                 <hr class="my-4" />
@@ -47,8 +47,7 @@
                                         <h6 class="mb-0">Full Name</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" name="profileName" class="form-control" value="{{ old('profileName', $profileData->name) }}"  />
-                                        <span class="text-danger small">@error('profileName'){{ $message }}@enderror</span>
+                                        <input type="text" class="form-control" value="{{ $librarian->name }}" readonly />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -61,11 +60,19 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
+                                        <h6 class="mb-0">CNIC</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" value="{{ $librarian->cnic }}" readonly />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
                                         <h6 class="mb-0">Phone</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" class="form-control" name="profilePhone" value="{{ old('profilePhone', $profileData->phone) }}" />
-                                        <span class="text-danger small">@error('profilePhone'){{ $message }}@enderror</span>
+                                        <input type="text" class="form-control" name="phone" value="{{ old('phone', $librarian->phone) }}" />
+                                        <span class="text-danger small">@error('phone'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
                                  <div class="row mb-3">
@@ -74,8 +81,8 @@
                                 </div>
                                 <div class="col-sm-9 text-secondary">
                                     <select name="gender" id="gender" class="form-control">
-                                        <option value="male" {{ old('gender', $profileData->gender) == 'male' ? 'selected' : '' }}>Male</option>
-                                        <option value="female" {{ old('gender', $profileData->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="male" {{ old('gender', $librarian->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender', $librarian->gender) == 'female' ? 'selected' : '' }}>Female</option>
                                     </select>
                                     <span class="text-danger small">@error('gender'){{ $message }}@enderror</span>
                                 </div>
@@ -86,7 +93,7 @@
                                         <h6 class="mb-0">Address</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" class="form-control" name="address" value="{{ old('address', $profileData->address) }}" />
+                                        <input type="text" class="form-control" name="address" value="{{ old('address', $librarian->address) }}" />
                                         <span class="text-danger small">@error('address'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
@@ -104,7 +111,7 @@
                                         <h6 class="mb-0"></h6>
                                     </div>
     <div class="col-sm-9 text-secondary">
-    <img id="showImage" src="{{ $profileData->photo_url }}" alt="Accountant Profile Image" class="rounded-circle p-1 bg-primary" width="80">
+    <img id="showImage" src="{{ $librarian->photo_url }}" alt="Librarian Profile Image" class="rounded-circle p-1 bg-primary" width="80">
     </div>
                                 </div>
                                 <div class="row">
@@ -116,7 +123,32 @@
                             </div>
                         </div>
                     </form>
-                       
+
+                        <!-- Bank details (read-only) -->
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h6 class="mb-3">Bank Details</h6>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><h6 class="mb-0">Bank Name</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" value="{{ $librarian->bankDetail ? $librarian->bankDetail->bank_name : '' }}" readonly />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><h6 class="mb-0">Account Title</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" value="{{ $librarian->bankDetail ? $librarian->bankDetail->account_title : '' }}" readonly />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3"><h6 class="mb-0">Account No</h6></div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" value="{{ $librarian->bankDetail ? $librarian->bankDetail->account_number : '' }}" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

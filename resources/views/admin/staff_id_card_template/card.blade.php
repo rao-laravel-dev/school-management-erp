@@ -182,7 +182,7 @@
 
     @foreach($staffMembers as $staff)
     @php
-        $detail = $staff->teacher ?? $staff->accountant ?? $staff->receptionist;
+        $detail = $staff->teacher ?? $staff->accountant ?? $staff->receptionist ?? $staff->librarian;
         $folder = $staff->teacher ? 'teacher_images' : ($staff->accountant ? 'accountants' : ($staff->receptionist ? 'receptionists' : null));
         $photoUrl = $staff->teacher ? $staff->teacher->photo_url : (($detail && $detail->photo && $folder) ? asset('uploads/' . $folder . '/' . $detail->photo) : asset('images/no-image.png'));
         $staffCode = $staff->staff_code; // User accessor: teacher/accountant/receptionist ka apna ID

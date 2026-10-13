@@ -20,7 +20,7 @@ class StaffLeaveApplicationController extends Controller
         $staffs = User::whereDoesntHave('roles', function ($query) {
             $query->whereIn('name', ['superadmin', 'admin', 'parent', 'student', 'user']);
         })->where('status', 1)
-            ->with(['roles', 'teacher', 'accountant', 'receptionist', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed'])
+            ->with(['roles', 'teacher', 'accountant', 'receptionist', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'librarianWithTrashed'])
             ->get();
 
         return $staffs; // Ab sirf staff return ho raha hai

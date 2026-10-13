@@ -109,7 +109,7 @@ class LibraryMemberController extends Controller
     private const STAFF_MODEL_MAP = [
         'receptionist' => \App\Models\Receptionist::class,
         'accountant'   => \App\Models\Accountant::class,
-        //'librarian'    => \App\Models\Librarian::class,
+        'librarian'    => \App\Models\Librarian::class,
         'teacher'      => \App\Models\Teacher::class,
     ];
 

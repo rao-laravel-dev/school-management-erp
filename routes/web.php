@@ -9,6 +9,7 @@ use App\Http\Controllers\Backend\AttendanceController;
 use App\Http\Controllers\Backend\ClassController;
 use App\Http\Controllers\Backend\EventTypeController;
 use App\Http\Controllers\Backend\GroupController;
+use App\Http\Controllers\Backend\LibrarianController;
 use App\Http\Controllers\Backend\LibrariansController;
 use App\Http\Controllers\Backend\ParentsController;
 use App\Http\Controllers\Backend\PrintReportCardController;
@@ -284,6 +285,31 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/trash', 'AccountantTrash')->name('trash');
             Route::get('/restore/{id}', 'AccountantRestore')->name('restore');
             Route::get('/force-delete/{id}', 'AccountantForceDelete')->name('force-delete');
+        });
+    });
+
+
+    // ==========================================
+    // LIBRARIAN CRUD ROUTE PIPELINE (admin side; portal routes 'librarian.' upar hain) // NEW 13-10-26
+    // ==========================================
+    Route::controller(LibrarianController::class)->prefix('librarians')->name('librarians.')->group(function () {
+
+        Route::middleware(['can:access-librarian'])->group(function () {
+            Route::get('/', 'AllLibrarian')->name('index'); // NEW 13-10-26
+            Route::get('/get-details/{id}', 'getDetails')->name('get-details'); // NEW 13-10-26
+        });
+
+        Route::middleware(['can:manage-librarian'])->group(function () {
+            Route::get('/create', 'AddLibrarian')->name('create'); // NEW 13-10-26
+            Route::get('/get-librarian-id', 'getGeneratedId')->name('get-librarian-id'); // NEW 13-10-26
+            Route::post('/store', 'StoreLibrarian')->name('store'); // NEW 13-10-26
+            Route::get('/edit/{id}', 'EditLibrarian')->name('edit'); // NEW 13-10-26
+            Route::put('/update/{id}', 'UpdateLibrarian')->name('update'); // NEW 13-10-26
+            Route::post('/status/{id}', 'LibrarianStatus')->name('status'); // NEW 13-10-26
+            Route::get('/trash', 'LibrarianTrash')->name('trash'); // NEW 13-10-26
+            Route::post('/restore/{id}', 'LibrarianRestore')->name('restore'); // NEW 13-10-26
+            Route::delete('/delete/{id}', 'LibrarianDestroy')->name('delete'); // NEW 13-10-26 (DELETE, GET nahi)
+            Route::delete('/force-delete/{id}', 'LibrarianForceDelete')->name('force-delete'); // NEW 13-10-26 (DELETE, GET nahi)
         });
     });
 

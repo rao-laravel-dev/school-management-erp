@@ -28,7 +28,7 @@ class StaffAttendanceController extends Controller
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 
-        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'markedBy'])
+        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'staff.librarianWithTrashed', 'markedBy'])
             ->where('date', $date);
 
         if ($roleFilter) {
@@ -296,7 +296,7 @@ class StaffAttendanceController extends Controller
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 
-        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'markedBy'])
+        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'staff.librarianWithTrashed', 'markedBy'])
             ->whereBetween('date', [$fromDate, $toDate]);
 
         if ($roleFilter) {

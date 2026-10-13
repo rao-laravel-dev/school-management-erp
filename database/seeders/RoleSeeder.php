@@ -92,6 +92,8 @@ class RoleSeeder extends Seeder
             'manage-receptionist',
             'access-accountant',
             'manage-accountant',
+            'access-librarian',             // web.php librarians.* (admin CRUD)
+            'manage-librarian',             // web.php librarians.* (admin CRUD)
             'access-leave-setting',
             'manage-leave-setting',
             'access-leave-application',

@@ -53,7 +53,8 @@ class LoginRequest extends FormRequest
         RateLimiter::clear($this->throttleKey());
 
         // Inactive (0) / pending (2) user ko login na karne do (superadmin exempt)
-        if (Auth::user()->isLoginBlocked()) {
+        // Trashed staff (users row ya profile soft-deleted) bhi login na kare
+        if (Auth::user()->isLoginBlocked() || Auth::user()->isStaffTrashed()) {
             Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([

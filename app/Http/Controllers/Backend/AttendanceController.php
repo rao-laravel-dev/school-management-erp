@@ -469,12 +469,12 @@ class AttendanceController extends Controller
 
         // STEP 2: Staff ka Employee ID (jaisa TEACH001 / KHAWAR004) — manual type ke liye, saare staff roles
         // users.username = staff ID hota hai (unique). Sirf active user (status 1), non-trashed profile wala staff
-        // (profile na ho ya trashed ho to whereHas fail = seeder/trashed users scan nahi honge)
+        // (profile na ho ya trashed ho to whereHas fail = seeder/trashed users scan nahi honge; librarian profile abhi nahi, T123)
         $staffUser = User::role(['teacher', 'receptionist', 'accountant', 'librarian'])
             ->where('username', $code)
             ->where('status', 1)
             ->where(function ($q) {
-                $q->whereHas('teacher')->orWhereHas('receptionist')->orWhereHas('accountant');
+                $q->whereHas('teacher')->orWhereHas('receptionist')->orWhereHas('accountant')->orWhereHas('librarian');
             })
             ->with('roles')
             ->first();
@@ -630,8 +630,8 @@ class AttendanceController extends Controller
     protected function handleStaffScan(User $staffUser, $deviceId)
     {
         // Joining date teacher/receptionist/accountant profile se (kiosk public screen hai, isliye phone nahi dikhate)
-        $staffUser->loadMissing(['teacher', 'receptionist', 'accountant']);
-        $profile     = $staffUser->teacher ?: ($staffUser->receptionist ?: $staffUser->accountant);
+        $staffUser->loadMissing(['teacher', 'receptionist', 'accountant', 'librarian']);
+        $profile     = $staffUser->teacher ?: ($staffUser->receptionist ?: ($staffUser->accountant ?: $staffUser->librarian));
         $joiningDate = ($profile && $profile->joining_date) ? Carbon::parse($profile->joining_date)->format('d-m-Y') : null;
 
         $staffInfo = [
