@@ -467,10 +467,19 @@ class AttendanceController extends Controller
             }
         }
 
-        // STEP 2: Staff ka Employee/Teacher ID (jaisa TEACH001) — manual type ke liye
-        $teacher = Teacher::where('teacher_id', $code)->first();
-        if ($teacher && $teacher->user) {
-            return $this->handleStaffScan($teacher->user, $request->device_id);
+        // STEP 2: Staff ka Employee ID (jaisa TEACH001 / KHAWAR004) — manual type ke liye, saare staff roles
+        // users.username = staff ID hota hai (unique). Sirf active user (status 1), non-trashed profile wala staff
+        // (profile na ho ya trashed ho to whereHas fail = seeder/trashed users scan nahi honge)
+        $staffUser = User::role(['teacher', 'receptionist', 'accountant', 'librarian'])
+            ->where('username', $code)
+            ->where('status', 1)
+            ->where(function ($q) {
+                $q->whereHas('teacher')->orWhereHas('receptionist')->orWhereHas('accountant');
+            })
+            ->with('roles')
+            ->first();
+        if ($staffUser) {
+            return $this->handleStaffScan($staffUser, $request->device_id);
         }
 
         // STEP 3: Roll No (current session)
@@ -577,8 +586,9 @@ class AttendanceController extends Controller
                 'status'    => 'success',
                 'scan_type' => 'checkin',
                 'message'   => $status === Attendance::STATUS_LATE
-                    ? "Welcome, {$student->first_name}! (Marked Late)"
+                    ? "Welcome, {$student->first_name}! (Late)"
                     : "Welcome, {$student->first_name}!",
+                'is_late'   => $status === Attendance::STATUS_LATE,
                 'student'   => $studentInfo,
             ];
             $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
@@ -619,12 +629,18 @@ class AttendanceController extends Controller
     // ==========================================
     protected function handleStaffScan(User $staffUser, $deviceId)
     {
+        // Joining date teacher/receptionist/accountant profile se (kiosk public screen hai, isliye phone nahi dikhate)
+        $staffUser->loadMissing(['teacher', 'receptionist', 'accountant']);
+        $profile     = $staffUser->teacher ?: ($staffUser->receptionist ?: $staffUser->accountant);
+        $joiningDate = ($profile && $profile->joining_date) ? Carbon::parse($profile->joining_date)->format('d-m-Y') : null;
+
         $staffInfo = [
             'type'     => 'staff', // kiosk JS isi se staff card render karta hai
             'name'     => $staffUser->name,
             'role'     => ucfirst((string) optional($staffUser->roles->first())->name),
             'staff_id' => $staffUser->staff_code, // e.g. NAWAL004
             'photo'    => $staffUser->photo_url, // Teachers list wala same source (User::photo_url)
+            'joining_date' => $joiningDate,
             'date'  => now()->format('d-m-Y'),
             'time'  => now()->format('h:i A'),
         ];
@@ -636,25 +652,26 @@ class AttendanceController extends Controller
 
         if (!$existing) {
             $now = now();
-            $status = $this->isLate($now) ? 'late' : 'present';
+            $isLate = $this->isLate($now);
+            // Late tracking baad mein: staff_attendances.status enum mein 'late' nahi (strict mode mein insert fail),
+            // isliye abhi Present save hota hai. marked_via/device_id/scanned_at columns table mein nahi hain.
+            $status = 'present';
 
             StaffAttendance::create([
                 'user_id'    => $staffUser->id,
                 'date'       => $today,
                 'status'     => $status,
-                'marked_via' => 'device',
                 'marked_by'  => auth()->id(),
-                'device_id'  => $deviceId,
-                'scanned_at' => $now,
                 'marked_at'  => $now,
             ]);
 
             $data = [
                 'status'    => 'success',
                 'scan_type' => 'checkin',
-                'message'   => $status === 'late'
-                    ? "Welcome, {$staffUser->name}! (Marked Late)"
+                'message'   => $isLate
+                    ? "Welcome, {$staffUser->name}! (Late)"
                     : "Welcome, {$staffUser->name}!",
+                'is_late'   => $isLate,
                 'student'   => $staffInfo, // frontend key wahi rakha, taake existing UI bina change ke chale
             ];
             $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();

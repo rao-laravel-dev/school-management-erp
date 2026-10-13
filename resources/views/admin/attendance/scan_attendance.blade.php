@@ -308,6 +308,16 @@
         color: #16a34a;
     }
 
+    .kiosk-status-box.status-warning {
+        border-color: #d97706;
+        color: #d97706;
+    }
+
+    /* late toastr = box wali same orange; style sirf is page par load hoti hai, baqi pages ka toastr unchanged */
+    #toast-container > .toast-warning {
+        background-color: #d97706 !important;
+    }
+
     .kiosk-status-box.status-danger {
         border-color: #ef4444;
         color: #dc2626;
@@ -471,7 +481,7 @@
             $.get("{{ route('attendance.scan.latest') }}", function(res) {
                 if (res && res.scan_id && res.scan_id !== lastScanId) {
                     lastScanId = res.scan_id;
-                    renderKioskPanel(res.student, res.status, res.message, res.scan_type);
+                    renderKioskPanel(res.student, res.status, res.message, res.scan_type, res.is_late);
                 }
             });
         }
@@ -506,13 +516,16 @@
                     _token: "{{ csrf_token() }}"
                 },
                 success: function(res) {
-                    renderKioskPanel(res.student, res.status, res.message, res.scan_type);
-                    toastr[res.status === 'error' ? 'error' : 'success'](res.message);
+                    renderKioskPanel(res.student, res.status, res.message, res.scan_type, res.is_late);
+                    toastr[res.status === 'error' ? 'error' : (res.is_late ? 'warning' : 'success')](res.message);
                 },
                 error: function(xhr) {
                     let msg = xhr.responseJSON && xhr.responseJSON.message ?
                         xhr.responseJSON.message :
                         "Scan failed. Please try again.";
+                    // Invalid code / enrollment not found: purana card hata do, sirf error status dikhao
+                    resetKioskPanel();
+                    $('#kiosk-status-box').attr('class', 'kiosk-status-box status-danger').text(msg);
                     toastr.error(msg);
                 }
             });
@@ -520,15 +533,28 @@
         };
 
         /* ---------- update the static panel in place (student OR staff) ---------- */
-        function renderKioskPanel(person, status, message, scanType) {
+        /* pichle banday ka card saaf karo (stale result na dikhe) */
+        function resetKioskPanel() {
+            $('#kiosk-photo').off('error').attr('src', "{{ asset('uploads/no_image.jpg') }}");
+            $('#kiosk-id-name').text('-- | Waiting for scan...');
+            $('#kiosk-label-1').text('Father Name');
+            $('#kiosk-label-2').text('Class / Section');
+            $('#kiosk-label-3').text('Group');
+            $('#kiosk-label-4').text('Admission / Joining Date');
+            $('#kiosk-value-1, #kiosk-value-2, #kiosk-value-3, #kiosk-value-4, #kiosk-value-datetime').text('-');
+            $('#kiosk-value-3, #kiosk-value-4').closest('tr').show();
+        }
+
+        function renderKioskPanel(person, status, message, scanType, isLate) {
             if (!person) {
+                resetKioskPanel();
                 $('#kiosk-id-name').text('-- | Not Found');
                 $('#kiosk-status-box').attr('class', 'kiosk-status-box status-danger').text(message || 'Not Found');
                 return;
             }
 
-            // welcome (checkin) = green success, everything else (checkout / already marked / error) = red danger
-            let statusClass = (scanType === 'checkin') ? 'status-success' : 'status-danger';
+            // welcome (checkin) = green success, late checkin = yellow/orange warning, everything else (checkout / already marked / error) = red danger
+            let statusClass = (scanType === 'checkin') ? (isLate ? 'status-warning' : 'status-success') : 'status-danger';
             let bigMsg = message || 'WELCOME';
 
             let idValue;
@@ -539,11 +565,15 @@
                 $('#kiosk-value-1').text(person.role || '-');
                 $('#kiosk-label-2').text('Staff ID');
                 $('#kiosk-value-2').text(person.staff_id || '-');
-                $('#kiosk-label-3').text('');
-                $('#kiosk-value-3').text('');
-                $('#kiosk-label-4').text('');
-                $('#kiosk-value-4').text('');
+                // row 3 = Joining Date (value na ho to row hide), row 4 = Status (scan type + is_late se)
+                $('#kiosk-label-3').text('Joining Date');
+                $('#kiosk-value-3').text(person.joining_date || '');
+                $('#kiosk-value-3').closest('tr').toggle(!!person.joining_date);
+                $('#kiosk-label-4').text('Status');
+                $('#kiosk-value-4').text(scanType === 'checkin' ? (isLate ? 'Late' : 'On time') : 'Check-out');
+                $('#kiosk-value-4').closest('tr').show();
             } else {
+                $('#kiosk-value-3, #kiosk-value-4').closest('tr').show(); // staff card ne hide kiya ho to wapas
                 idValue = person.roll_no || person.admission_no;
                 $('#kiosk-label-1').text('Father Name');
                 $('#kiosk-value-1').text(person.father_name || '-');
