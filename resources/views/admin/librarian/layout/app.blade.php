@@ -56,8 +56,8 @@
 <body>
 <div class="wrapper">
 
-	@include('librarian.body.sidebar')
-	@include('librarian.body.header')
+	@include('admin.librarian.body.sidebar')
+	@include('admin.librarian.body.header')
 
 	<!-- Page Wrapper -->
 	<div class="page-wrapper">
@@ -72,7 +72,7 @@
 	<!-- Back To Top -->
 	<a href="javascript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
 
-	@include('librarian.body.footer')
+	@include('admin.librarian.body.footer')
 
 </div>
 

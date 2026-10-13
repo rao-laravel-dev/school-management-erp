@@ -1,4 +1,4 @@
-@extends('librarian.layout.app')
+@extends('admin.librarian.layout.app')
 @section('content')
  <!--breadcrumb--> 
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">

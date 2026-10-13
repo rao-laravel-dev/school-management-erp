@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
                     'admin'        => 'admin.layout.app',
                     'accountant'   => 'accountant.layout.app',
                     'receptionist' => 'reception.layout.app',
-                    'librarian'    => 'librarian.layout.app',
+                    'librarian'    => 'admin.librarian.layout.app',
                     'teacher'      => 'teacher.layout.app',
                     'parent'       => 'parent.layout.app',
                     'student'      => 'student.layout.app',

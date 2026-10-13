@@ -1,4 +1,4 @@
-@extends('librarian.layout.app')
+@extends('admin.librarian.layout.app')
 @section('content')
 
 <!-- Page Title -->

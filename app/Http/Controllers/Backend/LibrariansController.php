@@ -16,7 +16,7 @@ public function LibrarianManage()
 {
     $role = auth()->user()->getRoleNames()->first(); // safe
 
-    return view('librarian.dashboard');
+    return view('admin.librarian.dashboard');
 }
 // End Method
 
@@ -41,7 +41,7 @@ public function LibrarianLogin()
         return redirect()->route('librarian.dashboard');
     }
 
-    return view('librarian.librarian_login');
+    return view('admin.librarian.librarian_login');
 }
 // End Method
 
@@ -53,7 +53,7 @@ public function LibrarianProfile()
 
     $profileData = User::find($id);
 
-    return view('librarian.librarian_profile', compact('profileData'));
+    return view('admin.librarian.librarian_profile', compact('profileData'));
 }
 // End Method
 
