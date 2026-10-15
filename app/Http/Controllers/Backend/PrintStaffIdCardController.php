@@ -25,6 +25,11 @@ class PrintStaffIdCardController extends Controller
 
     public function getStaffByRole($role)
     {
+        // superadmin/admin/parent/student/user ke ID card nahi bante
+        if (in_array($role, $this->excludedRoles, true)) {
+            return response()->json([]);
+        }
+
         $staffMembers = User::role($role)
             ->where('status', 1)
             ->with(['teacher', 'accountant', 'receptionist', 'librarian', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'librarianWithTrashed', 'roles']) // roles: staff_code accessor N+1 se bachne ke liye
@@ -53,6 +58,7 @@ class PrintStaffIdCardController extends Controller
         $template = StaffIdCardTemplate::findOrFail($request->template_id);
 
         $staffMembers = User::whereIn('id', $request->staff_ids)
+            ->withoutSuperadmin()
             ->with(['teacher', 'accountant', 'receptionist', 'librarian', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'librarianWithTrashed', 'roles'])
             ->get();
 

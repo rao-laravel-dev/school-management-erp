@@ -89,13 +89,8 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-// 🔥 COMMON PROFILE (ALL ROLES)
-Route::middleware('auth')->group(function () {
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Breeze /profile routes removed (T154): har role apna account delete kar sakta tha.
+// Profile edit + password ab har role ke apne portal page par hai.
 
 // SUPER-ADMIN-ROUTES
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {

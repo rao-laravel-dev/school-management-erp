@@ -35,7 +35,7 @@ public function create() {
     try {
         // Validation
         $validator = Validator::make($request->all(), [
-            'role_id'    => 'required|exists:roles,id',
+            'role_id'    => ['required', \Illuminate\Validation\Rule::exists('roles', 'id')->whereNotIn('name', ['superadmin', 'admin', 'parent', 'student', 'user'])],
             'leave_type' => 'required|string',
             'total_days' => 'required|integer',
         ]);

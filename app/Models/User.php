@@ -119,9 +119,55 @@ class User extends Authenticatable
         };
     }
 
+    // Superadmin = hidden system owner (Gate::before, login never blocked)
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('superadmin');
+    }
+
+    // Lists/counts/dropdowns se superadmin hide karne ke liye
+    public function scopeWithoutSuperadmin($query)
+    {
+        return $query->whereDoesntHave('roles', function ($q) {
+            $q->where('name', 'superadmin');
+        });
+    }
+
+    // Superadmin guard: koi aur usay edit/block/delete nahi kar sakta, aur wo khud ko lockout nahi kar sakta.
+    // Console/tinker (no logged-in user) allowed rakha hai taake DB recovery ho sake.
+    protected static function booted(): void
+    {
+        static::updating(function (User $user) {
+            if (! $user->isSuperAdmin() || ! auth()->check()) {
+                return;
+            }
+
+            // Doosre user ka superadmin par koi bhi change band
+            if ((int) auth()->id() !== (int) $user->id) {
+                abort(403, 'Super Admin cannot be modified.');
+            }
+
+            // Khud ko inactive/pending karna band (lockout protection)
+            if ($user->isDirty('status') && (int) $user->status !== 1) {
+                abort(403, 'Super Admin cannot be deactivated.');
+            }
+        });
+
+        static::deleting(function (User $user) {
+            if ($user->isSuperAdmin() && auth()->check()) {
+                abort(403, 'Super Admin cannot be deleted.');
+            }
+        });
+    }
+
     // Trashed badge: users row trashed ya staff profile (teacher/accountant/receptionist) soft-deleted
     public function isStaffTrashed(): bool
     {
+        // Superadmin kabhi trashed/blocked nahi ginna
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+
         if ($this->trashed()) {
             return true;
         }

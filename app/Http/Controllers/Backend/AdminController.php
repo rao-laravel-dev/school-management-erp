@@ -19,7 +19,7 @@ class AdminController extends Controller
     $targetRoles = ['admin', 'teacher', 'staff', 'parent', 'student', 'receptionist', 'accountant', 'librarian'];
     $activeUsersCount = User::whereHas('roles', function($query) use ($targetRoles) {
     $query->whereIn('name', $targetRoles);
-})->count();
+})->where('status', 1)->withoutSuperadmin()->count();
 
     // 2. Teacher Attendance (Static as requested)
     $totalTeachers = 10;

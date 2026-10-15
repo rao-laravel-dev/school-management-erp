@@ -25,6 +25,10 @@ class StaffAttendanceController extends Controller
     {
         $date = $request->query('date', now()->toDateString());
         $roleFilter = $request->query('role');
+        // URL se aaya excluded role (superadmin etc.) ignore
+        if (in_array($roleFilter, $this->excludedRoles, true)) {
+            $roleFilter = null;
+        }
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 
@@ -57,6 +61,10 @@ class StaffAttendanceController extends Controller
     {
         $date = $request->query('date', now()->toDateString());
         $roleFilter = $request->query('role');
+        // URL se aaya excluded role (superadmin etc.) ignore
+        if (in_array($roleFilter, $this->excludedRoles, true)) {
+            $roleFilter = null;
+        }
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 
@@ -145,8 +153,15 @@ class StaffAttendanceController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request) {
+            // Superadmin ki attendance kabhi save nahi hoti (posted id par bharosa nahi)
+            $superadminIds = User::role('superadmin')->pluck('id')->all();
+
+            DB::transaction(function () use ($request, $superadminIds) {
                 foreach ($request->attendance as $userId => $status) {
+
+                    if (in_array((int) $userId, $superadminIds, true)) {
+                        continue;
+                    }
 
                     $timeOut = $request->time_out[$userId] ?? null;
                     $remarks = $request->remarks[$userId] ?? null;
@@ -228,8 +243,15 @@ class StaffAttendanceController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request) {
+            // Superadmin ki attendance kabhi save nahi hoti (posted id par bharosa nahi)
+            $superadminIds = User::role('superadmin')->pluck('id')->all();
+
+            DB::transaction(function () use ($request, $superadminIds) {
                 foreach ($request->attendance as $userId => $status) {
+
+                    if (in_array((int) $userId, $superadminIds, true)) {
+                        continue;
+                    }
 
                     $timeOut = $request->time_out[$userId] ?? null;
                     $remarks = $request->remarks[$userId] ?? null;
@@ -293,6 +315,10 @@ class StaffAttendanceController extends Controller
         $fromDate   = $request->query('from_date', now()->startOfMonth()->toDateString());
         $toDate     = $request->query('to_date', now()->toDateString());
         $roleFilter = $request->query('role');
+        // URL se aaya excluded role (superadmin etc.) ignore
+        if (in_array($roleFilter, $this->excludedRoles, true)) {
+            $roleFilter = null;
+        }
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 

@@ -652,7 +652,7 @@
 
 					<div class="user-info">
 						<p class="user-name mb-0">{{ Auth::user()->name }}</p>
-						<p class="designattion mb-0">Admin</p>
+						<p class="designattion mb-0">{{ Auth::user()->isSuperAdmin() ? 'Super Admin' : 'Admin' }}</p>
 					</div>
 				</a>
 				<ul class="dropdown-menu dropdown-menu-end">
