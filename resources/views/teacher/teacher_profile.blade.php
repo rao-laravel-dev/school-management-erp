@@ -86,31 +86,6 @@
                                 </div>
                             </div>
 
-                            {{-- Change Password (optional) --}}
-                            <hr>
-                            <h6 class="text-primary mb-2">Change Password</h6>
-                            <small class="text-muted d-block mb-3">Khali chhor dein agar password change nahi karna.</small>
-
-                            <div class="row mb-3">
-                                <div class="col-sm-3"><h6 class="mb-0">Current Password</h6></div>
-                                <div class="col-sm-9 text-secondary">
-                                    <input type="password" name="current_password" class="form-control form-control-sm @error('current_password') is-invalid @enderror">
-                                    @error('current_password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-sm-3"><h6 class="mb-0">New Password</h6></div>
-                                <div class="col-sm-9 text-secondary">
-                                    <input type="password" name="new_password" class="form-control form-control-sm">
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-sm-3"><h6 class="mb-0">Confirm New Password</h6></div>
-                                <div class="col-sm-9 text-secondary">
-                                    <input type="password" name="new_password_confirmation" class="form-control form-control-sm">
-                                </div>
-                            </div>
-
                             <div class="row">
                                 <div class="col-sm-3"></div>
                                 <div class="col-sm-9 text-secondary">

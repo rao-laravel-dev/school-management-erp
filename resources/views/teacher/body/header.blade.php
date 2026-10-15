@@ -663,7 +663,7 @@
     </a>
     <ul class="dropdown-menu dropdown-menu-end">
         <li><a class="dropdown-item d-flex align-items-center" href="{{ route('teacher.profile') }}"><i class="bx bx-user fs-5"></i><span>Profile</span></a></li>
-        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('teacher.profile') }}"><i class="bx bx-cog fs-5"></i><span>Change Password</span></a></li>
+        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('teacher.change.password') }}"><i class="bx bx-cog fs-5"></i><span>Change Password</span></a></li>
         <li><a class="dropdown-item d-flex align-items-center" href="{{ route('teacher.dashboard') }}"><i class="bx bx-home-circle fs-5"></i><span>Dashboard</span></a></li>
         <li>
             <div class="dropdown-divider mb-0"></div>

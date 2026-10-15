@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\ClassSubject;
 use App\Models\ClassTimetable;
 use App\Models\ExamSchedule;
 use App\Models\Lesson;
 use App\Models\SalarySlip;
 use App\Services\ImageService;
+use App\Services\StaffSelfProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class TeacherProfileController extends Controller
 {
@@ -69,19 +70,34 @@ class TeacherProfileController extends Controller
                 'photo' => $imageService->upload($request->file('photo'), 'teacher_images', 300, 300),
             ]);
         }
-        if ($request->filled('new_password')) {
-            $request->validate([
-                'current_password' => 'required|string',
-                'new_password'     => 'required|string|min:8|confirmed',
-            ]);
-            if (!Hash::check($request->current_password, $user->password)) {
-                return redirect()->back()->withErrors([
-                    'current_password' => 'Current password is incorrect.',
-                ])->withInput()->with('toastr-error', 'Current password is incorrect.');
-            }
-            $user->update(['password' => Hash::make($request->new_password)]);
-        }
         return redirect()->back()->with('toastr-success', 'Teacher Profile Updated Successfully');
+    }
+    // End Method
+
+    // Change Password Page
+    public function TeacherChangePassword()
+    {
+        return view('staff_profile.change_password', [
+            'updateRoute' => route('teacher.password.update'),
+        ]);
+    }
+    // End Method
+
+    // Password Update
+    public function TeacherPasswordUpdate(StaffPasswordUpdateRequest $request, StaffSelfProfileService $service)
+    {
+        $service->updatePassword(Auth::user(), $request->validated()['password']);
+
+        // Password change ke baad logout (TeacherLogout jaisa) aur login page par redirect
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/teacher/login')->with([
+            'message' => 'Password changed successfully. Please login with your new password.',
+            'alert-type' => 'success'
+        ]);
     }
     // End Method
 

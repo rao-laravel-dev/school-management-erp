@@ -189,6 +189,8 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
         Route::get('/logout', 'TeacherLogout')->name('logout');
         Route::get('/profile', 'TeacherProfile')->name('profile');
         Route::post('/profile/update', 'TeacherProfileUpdate')->name('profile.update');
+        Route::get('/change/password', 'TeacherChangePassword')->name('change.password');
+        Route::post('/password/update', 'TeacherPasswordUpdate')->name('password.update');
 
         Route::middleware('can:access-my-exam-schedule')->group(function () {
             Route::get('/exam-schedule', 'myExamSchedule')->name('exam_schedule.index');
