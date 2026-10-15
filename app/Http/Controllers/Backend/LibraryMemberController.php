@@ -21,6 +21,17 @@ class LibraryMemberController extends Controller
         return view('admin.library_settings.members.student', compact('classes'));
     }
 
+    // Class ke active sections (FeeCollectionController::getSections jaisa, lekin library permission ke andar)
+    public function getSections($classId)
+    {
+        $class    = SchoolClass::findOrFail($classId);
+        $sections = $class->mappedSections()
+            ->where('school_class_section.status', 1)
+            ->get(['sections.id', 'sections.name']);
+
+        return response()->json($sections);
+    }
+
     public function searchStudents(Request $request)
     {
         $request->validate(['class_id' => 'required']);

@@ -502,6 +502,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/staff', 'staffPage')->name('staff');
                 Route::get('/student/search', 'searchStudents')->name('student.search');
                 Route::get('/staff/search', 'searchStaff')->name('staff.search');
+                Route::get('/get-sections/{classId}', 'getSections')->name('get_sections'); // student page: class -> sections (librarian ke liye fees route 403 deta tha)
             });
         });
         Route::middleware('can:manage-library-members')->group(function () {   // <-- changed

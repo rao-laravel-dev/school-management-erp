@@ -102,10 +102,12 @@
             $('#section_id').html('<option value="">All Sections</option>');
             if (!classId) return;
 
-            $.get("{{ url('fees/collect/get-sections') }}/" + classId, function(res) {
+            $.get("{{ url('library-settings/members/get-sections') }}/" + classId, function(res) {
                 res.forEach(function(sec) {
                     $('#section_id').append('<option value="' + sec.id + '">' + sec.name + '</option>');
                 });
+            }).fail(function() {
+                toastr.error('Unable to load sections.');
             });
         });
 
@@ -164,6 +166,7 @@
                     toastr.info('No students found for this selection.');
                 }
             }).fail(function() {
+                table.clear().draw(); // purani class ki list na dikhe
                 toastr.error('Unable to load students.');
             });
         });
