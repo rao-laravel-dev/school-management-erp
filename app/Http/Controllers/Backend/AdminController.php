@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\StaffSelfProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -128,6 +130,39 @@ class AdminController extends Controller
     }
     // End Method
 
+    // Change Password Page (admin + superadmin, shared staff view)
+    public function AdminChangePassword()
+    {
+        return view('staff_profile.change_password', [
+            'updateRoute' => route('admin.password.update'),
+        ]);
+    }
+    // End Method
+
+
+    // Password Update (sirf apna password: Auth::user())
+    public function AdminPasswordUpdate(StaffPasswordUpdateRequest $request, StaffSelfProfileService $service)
+    {
+        $user = Auth::user();
+
+        // Logout se pehle login route tay karein (superadmin ka apna login page hai)
+        $loginRoute = $user->isSuperAdmin() ? 'superadmin.login' : 'admin.login';
+
+        $service->updatePassword($user, $request->validated()['password']);
+
+        // Password change ke baad logout (AdminLogout jaisa) aur login page par redirect
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route($loginRoute)->with([
+            'message' => 'Password changed successfully. Please login with your new password.',
+            'alert-type' => 'success'
+        ]);
+    }
+    // End Method
+
     // 1. Forgot Password Page Load
-    
+
 }
