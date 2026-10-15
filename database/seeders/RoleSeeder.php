@@ -188,6 +188,7 @@ class RoleSeeder extends Seeder
             'access-staff-attendance',
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
+            'manage-print-report-card',     // web.php print_report_card.generate
 
         ]);
 
@@ -235,7 +236,29 @@ class RoleSeeder extends Seeder
             'access-fine-policies',
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
+            'manage-fee-collections',       // fees.collect pay / report
+            'manage-salary-slips',          // salary_slips generate / pay
+            'manage-expenses',              // expenses add / pay
+            'access-finance-report',        // finance_report.index
 
+        ]);
+
+        // 6b. Librarian (portal sidebar: library + own attendance/leave/salary)
+        Role::findByName('librarian', 'web')->syncPermissions([
+            'view dashboard',
+            'access-book-categories',
+            'manage-book-categories',
+            'access-books',
+            'manage-books',
+            'access-book-issues',
+            'manage-book-issues',
+            'access-library-members',
+            'manage-library-members',
+            'access-library-settings',
+            'manage-library-settings',
+            'access-leave-application',
+            'access-my-salary-slips',       // web.php my.salary_slips.*
+            'access-my-attendance',         // web.php my.attendance.index
         ]);
 
         // 7. Teacher
@@ -265,6 +288,7 @@ class RoleSeeder extends Seeder
             'access-my-exam-schedule',          // web.php Teacher k liye permission only
             'access-marks-grades',
             'access-marksheets',
+            'manage-marksheets',            // marks save (controller still checks class_timetables)
             'access-marksheet-templates',
             'access-results',
             'access-leave-application',
