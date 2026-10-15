@@ -140,6 +140,8 @@ Route::middleware(['auth', 'role:receptionist'])->prefix('reception')->name('rec
         Route::get('/logout', 'ReceptionLogout')->name('logout');
         Route::get('/profile', 'ReceptionistProfile')->name('profile');
         Route::post('/profile/update', 'ReceptionistProfileUpdate')->name('profile.update');
+        Route::get('/change/password', 'ReceptionistChangePassword')->name('change.password');
+        Route::post('/password/update', 'ReceptionistPasswordUpdate')->name('password.update');
     });
 });
 // RECEPTIONIST LOGIN
@@ -155,6 +157,8 @@ Route::middleware(['auth', 'role:accountant'])->prefix('accountant')->name('acco
         Route::get('/logout', 'AccountantLogout')->name('logout');
         Route::get('/profile', 'AccountantProfile')->name('profile');
         Route::post('/profile/update', 'AccountantProfileUpdate')->name('profile.update');
+        Route::get('/change/password', 'AccountantChangePassword')->name('change.password');
+        Route::post('/password/update', 'AccountantPasswordUpdate')->name('password.update');
     });
 });
 // ACCOUNTANTS LOGIN
@@ -170,6 +174,8 @@ Route::middleware(['auth', 'role:librarian'])->prefix('librarian')->name('librar
         Route::get('/logout', 'LibrarianLogout')->name('logout');
         Route::get('/profile', 'LibrarianProfile')->name('profile');
         Route::post('/profile/update', 'LibrarianProfileUpdate')->name('profile.update');
+        Route::get('/change/password', 'LibrarianChangePassword')->name('change.password');
+        Route::post('/password/update', 'LibrarianPasswordUpdate')->name('password.update');
     });
 });
 // LIBRARIANS LOGIN

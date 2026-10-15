@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Accountant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\StaffSelfProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -107,4 +109,33 @@ class AccountantProfileController extends Controller
     ]);
 }
      // End Method
+
+
+    // Change Password Page
+    public function AccountantChangePassword()
+    {
+        return view('staff_profile.change_password', [
+            'updateRoute' => route('accountant.password.update'),
+        ]);
+    }
+    // End Method
+
+
+    // Password Update
+    public function AccountantPasswordUpdate(StaffPasswordUpdateRequest $request, StaffSelfProfileService $service)
+    {
+        $service->updatePassword(Auth::user(), $request->validated()['password']);
+
+        // Password change ke baad logout (AccountantLogout jaisa) aur login page par redirect
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/accountant/login')->with([
+            'message' => 'Password changed successfully. Please login with your new password.',
+            'alert-type' => 'success'
+        ]);
+    }
+    // End Method
 }

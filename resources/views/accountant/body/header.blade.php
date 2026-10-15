@@ -659,7 +659,7 @@
 					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('accountant.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href=""><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('accountant.change.password') }}"><i
 								class="bx bx-cog fs-5"></i><span>Change Password</span></a>
 					</li>
 					<li><a class="dropdown-item d-flex align-items-center" href=""><i

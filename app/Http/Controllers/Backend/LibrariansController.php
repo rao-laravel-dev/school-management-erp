@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LibrarianProfileUpdateRequest;
+use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\StaffSelfProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +112,35 @@ public function LibrarianProfileUpdate(LibrarianProfileUpdateRequest $request, I
     // Librarian layout flash 'message' + 'alert-type' render karta hai
     return redirect()->back()->with([
         'message' => 'Librarian Profile Updated Successfully',
+        'alert-type' => 'success'
+    ]);
+}
+// End Method
+
+
+// Change Password Page
+public function LibrarianChangePassword()
+{
+    return view('staff_profile.change_password', [
+        'updateRoute' => route('librarian.password.update'),
+    ]);
+}
+// End Method
+
+
+// Password Update
+public function LibrarianPasswordUpdate(StaffPasswordUpdateRequest $request, StaffSelfProfileService $service)
+{
+    $service->updatePassword(Auth::user(), $request->validated()['password']);
+
+    // Password change ke baad logout (LibrarianLogout jaisa) aur login page par redirect
+    Auth::guard('web')->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/librarian/login')->with([
+        'message' => 'Password changed successfully. Please login with your new password.',
         'alert-type' => 'success'
     ]);
 }
