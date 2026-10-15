@@ -1,4 +1,4 @@
-{{-- Shared fields for Add/Edit Librarian (teacher form markup). $librarian = model ya null (create), $librarianId = ID text --}}
+{{-- Shared fields for Add/Edit Librarian (teacher form markup). $librarian = model ya null (create), $librarianId = ID text. Social Media/Documents = UI only --}}
 @php
     $isEdit = isset($librarian) && $librarian;
     $bank = $isEdit ? $librarian->bankDetail : null;
@@ -50,12 +50,12 @@
     </div>
     <div class="col-md-3">
         <label for="email" class="form-label">Email *</label>
-        <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ $val('email') }}" autocomplete="username">
+        <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ $val('email') }}" autocomplete="{{ $isEdit ? 'off' : 'username' }}">
         @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
     <div class="col-md-3">
         <label for="cnic" class="form-label">CNIC *</label>
-        <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ $val('cnic') }}" placeholder="xxxxx-xxxxxxx-x">
+        <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ $val('cnic') }}" placeholder="xxxxx-xxxxxxx-x" @if($isEdit) autocomplete="off" @endif>
         @error('cnic')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
     <div class="col-md-3">
@@ -74,7 +74,7 @@
 
     <div class="col-md-3">
         <label for="phone" class="form-label">Phone *</label>
-        <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ $val('phone') }}" placeholder="03xx-xxxxxxx">
+        <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ $val('phone') }}" placeholder="03xx-xxxxxxx" @if($isEdit) autocomplete="off" @endif>
         @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
 
@@ -132,11 +132,12 @@
 <div class="collapse" id="moreDetails">
     <div class="card p-4 mb-4 shadow-sm">
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-12">
-                <h6 class="text-primary border-bottom pb-2 mt-3">Emergency Contact Information</h6>
+        <div class="row mb-2">
+            <div class="col-12">
+                <h5 class="text-primary border-bottom pb-2">Emergency Contact Information</h5>
             </div>
-
+        </div>
+        <div class="row g-3 mb-4">
             <div class="col-md-4">
                 <label for="emergency_name" class="form-label">Person Name *</label>
                 <input type="text" name="emergency_name" id="emergency_name" class="form-control form-control-sm @error('emergency_name') is-invalid @enderror" value="{{ $val('emergency_name') }}" placeholder="Enter name">
@@ -249,7 +250,28 @@
             </div>
         </div>
 
-        {{-- Social Media + Documents yahan nahi: librarians table mein columns nahi (rule 19, silent NULL save nahi) --}}
+        {{-- Social Media + Documents: sirf UI (baqi 3 roles jaisa); librarians table mein columns nahi aur controller validated() use karta hai, is liye save nahi hote (BACKLOG T131) --}}
+        <div class="row mb-2">
+            <div class="col-12">
+                <h5 class="text-primary border-bottom pb-2">Social Media</h5>
+            </div>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6"><input type="text" name="fb_url" class="form-control form-control-sm" placeholder="Facebook URL" value="{{ old('fb_url') }}"></div>
+            <div class="col-md-6"><input type="text" name="twitter_url" class="form-control form-control-sm" placeholder="Twitter URL" value="{{ old('twitter_url') }}"></div>
+            <div class="col-md-6"><input type="text" name="linkedin_url" class="form-control form-control-sm" placeholder="LinkedIn URL" value="{{ old('linkedin_url') }}"></div>
+            <div class="col-md-6"><input type="text" name="insta_url" class="form-control form-control-sm" placeholder="Instagram URL" value="{{ old('insta_url') }}"></div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-12">
+                <h5 class="text-primary border-bottom pb-2">Documents</h5>
+            </div>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6"><label for="doc_resume" class="form-label">Resume</label><input type="file" name="doc_resume" id="doc_resume" class="form-control form-control-sm"></div>
+            <div class="col-md-6"><label for="doc_joining" class="form-label">Joining Letter</label><input type="file" name="doc_joining" id="doc_joining" class="form-control form-control-sm"></div>
+        </div>
 
         {{-- Login Security Setup --}}
         <div class="row mb-2">

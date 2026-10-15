@@ -269,6 +269,7 @@ class ReceptionController extends Controller
             'email'      => 'required|email|unique:users,email,' . $user->id,
             'phone'      => 'required|string',
             'gender'     => 'required',
+            'password'   => 'nullable|string|min:8|confirmed', // Khali = purana password
             'photo'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
@@ -292,6 +293,10 @@ class ReceptionController extends Controller
             'name'  => $request->first_name . ' ' . $request->last_name,
             'email' => $request->email,
         ]);
+
+        if ($request->filled('password')) {
+            $user->update(['password' => Hash::make($request->password)]); // Admin reset, sirf isi staff user ka
+        }
 
         // B. Receptionist Table Update
         $receptionist->update([

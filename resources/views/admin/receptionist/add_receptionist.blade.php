@@ -159,11 +159,12 @@
                 <div class="card p-4 mb-4 shadow-sm">
 
                     {{-- EMERGENCY CONTACT INFORMATION --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary border-bottom pb-2 mt-3">Emergency Contact Information</h6>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Emergency Contact Information</h5>
                         </div>
-
+                    </div>
+                    <div class="row g-3 mb-4">
                         {{-- Emergency Name --}}
                         <div class="col-md-4">
                             <label for="emergency_name" class="form-label">Person Name</label>

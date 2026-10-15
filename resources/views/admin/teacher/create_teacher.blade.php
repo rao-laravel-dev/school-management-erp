@@ -128,11 +128,12 @@
             <div class="collapse" id="moreDetails">
                 <div class="card p-4 mb-4 shadow-sm">
 
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary border-bottom pb-2 mt-3">Emergency Contact Information</h6>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Emergency Contact Information</h5>
                         </div>
-
+                    </div>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label for="emergency_name" class="form-label">Person Name</label>
                             <input type="text" name="emergency_name" id="emergency_name" class="form-control form-control-sm @error('emergency_name') is-invalid @enderror" value="{{ old('emergency_name') }}" placeholder="Enter name">

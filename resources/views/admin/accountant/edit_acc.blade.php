@@ -17,7 +17,7 @@
 <div class="card shadow-none border">
     <div class="card-body">
         {{-- Updated Form Action and Method for Edit --}}
-        <form action="{{ route('accountant.update', $accountant->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('accountant.update', $accountant->id) }}" method="POST" enctype="multipart/form-data" autocomplete="off">
             @csrf
             @method('PUT')
 
@@ -60,12 +60,12 @@
                 </div>
                 <div class="col-md-3">
                     <label for="email" class="form-label">Email *</label>
-                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email', $accountant->email) }}">
+                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email', $accountant->email) }}" autocomplete="off">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="cnic" class="form-label">CNIC *</label>
-                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic', $accountant->cnic) }}" placeholder="xxxxx-xxxxxxx-x">
+                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic', $accountant->cnic) }}" placeholder="xxxxx-xxxxxxx-x" autocomplete="off">
                     @error('cnic')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
@@ -77,13 +77,13 @@
                 </div>
                 <div class="col-md-3">
                     <label for="dob" class="form-label">Date of Birth *</label>
-                    <input type="date" name="dob" id="dob" class="form-control form-control-sm"
+                    <input type="date" name="dob" id="dob" class="form-control form-control-sm @error('dob') is-invalid @enderror"
                         value="{{ old('dob', $accountant->dob ? \Carbon\Carbon::parse($accountant->dob)->format('Y-m-d') : '') }}">
                     @error('dob')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
                     <label for="phone" class="form-label">Phone *</label>
-                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone', $accountant->phone) }}" placeholder="03xx-xxxxxxx">
+                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone', $accountant->phone) }}" placeholder="03xx-xxxxxxx" autocomplete="off">
                     @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3">
@@ -98,7 +98,9 @@
                     <label class="form-label text-secondary small fw-semibold">Photo</label>
                     <div class="d-flex align-items-center gap-2">
                         <div class="flex-grow-1">
-                            <input type="file" name="photo" id="photo" class="form-control form-control-sm" accept="image/*" onchange="previewImage(this)">
+                            <input type="file" name="photo" id="photo" class="form-control form-control-sm @error('photo') is-invalid @enderror" accept="image/*" onchange="previewImage(this)">
+                            @error('photo')<div class="invalid-feedback fw-semibold d-block">{{ $message }}</div>@enderror
+                            <small class="text-muted d-block mt-1" style="font-size: 11px;">Max size 2MB</small>
                         </div>
                         <div class="avatar-preview-wrapper border rounded bg-white" style="width: 100px; height: 100px; overflow: hidden; padding: 3px;">
                             {{-- Check if photo exists in database, use image_ae0f08.png logic if needed --}}
@@ -139,11 +141,12 @@
                 <div class="card p-4 mb-4 shadow-sm">
 
                     {{-- EMERGENCY CONTACT INFORMATION --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary border-bottom pb-2 mt-3">Emergency Contact Information</h6>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Emergency Contact Information</h5>
                         </div>
-
+                    </div>
+                    <div class="row g-3 mb-4">
                         {{-- Emergency Name --}}
                         <div class="col-md-4">
                             <label for="emergency_name" class="form-label">Person Name</label>
@@ -173,6 +176,11 @@
                         </div>
                     </div>
                     {{-- PAYROLL SECTION --}}
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Payroll</h5>
+                        </div>
+                    </div>
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label for="basic_salary" class="form-label">Basic Salary *</label>
@@ -205,12 +213,12 @@
                         <div class="col-md-12 mb-2">
                             <label class="form-check-label d-block fw-bold mb-2">Bank Account Type *</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="bank_type" id="bank_type_commercial" value="commercial" {{ old('bank_type', $bankDetail->bank_type ?? '') == 'commercial' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="bank_type_commercial">Commercial Bank</label>
+                                <input class="form-check-input" type="radio" name="bank_type" id="bank_type_commercial" value="commercial" {{ old('bank_type', $bankDetail->bank_type ?? 'commercial') == 'commercial' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="bank_type_commercial">Commercial Bank (HBL, Meezan, etc.)</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="bank_type" id="bank_type_wallet" value="microfinance_wallet" {{ old('bank_type', $bankDetail->bank_type ?? '') == 'microfinance_wallet' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="bank_type_wallet">Digital Wallet / Microfinance</label>
+                                <label class="form-check-label" for="bank_type_wallet">Digital Wallet / Microfinance (Easypaisa, JazzCash, etc.)</label>
                             </div>
                         </div>
 
@@ -285,9 +293,39 @@
                             <h5 class="text-primary border-bottom pb-2">Documents</h5>
                         </div>
                     </div>
-                    <div class="row g-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6"><label for="doc_resume" class="form-label">Resume</label><input type="file" name="doc_resume" id="doc_resume" class="form-control form-control-sm"></div>
                         <div class="col-md-6"><label for="doc_joining" class="form-label">Joining Letter</label><input type="file" name="doc_joining" id="doc_joining" class="form-control form-control-sm"></div>
+                    </div>
+
+                    {{-- Login Security Setup (admin reset) --}}
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2"><i class="bx bx-shield-quarter me-1"></i> Login Security Setup</h5>
+                            <small class="text-muted">Leave blank to keep the current password.</small>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Accountant System Password</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="Min 8 characters" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password">
+                                    <i class="bx bx-hide" id="password_icon"></i>
+                                </button>
+                            </div>
+                            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password_confirmation" class="form-label">Confirm Password</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="Re-type password" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password_confirmation">
+                                    <i class="bx bx-hide" id="password_confirmation_icon"></i>
+                                </button>
+                            </div>
+                            @error('password_confirmation')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
                     </div>
                 </div>
             </div>
@@ -307,6 +345,9 @@
     $(document).ready(function() {
         // --- 1. Accountant ID Auto-generation ---
         $('#last_name').on('blur', function() {
+            // Edit page par ID readonly hai, naya preview nahi chahiye (server ID ignore karta hai)
+            if ($('#accountant_id_field').prop('readonly')) return;
+
             const fName = $('#first_name').val();
             const lName = $(this).val();
             const idField = $('#accountant_id_field');
@@ -371,9 +412,9 @@
                     window.location.href = "{{ route('accountant.index') }}";
                 },
                 error: function(xhr) {
-                    btn.prop('disabled', false).text('Save Accountant Profile'); // Button enable karein
+                    btn.prop('disabled', false).text('Update Accountant Profile'); // Button enable karein
 
-                    $('.form-control').removeClass('is-invalid');
+                    $('.form-control, .form-select').removeClass('is-invalid');
                     $('.invalid-feedback').remove();
 
                     if (xhr.status === 422) {
@@ -383,13 +424,38 @@
                         $.each(errors, function(key, value) {
                             let field = $('[name="' + key + '"]');
                             field.addClass('is-invalid');
-                            field.after('<div class="invalid-feedback" style="display:block;">' + value[0] + '</div>');
+                            let anchor = field.closest('.input-group').length ? field.closest('.input-group') : field;
+                            anchor.after('<div class="invalid-feedback" style="display:block;">' + value[0] + '</div>');
                         });
+
+                        // Pehle error wala section kholo aur us field tak scroll karo
+                        let firstError = $('.is-invalid').first();
+                        if (firstError.length) {
+                            let scrollToError = function() {
+                                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                                firstError.trigger('focus');
+                            };
+                            let errorPanel = firstError.closest('.collapse');
+                            if (errorPanel.length && !errorPanel.hasClass('show')) {
+                                errorPanel.one('shown.bs.collapse', scrollToError);
+                                bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+                            } else {
+                                scrollToError();
+                            }
+                        }
                     } else {
                         toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Server Error: ' + xhr.status);
                     }
                 }
             });
+        });
+
+        // Field change/input par us ka is-invalid aur error text hata do (input, select, file, input-group sab)
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
         });
 
         // --- 3. UI Helpers ---
@@ -412,6 +478,20 @@
 
         handleBankTypeChange();
         $('input[name="bank_type"]').change(handleBankTypeChange);
+
+        // Password Toggle
+        $('.toggle-password').on('click', function() {
+            var target = $('#' + $(this).data('target'));
+            var icon = $(this).find('i');
+
+            if (target.attr('type') === 'password') {
+                target.attr('type', 'text');
+                icon.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                target.attr('type', 'password');
+                icon.removeClass('bx-show').addClass('bx-hide');
+            }
+        });
     });
 
     function previewImage(input) {

@@ -239,6 +239,7 @@ class AccountantController extends Controller
             'cnic'           => 'required|string|unique:accountants,cnic,' . $accountant->id,
             'phone'              => 'required|string|max:15',
             'basic_salary'   => 'required|numeric',
+            'password'       => 'nullable|string|min:8|confirmed', // Khali = purana password
             'photo'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
@@ -251,6 +252,10 @@ class AccountantController extends Controller
                 'gender' => $request->gender,
 
             ]);
+
+            if ($request->filled('password')) {
+                $user->update(['password' => Hash::make($request->password)]); // Admin reset, sirf isi staff user ka
+            }
 
             // B. Handle Photo
             $photoName = $accountant->photo;

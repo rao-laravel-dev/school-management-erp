@@ -10,7 +10,7 @@
 
 <div class="card shadow-none border">
     <div class="card-body">
-        <form id="librarianEditForm" action="{{ route('librarians.update', $librarian->id) }}" method="POST" enctype="multipart/form-data" novalidate>
+        <form id="librarianEditForm" action="{{ route('librarians.update', $librarian->id) }}" method="POST" enctype="multipart/form-data" novalidate autocomplete="off">
             @csrf
             @method('PUT')
 

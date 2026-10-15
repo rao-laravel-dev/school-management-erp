@@ -1,33 +1,26 @@
 @extends($current_layout)
 @section('content')
 
+{{-- Breadcrumb --}}
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Academic</div>
+    <div class="breadcrumb-title pe-3">Receptionist Management</div>
     <div class="ps-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 p-0">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
-                <li class="breadcrumb-item"><a href="{{ route('receptionist.index') }}">Receptionist List</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Edit Receptionist Profile</li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Receptionist</li>
             </ol>
         </nav>
     </div>
 </div>
 
-<div class="card radius-10 border-top border-0 border-3 border-primary">
-    <div class="card-body p-4">
-        <div class="card-title d-flex align-items-center mb-4">
-            <h5 class="mb-0 text-primary">Modify Receptionist Information (<span class="text-success fw-bold">{{ $receptionist->receptionist_id }}</span>)</h5>
-        </div>
-        <hr/>
-
-        <form action="{{ route('receptionist.update', $receptionist->id) }}" method="POST" enctype="multipart/form-data">
+<div class="card shadow-none border">
+    <div class="card-body">
+        <form action="{{ route('receptionist.update', $receptionist->id) }}" method="POST" enctype="multipart/form-data" autocomplete="off">
             @csrf
-            
-            
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0 text-primary">Edit Receptionist Information</h5>
+                <h5 class="mb-0 text-primary">Edit Receptionist Information (<span class="text-success fw-bold">{{ $receptionist->receptionist_id }}</span>)</h5>
                 <a href="{{ route('receptionist.index') }}" class="btn btn-outline-primary btn-sm"><i class="bx bx-list-ul"></i> Receptionist List</a>
             </div>
             <hr />
@@ -70,13 +63,13 @@
 
                 <div class="col-md-3">
                     <label for="email" class="form-label">Email *</label>
-                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email', $receptionist->email) }}">
+                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email', $receptionist->email) }}" autocomplete="off">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-3">
                     <label for="cnic" class="form-label">CNIC *</label>
-                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic', $receptionist->cnic) }}" placeholder="xxxxx-xxxxxxx-x">
+                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic', $receptionist->cnic) }}" placeholder="xxxxx-xxxxxxx-x" autocomplete="off">
                     @error('cnic')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -96,7 +89,7 @@
 
                 <div class="col-md-3">
                     <label for="phone" class="form-label">Primary Phone *</label>
-                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone', $receptionist->phone) }}" placeholder="03xx-xxxxxxx">
+                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone', $receptionist->phone) }}" placeholder="03xx-xxxxxxx" autocomplete="off">
                     @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -167,18 +160,19 @@
             {{-- END-PART 1: BASIC INFORMATION --}}
 
             <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-4 d-flex justify-content-between align-items-center px-3" data-bs-toggle="collapse" data-bs-target="#moreDetails">
-                <span>View More Details</span> <i class="bx bx-plus"></i>
+                <span>Add More Details</span> <i class="bx bx-plus"></i>
             </button>
 
-            <div class="collapse show" id="moreDetails">
+            <div class="collapse" id="moreDetails">
                 <div class="card p-4 mb-4 shadow-sm">
 
                     {{-- EMERGENCY CONTACT INFORMATION --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary border-bottom pb-2 mt-3">Emergency Contact Information</h6>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Emergency Contact Information</h5>
                         </div>
-
+                    </div>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label for="emergency_name" class="form-label">Person Name</label>
                             <input type="text" name="emergency_name" id="emergency_name" class="form-control form-control-sm @error('emergency_name') is-invalid @enderror" value="{{ old('emergency_name', $receptionist->emergency_name) }}" placeholder="Enter name">
@@ -240,7 +234,7 @@
                         <div class="col-md-12 mb-2">
                             <label class="form-check-label d-block fw-bold mb-2">Bank Account Type *</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="bank_type" id="bank_type_commercial" value="commercial" {{ old('bank_type', $receptionist->bankDetail?->bank_type) == 'commercial' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="radio" name="bank_type" id="bank_type_commercial" value="commercial" {{ old('bank_type', $receptionist->bankDetail?->bank_type ?? 'commercial') == 'commercial' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="bank_type_commercial">Commercial Bank (HBL, Meezan, etc.)</label>
                             </div>
                             <div class="form-check form-check-inline">
@@ -317,7 +311,7 @@
                             <h5 class="text-primary border-bottom pb-2">Documents <small class="text-muted text-capitalize fs-6">(Leave blank to keep existing)</small></h5>
                         </div>
                     </div>
-                    <div class="row g-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label for="doc_resume" class="form-label">Resume</label>
                             <input type="file" name="doc_resume" id="doc_resume" class="form-control form-control-sm">
@@ -333,6 +327,36 @@
                             @endif
                         </div>
                     </div>
+
+                    {{-- Login Security Setup (admin reset) --}}
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2"><i class="bx bx-shield-quarter me-1"></i> Login Security Setup</h5>
+                            <small class="text-muted">Leave blank to keep the current password.</small>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Receptionist System Password</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="Min 8 characters" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password">
+                                    <i class="bx bx-hide" id="password_icon"></i>
+                                </button>
+                            </div>
+                            @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password_confirmation" class="form-label">Confirm Password</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="Re-type password" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password_confirmation">
+                                    <i class="bx bx-hide" id="password_confirmation_icon"></i>
+                                </button>
+                            </div>
+                            @error('password_confirmation')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -342,7 +366,6 @@
             </div>
         </form>
     </div>
-</div>
 </div>
 
 @endsection
@@ -380,6 +403,30 @@
         toastr.success("{{ session('success') }}");
         @endif
 
+        // Pehle error wala field: #moreDetails kholo, scroll + focus
+        let firstError = $('.is-invalid').first();
+        if (firstError.length) {
+            let scrollToError = function() {
+                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                firstError.trigger('focus');
+            };
+            let errorPanel = firstError.closest('.collapse');
+            if (errorPanel.length && !errorPanel.hasClass('show')) {
+                errorPanel.one('shown.bs.collapse', scrollToError);
+                bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+            } else {
+                scrollToError();
+            }
+        }
+
+        // Field change/input par us ka is-invalid aur error text hata do (input, select, file, input-group sab)
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+        });
+
         // --- 3. Styling Receptionist ID ---
         $('#receptionist_id_field').css({
             'color': '#00bc2f',
@@ -402,6 +449,20 @@
         // Initial state load on page refresh/edit
         handleBankTypeChange();
         $('input[name="bank_type"]').change(handleBankTypeChange);
+
+        // Password Toggle
+        $('.toggle-password').on('click', function() {
+            var target = $('#' + $(this).data('target'));
+            var icon = $(this).find('i');
+
+            if (target.attr('type') === 'password') {
+                target.attr('type', 'text');
+                icon.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                target.attr('type', 'password');
+                icon.removeClass('bx-show').addClass('bx-hide');
+            }
+        });
     });
 
     // Inline safe call helper function for dynamic changes

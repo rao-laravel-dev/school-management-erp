@@ -2,22 +2,16 @@
 
 @section('content')
 
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Teacher Management</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
-                <li class="breadcrumb-item active" aria-current="page">Edit Teacher</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+{{-- Breadcrumb --}}
+<x-breadcrumb :items="[
+    ['label' => 'Teacher Management', 'url' => '#'],
+    ['label' => 'Edit Teacher', 'url' => route('teacher.edit', $teacher->id)],
+]" />
 
 <div class="card shadow-none border">
     <div class="card-body">
         {{-- Form Action updated for update route --}}
-        <form action="{{ route('teacher.update', $teacher->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('teacher.update', $teacher->id) }}" method="POST" enctype="multipart/form-data" autocomplete="off">
             @csrf
            
 
@@ -65,13 +59,13 @@
 
                 <div class="col-md-3">
                     <label for="email" class="form-label">Email *</label>
-                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email', $teacher->email) }}">
+                    <input type="email" name="email" id="email" class="form-control form-control-sm @error('email') is-invalid @enderror" value="{{ old('email', $teacher->email) }}" autocomplete="off">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-md-3">
                     <label for="cnic" class="form-label">CNIC *</label>
-                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic', $teacher->cnic) }}">
+                    <input type="text" name="cnic" id="cnic" class="form-control form-control-sm @error('cnic') is-invalid @enderror" value="{{ old('cnic', $teacher->cnic) }}" placeholder="xxxxx-xxxxxxx-x" autocomplete="off">
                     @error('cnic')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -91,7 +85,7 @@
 
                 <div class="col-md-3">
                     <label for="phone" class="form-label">Phone *</label>
-                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone', $teacher->phone) }}">
+                    <input type="text" name="phone" id="phone" class="form-control form-control-sm @error('phone') is-invalid @enderror" value="{{ old('phone', $teacher->phone) }}" placeholder="03xx-xxxxxxx" autocomplete="off">
                     @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -108,9 +102,11 @@
                     <label class="form-label text-secondary small fw-semibold">Photo</label>
                     <div class="d-flex align-items-center gap-2">
                         <div class="flex-grow-1">
-                            <input type="file" name="photo" id="photo" class="form-control form-control-sm" accept="image/*" onchange="previewImage(this)">
+                            <input type="file" name="photo" id="photo" class="form-control form-control-sm @error('photo') is-invalid @enderror" accept="image/*" onchange="previewImage(this)">
+                            @error('photo')<div class="invalid-feedback fw-semibold d-block">{{ $message }}</div>@enderror
+                            <small class="text-muted d-block mt-1" style="font-size: 11px;">Max size 2MB (WebP preferred)</small>
                         </div>
-                        <div class="avatar-preview-wrapper border rounded bg-white" style="width: 100px; height: 100px; overflow: hidden; padding: 3px;">
+                        <div class="avatar-preview-wrapper border rounded bg-white d-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; min-width: 100px; overflow: hidden; padding: 3px;">
                             <img id="imagePreview" src="{{ $teacher->photo_url }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">
                         </div>
                     </div>
@@ -146,11 +142,12 @@
                 <div class="card p-4 mb-4 shadow-sm">
 
                     {{-- EMERGENCY CONTACT INFORMATION --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary border-bottom pb-2 mt-3">Emergency Contact Information</h6>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Emergency Contact Information</h5>
                         </div>
-
+                    </div>
+                    <div class="row g-3 mb-4">
                         {{-- Emergency Name --}}
                         <div class="col-md-4">
                             <label for="emergency_name" class="form-label">Person Name</label>
@@ -180,6 +177,11 @@
                         </div>
                     </div>
                     {{-- PAYROLL SECTION --}}
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2">Payroll</h5>
+                        </div>
+                    </div>
                     <div class="row g-3 mb-4">
                         {{-- Basic Salary --}}
                         <div class="col-md-4">
@@ -223,12 +225,12 @@
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="bank_type" id="bank_type_commercial" value="commercial"
                                     {{ old('bank_type', $teacher->bankDetail?->bank_type ?? 'commercial') == 'commercial' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="bank_type_commercial">Commercial Bank</label>
+                                <label class="form-check-label" for="bank_type_commercial">Commercial Bank (HBL, Meezan, etc.)</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="bank_type" id="bank_type_wallet" value="microfinance_wallet"
                                     {{ old('bank_type', $teacher->bankDetail?->bank_type) == 'microfinance_wallet' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="bank_type_wallet">Digital Wallet / Microfinance</label>
+                                <label class="form-check-label" for="bank_type_wallet">Digital Wallet / Microfinance (Easypaisa, JazzCash, etc.)</label>
                             </div>
                         </div>
 
@@ -316,9 +318,40 @@
                             <h5 class="text-primary border-bottom pb-2">Documents</h5>
                         </div>
                     </div>
-                    <div class="row g-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6"><label for="doc_resume" class="form-label">Resume</label><input type="file" name="doc_resume" id="doc_resume" class="form-control form-control-sm"></div>
                         <div class="col-md-6"><label for="doc_joining" class="form-label">Joining Letter</label><input type="file" name="doc_joining" id="doc_joining" class="form-control form-control-sm"></div>
+                    </div>
+
+                    {{-- Login Security Setup (admin reset) --}}
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5 class="text-primary border-bottom pb-2"><i class="bx bx-shield-quarter me-1"></i> Login Security Setup</h5>
+                            <small class="text-muted">Leave blank to keep the current password.</small>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="password">Teacher System Password</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="••••••••" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password">
+                                    <i class="bx bx-hide" id="password_icon"></i>
+                                </button>
+                            </div>
+                            @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="password_confirmation">Confirm Password</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="••••••••" autocomplete="new-password">
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button" data-target="password_confirmation">
+                                    <i class="bx bx-hide" id="password_confirmation_icon"></i>
+                                </button>
+                            </div>
+                            @error('password_confirmation') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                        </div>
                     </div>
                 </div>
             </div>
@@ -382,6 +415,30 @@
         toastr.success("{{ session('success') }}");
         @endif
 
+        // Real-time error removal on input / change
+        $(document).on('input change', '.is-invalid', function() {
+            let field = $(this);
+            field.removeClass('is-invalid');
+            field.nextAll('.invalid-feedback').first().remove();
+            field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+        });
+
+        // Pehle error wala field: #moreDetails kholo, scroll + focus
+        let firstError = $('.is-invalid').first();
+        if (firstError.length) {
+            let scrollToError = function() {
+                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                firstError.trigger('focus');
+            };
+            let errorPanel = firstError.closest('.collapse');
+            if (errorPanel.length && !errorPanel.hasClass('show')) {
+                errorPanel.one('shown.bs.collapse', scrollToError);
+                bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+            } else {
+                scrollToError();
+            }
+        }
+
         // 3. Styling Teacher ID
         $('#teacher_id_field').css({
             'color': '#00bc2f',
@@ -406,6 +463,20 @@
 
         // Listen for changes
         $('input[name="bank_type"]').change(handleBankTypeChange);
+
+        // Password Toggle
+        $('.toggle-password').on('click', function() {
+            var target = $('#' + $(this).data('target'));
+            var icon = $(this).find('i');
+
+            if (target.attr('type') === 'password') {
+                target.attr('type', 'text');
+                icon.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                target.attr('type', 'password');
+                icon.removeClass('bx-show').addClass('bx-hide');
+            }
+        });
 
     });
 
