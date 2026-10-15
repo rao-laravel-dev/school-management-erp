@@ -23,6 +23,7 @@
     <link href="{{asset('backend/assets/css/dark-theme.css')}}" rel="stylesheet" />
     <link href="{{asset('backend/assets/css/semi-dark.css')}}" rel="stylesheet" />
     <link href="{{asset('backend/assets/css/header-colors.css')}}" rel="stylesheet" />
+    @stack('styles')
 
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">

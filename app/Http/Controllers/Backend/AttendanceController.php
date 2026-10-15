@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\Enrollment;
 use App\Models\QrCode;
@@ -14,6 +15,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\TeacherAssignment;
 use App\Models\User;
+use App\Services\OffDays;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -361,7 +363,7 @@ class AttendanceController extends Controller
     }
 
     // --- ViewMyAttendance Method (Updated) ---
-    public function viewMyAttendance()
+    public function viewMyAttendance(Request $request)
     {
         $user = auth()->user();
         $studentId = session('active_student_id');
@@ -387,10 +389,39 @@ class AttendanceController extends Controller
             return redirect()->back()->with('error', 'Active enrollment for this session not found.');
         }
 
+        // Academic year ki range: start se aaj tak (future mahine navigation mein nahi)
+        $today = now()->startOfDay();
+        $academicYear = AcademicYear::find($enrollment->academic_year_id);
+        $rangeStart = ($academicYear && $academicYear->start_date)
+            ? $academicYear->start_date->copy()->startOfDay()
+            : $today->copy()->startOfYear();
+        $rangeEnd = ($academicYear && $academicYear->end_date)
+            ? $academicYear->end_date->copy()->startOfDay()
+            : $today->copy()->endOfYear()->startOfDay();
+        if ($rangeEnd->gt($today)) {
+            $rangeEnd = $today->copy();
+        }
+        if ($rangeEnd->lt($rangeStart)) {
+            $rangeEnd = $rangeStart->copy();
+        }
+
+        // ?month=&year= GET params: galat/khali ho to default (rangeEnd ka mahina), redirect ya error nahi
+        $reqMonth = (int) $request->query('month');
+        $reqYear = (int) $request->query('year');
+        $selectedMonth = ($reqMonth >= 1 && $reqMonth <= 12 && $reqYear >= 2000 && $reqYear <= 2100)
+            ? Carbon::create($reqYear, $reqMonth, 1)->startOfDay()
+            : $rangeEnd->copy()->startOfMonth();
+        if ($selectedMonth->lt($rangeStart->copy()->startOfMonth())) {
+            $selectedMonth = $rangeStart->copy()->startOfMonth();
+        }
+        if ($selectedMonth->gt($rangeEnd->copy()->startOfMonth())) {
+            $selectedMonth = $rangeEnd->copy()->startOfMonth();
+        }
+
         // Attendance fetch (Session + Month/Year wise)
         $allAttendance = Attendance::where('enrollment_id', $enrollment->id)
-            ->whereMonth('attendance_date', now()->month)
-            ->whereYear('attendance_date', now()->year)
+            ->whereMonth('attendance_date', $selectedMonth->month)
+            ->whereYear('attendance_date', $selectedMonth->year)
             ->get();
 
         $matrix = [];
@@ -408,11 +439,119 @@ class AttendanceController extends Controller
             if ($att->status == 4) $stats['F']++;
         }
 
+        // Student page ka data (calendar, legend, rings, yearly): sab dayKey() se, taake cards/legend/% ek hi rule par chalein
+        $yearRows = Attendance::where('enrollment_id', $enrollment->id)
+            ->whereBetween('attendance_date', [$rangeStart->toDateString(), $rangeEnd->toDateString()])
+            ->get()
+            ->keyBy(fn($a) => Carbon::parse($a->attendance_date)->toDateString());
+        $offDates = OffDays::dates($rangeStart, $rangeEnd->copy()->endOfMonth());
+        $weeklyOff = ($academicYear && is_array($academicYear->weekly_off_days)) ? $academicYear->weekly_off_days : ['Sunday'];
+
+        $legend = ['present' => 0, 'absent' => 0, 'late' => 0, 'halfday' => 0, 'leave' => 0, 'holiday' => 0];
+        $calendar = array_fill(0, $selectedMonth->dayOfWeekIso - 1, null); // Monday-first padding
+        for ($d = 1; $d <= $selectedMonth->daysInMonth; $d++) {
+            $date = $selectedMonth->copy()->day($d);
+            $dateStr = $date->toDateString();
+            $key = $date->lt($rangeStart)
+                ? 'none'
+                : $this->dayKey($yearRows->get($dateStr), $dateStr, $offDates, $weeklyOff, $today);
+            $cssKey = $key === 'weekoff' ? 'holiday' : $key; // weekly off aur holiday ek hi rang
+            // Future holidays calendar mein grey dikhte hain par count nahi hote (sirf aaj tak)
+            if (isset($legend[$cssKey]) && !$date->gt($today)) {
+                $legend[$cssKey]++;
+            }
+            $calendar[] = ['day' => $d, 'date' => $dateStr, 'key' => $cssKey, 'isToday' => $date->eq($today), 'isFuture' => $date->gt($today)];
+        }
+        $calendar = array_chunk($calendar, 7);
+        $lastWeek = count($calendar) - 1;
+        $calendar[$lastWeek] = array_pad($calendar[$lastWeek], 7, null);
+        $monthPercent = $this->attendancePercent(['P' => $legend['present'], 'A' => $legend['absent'], 'L' => $legend['late'], 'H' => $legend['halfday']]);
+
+        // Yearly: academic year ke har mahine ka din-by-din status + counts + %
+        $yearMonths = [];
+        $yearTotals = ['P' => 0, 'A' => 0, 'L' => 0, 'H' => 0, 'F' => 0];
+        for ($cursor = $rangeStart->copy()->startOfMonth(); $cursor->lte($rangeEnd); $cursor->addMonth()) {
+            $days = [];
+            $counts = ['P' => 0, 'A' => 0, 'L' => 0, 'H' => 0, 'F' => 0];
+            for ($d = 1; $d <= $cursor->daysInMonth; $d++) {
+                $date = $cursor->copy()->day($d);
+                $dateStr = $date->toDateString();
+                $key = $date->lt($rangeStart)
+                    ? 'none'
+                    : $this->dayKey($yearRows->get($dateStr), $dateStr, $offDates, $weeklyOff, $today);
+                $days[$d] = $key;
+                $letter = ['present' => 'P', 'absent' => 'A', 'late' => 'L', 'halfday' => 'H', 'leave' => 'F'][$key] ?? null;
+                if ($letter) {
+                    $counts[$letter]++;
+                    $yearTotals[$letter]++;
+                }
+            }
+            $yearMonths[] = [
+                'label' => $cursor->format('M'),
+                'year' => $cursor->year,
+                'month' => $cursor->month,
+                'days' => $days,
+                'counts' => $counts,
+                'percent' => $this->attendancePercent($counts),
+            ];
+        }
+        $yearPercent = $this->attendancePercent($yearTotals);
+
+        $todayKey = $this->dayKey($yearRows->get($today->toDateString()), $today->toDateString(), $offDates, $weeklyOff, $today);
+        if ($todayKey === 'weekoff') {
+            $todayKey = 'holiday';
+        }
+        $todayLabels = ['present' => 'Present', 'absent' => 'Absent', 'late' => 'Late', 'halfday' => 'Half-day', 'leave' => 'Leave', 'holiday' => 'Holiday', 'unmarked' => 'Not marked'];
+        $todayInfo = ['date' => $today, 'key' => $todayKey, 'label' => $todayLabels[$todayKey]];
+
+        $prevMonth = $selectedMonth->copy()->subMonth()->gte($rangeStart->copy()->startOfMonth()) ? $selectedMonth->copy()->subMonth() : null;
+        $nextMonth = $selectedMonth->copy()->addMonth()->lte($rangeEnd) ? $selectedMonth->copy()->addMonth() : null;
+
         if ($user->hasRole('student')) {
-            return view('student.attendance.view_myattendance', compact('student', 'matrix', 'allAttendance', 'stats'));
+            return view('student.attendance.view_myattendance', compact(
+                'student', 'matrix', 'allAttendance', 'stats',
+                'selectedMonth', 'prevMonth', 'nextMonth', 'monthPercent', 'yearPercent',
+                'calendar', 'legend', 'yearMonths'
+            ) + ['today' => $todayInfo]);
         } else {
             return view('admin.attendance.student_view_attendance', compact('student', 'enrollment', 'matrix', 'allAttendance', 'stats'));
         }
+    }
+    // End Method
+
+    // Ek din ka status key. Priority: attendance row (0-3, 4) > calendar holiday > weekly off > future/unmarked
+    private function dayKey($row, string $date, array $offDates, array $weeklyOff, Carbon $today): string
+    {
+        if ($row) {
+            $status = (int) $row->status;
+            if ($status === 4) {
+                // Status 4 + remarks Holiday = holiday, warna leave
+                return strtolower(trim((string) $row->remarks)) === 'holiday' ? 'holiday' : 'leave';
+            }
+            $map = [0 => 'absent', 1 => 'present', 2 => 'late', 3 => 'halfday'];
+            if (isset($map[$status])) {
+                return $map[$status];
+            }
+        }
+        if (isset($offDates[$date])) {
+            return 'holiday';
+        }
+        $d = Carbon::parse($date);
+        if (in_array($d->format('l'), $weeklyOff, true)) {
+            return 'weekoff';
+        }
+        return $d->gt($today) ? 'future' : 'unmarked';
+    }
+    // End Method
+
+    // (P + L + 0.5 x H) / (P + L + H + A) x 100; Leave/holiday/unmarked shamil nahi. Denominator 0 = null
+    private function attendancePercent(array $c): ?float
+    {
+        $total = $c['P'] + $c['L'] + $c['H'] + $c['A'];
+        if ($total === 0) {
+            return null;
+        }
+        return round((($c['P'] + $c['L'] + 0.5 * $c['H']) / $total) * 100, 1);
     }
     // End Method
 

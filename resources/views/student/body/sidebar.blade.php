@@ -44,13 +44,14 @@
         @endcan
 
         @can('access-attendance')
-        <li>
+        {{-- app.js active item ko poore URL (query string samet) se match karta hai; ?month=&year= par menu band ho jata tha, isliye route se active --}}
+        <li class="{{ request()->routeIs('student.attendance.*') ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-calendar-check"></i></div>
                 <div class="menu-title">Attendance</div>
             </a>
-            <ul>
-                <li><a href="{{ route('student.attendance.view') }}"><i class='bx bx-radio-circle'></i>View Attendance</a></li>
+            <ul class="{{ request()->routeIs('student.attendance.*') ? 'mm-show' : '' }}">
+                <li class="{{ request()->routeIs('student.attendance.view') ? 'mm-active' : '' }}"><a href="{{ route('student.attendance.view') }}"><i class='bx bx-radio-circle'></i>View Attendance</a></li>
             </ul>
         </li>
         @endcan
