@@ -218,6 +218,8 @@
                     <div id="collapseParent" class="accordion-collapse collapse" data-bs-parent="#admissionAccordion">
                         <div class="accordion-body">
                             <div class="row g-3">
+                                {{-- Sibling banner (JS) isi ke baad lagta hai --}}
+                                <div class="col-12 parent-details-heading p-0"></div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="father_name">Father Name <span class="text-danger">*</span></label>
                                     <input type="text" name="father_name" id="father_name" class="form-control form-control-sm @error('father_name') is-invalid @enderror" value="{{ old('father_name') }}" placeholder="Father Name">
@@ -225,7 +227,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="father_phone">Father Phone <span class="text-danger">*</span></label>
-                                    <input type="text" name="father_phone" id="father_phone" class="form-control form-control-sm @error('father_phone') is-invalid @enderror" value="{{ old('father_phone') }}" placeholder="Father Phone">
+                                    <input type="text" autocomplete="off" name="father_phone" id="father_phone" class="form-control form-control-sm @error('father_phone') is-invalid @enderror" value="{{ old('father_phone') }}" placeholder="Father Phone">
                                     @error('father_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4">
@@ -241,7 +243,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="mother_phone">Mother Phone</label>
-                                    <input type="text" name="mother_phone" id="mother_phone" class="form-control form-control-sm @error('mother_phone') is-invalid @enderror" value="{{ old('mother_phone') }}" placeholder="Mother Phone">
+                                    <input type="text" autocomplete="off" name="mother_phone" id="mother_phone" class="form-control form-control-sm @error('mother_phone') is-invalid @enderror" value="{{ old('mother_phone') }}" placeholder="Mother Phone">
                                     @error('mother_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4">
@@ -284,7 +286,7 @@
 
                                 <div class="col-md-4">
                                     <label class="form-label" for="guardian_phone">Guardian Phone <span class="text-danger">*</span></label>
-                                    <input type="text" name="guardian_phone" id="guardian_phone" class="form-control form-control-sm @error('guardian_phone') is-invalid @enderror" value="{{ old('guardian_phone') }}" readonly>
+                                    <input type="text" autocomplete="off" name="guardian_phone" id="guardian_phone" class="form-control form-control-sm @error('guardian_phone') is-invalid @enderror" value="{{ old('guardian_phone') }}" readonly>
                                     @error('guardian_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4">
@@ -302,7 +304,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label" for="guardian_password">Guardian System Password <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="password" name="guardian_password" id="guardian_password" class="form-control form-control-sm @error('guardian_password') is-invalid @enderror" placeholder="••••••••">
+                                        <input type="password" autocomplete="new-password" name="guardian_password" id="guardian_password" class="form-control form-control-sm @error('guardian_password') is-invalid @enderror" placeholder="••••••••">
                                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="guardian_password">
                                             <i class="bx bx-hide" id="guardian_password_icon"></i>
                                         </button>
@@ -312,7 +314,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label" for="guardian_password_confirmation">Confirm Guardian Password <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="password" name="guardian_password_confirmation" id="guardian_password_confirmation" class="form-control form-control-sm @error('guardian_password_confirmation') is-invalid @enderror" placeholder="••••••••">
+                                        <input type="password" autocomplete="new-password" name="guardian_password_confirmation" id="guardian_password_confirmation" class="form-control form-control-sm @error('guardian_password_confirmation') is-invalid @enderror" placeholder="••••••••">
                                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="guardian_password_confirmation">
                                             <i class="bx bx-hide" id="guardian_password_confirmation_icon"></i>
                                         </button>
@@ -336,7 +338,7 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label" for="father_cnic">Father CNIC No.</label>
-                                    <input type="text" name="father_cnic" id="father_cnic" class="form-control form-control-sm @error('father_cnic') is-invalid @enderror" value="{{ old('father_cnic') }}" placeholder="eg: 42101-1234567-8">
+                                    <input type="text" autocomplete="off" name="father_cnic" id="father_cnic" class="form-control form-control-sm @error('father_cnic') is-invalid @enderror" value="{{ old('father_cnic') }}" placeholder="eg: 42101-1234567-8">
                                     @error('father_cnic') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4">
@@ -352,7 +354,7 @@
 
                                 <div class="col-md-4">
                                     <label class="form-label" for="mother_cnic">Mother CNIC No.</label>
-                                    <input type="text" name="mother_cnic" id="mother_cnic" class="form-control form-control-sm @error('mother_cnic') is-invalid @enderror" value="{{ old('mother_cnic') }}" placeholder="eg: 42101-1234567-9">
+                                    <input type="text" autocomplete="off" name="mother_cnic" id="mother_cnic" class="form-control form-control-sm @error('mother_cnic') is-invalid @enderror" value="{{ old('mother_cnic') }}" placeholder="eg: 42101-1234567-9">
                                     @error('mother_cnic') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4">
@@ -383,7 +385,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label" for="password">Student System Password <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="••••••••">
+                                        <input type="password" autocomplete="new-password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="••••••••">
                                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
                                             <i class="bx bx-hide" id="password_icon"></i>
                                         </button>
@@ -394,7 +396,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label" for="password_confirmation">Confirm Password <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="••••••••">
+                                        <input type="password" autocomplete="new-password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="••••••••">
                                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation">
                                             <i class="bx bx-hide" id="password_confirmation_icon"></i>
                                         </button>
@@ -689,7 +691,7 @@ $validationErrorsJson = json_encode($errors->all());
         // --- 7. BACKEND VALIDATION ERRORS TRIGGER ---
         let validationErrors = {!! $validationErrorsJson !!}; // 👈 extra { } hata diye
         if (validationErrors && validationErrors.length > 0) {
-            toastr.error("Please fill all required fields correctly.", "Validation Error");
+            toastr.error(validationErrors.map(function(msg) { return $("<div>").text(msg).html(); }).join("<br>"), "Validation Error", {timeOut: 8000});
 
             validationErrors.forEach(function(error) {
                 console.error("SmartSchool Validation Error: " + error);
@@ -732,7 +734,7 @@ $validationErrorsJson = json_encode($errors->all());
                 lastCheckedCnic = cnicValue;
 
                 $.ajax({
-                    url: '/students/check-parent/' + cnicValue,
+                    url: "{{ route('students.checkParent', ':cnic') }}".replace(':cnic', encodeURIComponent(cnicValue)),
                     type: 'GET',
                     dataType: 'json',
                     success: function(response) {

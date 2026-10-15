@@ -9,361 +9,425 @@
 <div class="row">
     <div class="col-xl-12 mx-auto">
 
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{{ route('students.index') }}" class="btn btn-dark btn-sm"><i class="bx bx-list-ul me-1"></i>All Students</a>
+        </div>
+
         <form id="studentAdmissionForm" action="{{ route('students.update', $student->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <div class="card radius-10 border-top border-0 border-4 border-primary mb-4 shadow-sm">
-                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="mb-0 text-primary fw-bold"><i class="bx bx-user-pin me-2"></i>Edit Academic & Personal Info</h5>
-                        <p class="mb-0 small text-muted">Modify student credentials and academic mapping configuration vectors</p>
-                    </div>
-                    <a href="{{ route('students.index') }}" class="btn btn-dark btn-sm radius-30 px-3"><i class="bx bx-list-ul me-1"></i>All Students</a>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
+            <div class="accordion" id="admissionAccordion">
 
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Admission No <span class="text-danger">*</span></label>
-                            <input type="text" name="admission_no" id="admission_no" class="form-control bg-light fw-bold text-success" value="{{ old('admission_no', $student->admission_no) }}" readonly>
-                            @error('admission_no') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
+                {{-- 1. ACADEMIC & PERSONAL INFO --}}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAcademic" aria-expanded="true" aria-controls="collapseAcademic">
+                            <i class="bx bx-user-pin me-2"></i> Academic &amp; Personal Info
+                        </button>
+                    </h2>
+                    <div id="collapseAcademic" class="accordion-collapse collapse show" data-bs-parent="#admissionAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-3">
 
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Roll No <span class="text-danger">*</span></label>
-                            <input type="text" name="roll_number" id="roll_number" class="form-control bg-light fw-bold text-success" value="{{ old('roll_number', $student->currentEnrollment->roll_no ?? '') }}" readonly>
-                            @error('roll_number') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Class <span class="text-danger">*</span></label>
-                            <select name="class_id" id="class_id" class="form-select @error('class_id') is-invalid @enderror" autocomplete="off">
-                                <option value="">-- Select Class --</option>
-                                @foreach($classes as $class)
-                                <option value="{{ $class->id }}" {{ old('class_id', $student->currentEnrollment->class_id ?? '') == $class->id ? 'selected' : '' }}>
-                                    {{ $class->name }}
-                                </option>
-                                @endforeach
-                            </select>
-                            @error('class_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Section <span class="text-danger">*</span></label>
-                            <select name="section_id" id="section_id" class="form-select @error('section_id') is-invalid @enderror" autocomplete="off">
-                                <option value="">-- Select Section --</option>
-                                @foreach($sections as $section)
-                                <option value="{{ $section->id }}" {{ old('section_id', $student->currentEnrollment->section_id ?? '') == $section->id ? 'selected' : '' }}>
-                                    {{ $section->name }}
-                                </option>
-                                @endforeach
-                            </select>
-                            @error('section_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">First Name <span class="text-danger">*</span></label>
-                            <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" value="{{ old('first_name', $student->first_name) }}" placeholder="Student First Name">
-                            @error('first_name') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Last Name <span class="text-danger">*</span></label>
-                            <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" value="{{ old('last_name', $student->last_name) }}" placeholder="Student Last Name">
-                            @error('last_name') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Date of Birth <span class="text-danger">*</span></label>
-                            <input type="date" name="date_of_birth" id="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" value="{{ old('date_of_birth', $student->date_of_birth) }}">
-                            @error('date_of_birth') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Gender <span class="text-danger">*</span></label>
-                            <select name="gender" id="gender" class="form-select @error('gender') is-invalid @enderror">
-                                <option value="">-- Select Gender --</option>
-                                <option value="male" {{ old('gender', $student->gender) == 'male' ? 'selected' : '' }}>Male</option>
-                                <option value="female" {{ old('gender', $student->gender) == 'female' ? 'selected' : '' }}>Female</option>
-                            </select>
-                            @error('gender') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Admission Date <span class="text-danger">*</span></label>
-                            <input type="date" name="admission_date" id="admission_date" class="form-control @error('admission_date') is-invalid @enderror" value="{{ old('admission_date', $student->admission_date) }}">
-                            @error('admission_date') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Category</label>
-                            <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
-                                <option value="">-- Select Category --</option>
-                                @foreach($categories as $c)
-                                <option value="{{ $c->id }}" {{ old('category_id', $student->category_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('category_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Religion</label>
-                            <input type="text" name="religion" id="religion" class="form-control @error('religion') is-invalid @enderror" value="{{ old('religion', $student->religion) }}" placeholder="e.g. Islam">
-                            @error('religion') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Caste</label>
-                            <input type="text" name="caste" id="caste" class="form-control @error('caste') is-invalid @enderror" value="{{ old('caste', $student->caste) }}" placeholder="e.g. Rajput">
-                            @error('caste') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Blood Group</label>
-                            <select name="blood_group" id="blood_group" class="form-select @error('blood_group') is-invalid @enderror">
-                                <option value="">-- Select Blood Group --</option>
-                                @foreach(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as $bg)
-                                <option value="{{ $bg }}" {{ old('blood_group', $student->blood_group) == $bg ? 'selected' : '' }}>{{ $bg }}</option>
-                                @endforeach
-                            </select>
-                            @error('blood_group') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">House</label>
-                            <select name="house_id" id="house_id" class="form-select @error('house_id') is-invalid @enderror">
-                                <option value="">-- Select House --</option>
-                                @foreach($houses as $h)
-                                <option value="{{ $h->id }}" {{ old('house_id', $student->house_id) == $h->id ? 'selected' : '' }}>{{ $h->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('house_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Height (ft)</label>
-                            <input type="text" name="height" id="height" class="form-control @error('height') is-invalid @enderror" value="{{ old('height', $student->height) }}" placeholder="e.g. 4.5 ft">
-                            @error('height') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Weight (kg)</label>
-                            <input type="text" name="weight" id="weight" class="form-control @error('weight') is-invalid @enderror" value="{{ old('weight', $student->weight) }}" placeholder="e.g. 35 kg">
-                            @error('weight') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Measurement Date</label>
-                            <input type="date" name="measurement_date" id="measurement_date" class="form-control @error('measurement_date') is-invalid @enderror" value="{{ old('measurement_date', $student->measurement_date) }}">
-                            @error('measurement_date') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-semibold">Group / Stream</label>
-                            <select name="group_id" id="group_id" class="form-select @error('group_id') is-invalid @enderror">
-                                <option value="">-- Select Group --</option>
-                                @foreach($groups as $group)
-                                <option value="{{ $group->id }}" {{ old('group_id', $student->currentEnrollment->group_id ?? '') == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('group_id') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-semibold">Student Photo</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="flex-grow-1">
-                                    <input type="file" name="student_photo" id="student_photo" class="form-control @error('student_photo') is-invalid @enderror" accept="image/*">
-                                    @error('student_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
+                                <div class="col-md-3">
+                                    <label class="form-label" for="admission_no">Admission No <span class="text-danger">*</span></label>
+                                    <input type="text" name="admission_no" id="admission_no" class="form-control form-control-sm bg-light fw-bold text-success" value="{{ old('admission_no', $student->admission_no) }}" readonly>
+                                    @error('admission_no') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
-                                <div class="avatar-preview-wrapper border rounded bg-light d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 38px; min-width: 40px; overflow: hidden;">
-                                    <img id="student_preview" src="{{ $student->photo_url }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="roll_number">Roll No <span class="text-danger">*</span></label>
+                                    <input type="text" name="roll_number" id="roll_number" class="form-control form-control-sm bg-light fw-bold text-success" value="{{ old('roll_number', $student->currentEnrollment->roll_no ?? '') }}" readonly>
+                                    @error('roll_number') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="class_id">Class <span class="text-danger">*</span></label>
+                                    <select name="class_id" id="class_id" class="form-select form-select-sm @error('class_id') is-invalid @enderror" autocomplete="off">
+                                        <option value="">-- Select Class --</option>
+                                        @foreach($classes as $class)
+                                        <option value="{{ $class->id }}" {{ old('class_id', $student->currentEnrollment->class_id ?? '') == $class->id ? 'selected' : '' }}>
+                                            {{ $class->name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                    @error('class_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="section_id">Section <span class="text-danger">*</span></label>
+                                    <select name="section_id" id="section_id" class="form-select form-select-sm @error('section_id') is-invalid @enderror" autocomplete="off">
+                                        <option value="">-- Select Section --</option>
+                                        @foreach($sections as $section)
+                                        <option value="{{ $section->id }}" {{ old('section_id', $student->currentEnrollment->section_id ?? '') == $section->id ? 'selected' : '' }}>
+                                            {{ $section->name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                    @error('section_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="first_name">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="first_name" id="first_name" class="form-control form-control-sm @error('first_name') is-invalid @enderror" value="{{ old('first_name', $student->first_name) }}" placeholder="Student First Name">
+                                    @error('first_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="last_name">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="last_name" id="last_name" class="form-control form-control-sm @error('last_name') is-invalid @enderror" value="{{ old('last_name', $student->last_name) }}" placeholder="Student Last Name">
+                                    @error('last_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="date_of_birth">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" name="date_of_birth" id="date_of_birth" class="form-control form-control-sm @error('date_of_birth') is-invalid @enderror" value="{{ old('date_of_birth', $student->date_of_birth) }}">
+                                    @error('date_of_birth') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="gender">Gender <span class="text-danger">*</span></label>
+                                    <select name="gender" id="gender" class="form-select form-select-sm @error('gender') is-invalid @enderror">
+                                        <option value="">-- Select Gender --</option>
+                                        <option value="male" {{ old('gender', $student->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender', $student->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                                    </select>
+                                    @error('gender') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="admission_date">Admission Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="admission_date" id="admission_date" class="form-control form-control-sm @error('admission_date') is-invalid @enderror" value="{{ old('admission_date', $student->admission_date) }}">
+                                    @error('admission_date') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="category_id">Category</label>
+                                    <select name="category_id" id="category_id" class="form-select form-select-sm @error('category_id') is-invalid @enderror">
+                                        <option value="">-- Select Category --</option>
+                                        @foreach($categories as $c)
+                                        <option value="{{ $c->id }}" {{ old('category_id', $student->category_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('category_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="religion">Religion</label>
+                                    <input type="text" name="religion" id="religion" class="form-control form-control-sm @error('religion') is-invalid @enderror" value="{{ old('religion', $student->religion) }}" placeholder="e.g. Islam, Christian">
+                                    @error('religion') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="caste">Caste</label>
+                                    <input type="text" name="caste" id="caste" class="form-control form-control-sm @error('caste') is-invalid @enderror" value="{{ old('caste', $student->caste) }}" placeholder="e.g. Rajput">
+                                    @error('caste') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="blood_group">Blood Group</label>
+                                    <select name="blood_group" id="blood_group" class="form-select form-select-sm @error('blood_group') is-invalid @enderror">
+                                        <option value="">-- Select Blood Group --</option>
+                                        @foreach(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as $bg)
+                                        <option value="{{ $bg }}" {{ old('blood_group', $student->blood_group) == $bg ? 'selected' : '' }}>{{ $bg }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('blood_group') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="house_id">House</label>
+                                    <select name="house_id" id="house_id" class="form-select form-select-sm @error('house_id') is-invalid @enderror">
+                                        <option value="">-- Select House --</option>
+                                        @foreach($houses as $h)
+                                        <option value="{{ $h->id }}" {{ old('house_id', $student->house_id) == $h->id ? 'selected' : '' }}>{{ $h->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('house_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="height">Height (ft)</label>
+                                    <input type="text" name="height" id="height" class="form-control form-control-sm @error('height') is-invalid @enderror" value="{{ old('height', $student->height) }}" placeholder="e.g. 4.5 ft">
+                                    @error('height') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="weight">Weight (kg)</label>
+                                    <input type="text" name="weight" id="weight" class="form-control form-control-sm @error('weight') is-invalid @enderror" value="{{ old('weight', $student->weight) }}" placeholder="e.g. 35 kg">
+                                    @error('weight') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="measurement_date">Measurement Date</label>
+                                    <input type="date" name="measurement_date" id="measurement_date" class="form-control form-control-sm @error('measurement_date') is-invalid @enderror" value="{{ old('measurement_date', $student->measurement_date) }}">
+                                    @error('measurement_date') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="group_id">Group / Stream <span id="groupAsterisk" class="text-danger d-none">*</span></label>
+                                    <select name="group_id" id="group_id" class="form-select form-select-sm @error('group_id') is-invalid @enderror">
+                                        <option value="">-- Select Group --</option>
+                                        @foreach($groups as $group)
+                                        <option value="{{ $group->id }}" {{ old('group_id', $student->currentEnrollment->group_id ?? '') == $group->id ? 'selected' : '' }}>{{ $group->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('group_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="student_photo">Student Photo</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="flex-grow-1">
+                                            <input type="file" name="student_photo" id="student_photo" class="form-control form-control-sm @error('student_photo') is-invalid @enderror" accept="image/*">
+                                            @error('student_photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                            <small class="text-muted d-block mt-1">Max size 2MB (WebP preferred)</small>
+                                        </div>
+                                        <div class="border rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 38px; min-width: 40px; overflow: hidden;">
+                                            <img id="student_preview" src="{{ $student->photo_url }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label" for="medical_history">Medical History / Internal Remarks</label>
+                                    <textarea name="medical_history" id="medical_history" class="form-control form-control-sm @error('medical_history') is-invalid @enderror" rows="3" placeholder="Write any medical concerns or academic internal notes here...">{{ old('medical_history', $student->medical_history) }}</textarea>
+                                    @error('medical_history') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2. PARENT / GUARDIAN DETAILS --}}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseParent" aria-expanded="false" aria-controls="collapseParent">
+                            <i class="bx bx-group me-2"></i> Parent / Guardian Details
+                        </button>
+                    </h2>
+                    <div id="collapseParent" class="accordion-collapse collapse" data-bs-parent="#admissionAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                {{-- Sibling banner (JS) isi ke baad lagta hai --}}
+                                <div class="col-12 parent-details-heading p-0"></div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="father_name">Father Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="father_name" id="father_name" class="form-control form-control-sm @error('father_name') is-invalid @enderror" value="{{ old('father_name', $student->parent->father_name ?? '') }}" placeholder="Father Name">
+                                    @error('father_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="father_phone">Father Phone <span class="text-danger">*</span></label>
+                                    <input type="text" autocomplete="off" name="father_phone" id="father_phone" class="form-control form-control-sm @error('father_phone') is-invalid @enderror" value="{{ old('father_phone', $student->parent->father_phone ?? '') }}" placeholder="Father Phone">
+                                    @error('father_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="father_photo">Father Photo</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="father_photo" id="father_photo" class="form-control form-control-sm @error('father_photo') is-invalid @enderror" accept="image/*">
+                                        <img id="father_preview" src="{{ $student->parent ? $student->parent->father_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('father_photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label" for="mother_name">Mother Name</label>
+                                    <input type="text" name="mother_name" id="mother_name" class="form-control form-control-sm @error('mother_name') is-invalid @enderror" value="{{ old('mother_name', $student->parent->mother_name ?? '') }}" placeholder="Mother Name">
+                                    @error('mother_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="mother_phone">Mother Phone</label>
+                                    <input type="text" autocomplete="off" name="mother_phone" id="mother_phone" class="form-control form-control-sm @error('mother_phone') is-invalid @enderror" value="{{ old('mother_phone', $student->parent->mother_phone ?? '') }}" placeholder="Mother Phone">
+                                    @error('mother_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="mother_photo">Mother Photo</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="mother_photo" id="mother_photo" class="form-control form-control-sm @error('mother_photo') is-invalid @enderror" accept="image/*">
+                                        <img id="mother_preview" src="{{ $student->parent ? $student->parent->mother_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('mother_photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-12 my-2 py-2 bg-light rounded px-3">
+                                    <span class="fw-bold text-secondary me-3 small">If Guardian is :</span>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input g-check" type="radio" name="is_guardian" id="g_father" value="father" {{ old('is_guardian', $student->parent->is_guardian ?? 'father') == 'father' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="g_father">Father</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input g-check" type="radio" name="is_guardian" id="g_mother" value="mother" {{ old('is_guardian', $student->parent->is_guardian ?? '') == 'mother' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="g_mother">Mother</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input g-check" type="radio" name="is_guardian" id="g_other" value="other" {{ old('is_guardian', $student->parent->is_guardian ?? '') == 'other' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="g_other">Other</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label" for="guardian_name">Guardian Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="guardian_name" id="guardian_name" class="form-control form-control-sm @error('guardian_name') is-invalid @enderror" value="{{ old('guardian_name', $student->parent->guardian_name ?? '') }}" readonly>
+                                    @error('guardian_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="guardian_relation">Guardian Relation <span class="text-danger">*</span></label>
+                                    <input type="text" name="guardian_relation" id="guardian_relation" class="form-control form-control-sm @error('guardian_relation') is-invalid @enderror" value="{{ old('guardian_relation', $student->parent->guardian_relation ?? 'Father') }}" readonly>
+                                    @error('guardian_relation') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="guardian_email">Guardian Email</label>
+                                    <input type="email" name="guardian_email" id="guardian_email" class="form-control form-control-sm @error('guardian_email') is-invalid @enderror" value="{{ old('guardian_email', $student->parent->guardian_email ?? '') }}" placeholder="guardian@example.com">
+                                    @error('guardian_email') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label" for="guardian_phone">Guardian Phone <span class="text-danger">*</span></label>
+                                    <input type="text" autocomplete="off" name="guardian_phone" id="guardian_phone" class="form-control form-control-sm @error('guardian_phone') is-invalid @enderror" value="{{ old('guardian_phone', $student->parent->guardian_phone ?? '') }}" readonly>
+                                    @error('guardian_phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="guardian_address">Guardian Address</label>
+                                    <input type="text" name="guardian_address" id="guardian_address" class="form-control form-control-sm @error('guardian_address') is-invalid @enderror" value="{{ old('guardian_address', $student->parent->guardian_address ?? '') }}" placeholder="Complete Residential Address">
+                                    @error('guardian_address') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="guardian_photo">Guardian Photo</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="guardian_photo" id="guardian_photo" class="form-control form-control-sm @error('guardian_photo') is-invalid @enderror" accept="image/*" disabled>
+                                        <img id="guardian_preview" src="{{ $student->parent ? $student->parent->guardian_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('guardian_photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+
+                                {{-- Guardian Login Password (optional: blank = purana password rahega) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label" for="guardian_password">New Guardian System Password</label>
+                                    <div class="input-group">
+                                        <input type="password" autocomplete="new-password" name="guardian_password" id="guardian_password" class="form-control form-control-sm @error('guardian_password') is-invalid @enderror" placeholder="••••••••">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="guardian_password">
+                                            <i class="bx bx-hide" id="guardian_password_icon"></i>
+                                        </button>
+                                    </div>
+                                    @error('guardian_password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    <small class="text-muted">Leave blank to keep current password.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="guardian_password_confirmation">Confirm New Guardian Password</label>
+                                    <div class="input-group">
+                                        <input type="password" autocomplete="new-password" name="guardian_password_confirmation" id="guardian_password_confirmation" class="form-control form-control-sm @error('guardian_password_confirmation') is-invalid @enderror" placeholder="••••••••">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="guardian_password_confirmation">
+                                            <i class="bx bx-hide" id="guardian_password_confirmation_icon"></i>
+                                        </button>
+                                    </div>
+                                    @error('guardian_password_confirmation') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-md-12">
-                            <label class="form-label text-secondary small fw-semibold">Medical History / Internal Remarks</label>
-                            <textarea name="medical_history" id="medical_history" class="form-control @error('medical_history') is-invalid @enderror" rows="3" placeholder="Write any medical concerns...">{{ old('medical_history', $student->medical_history) }}</textarea>
-                            @error('medical_history') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
                     </div>
                 </div>
-            </div>
 
-            <div class="card radius-10 border-top border-0 border-4 border-primary mb-4 shadow-sm">
-                <div class="card-header bg-transparent py-3">
-                    <h5 class="mb-0 text-primary fw-bold"><i class="bx bx-group me-2"></i>Parent / Guardian Details</h5>
-                    <p class="mb-0 small text-muted">Configure structural contact channels and link configuration matrices</p>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Father Name <span class="text-danger">*</span></label>
-                            <input type="text" name="father_name" id="father_name" class="form-control @error('father_name') is-invalid @enderror" value="{{ old('father_name', $student->parent->father_name ?? '') }}" placeholder="Father Name">
-                            @error('father_name') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Father Phone <span class="text-danger">*</span></label>
-                            <input type="text" name="father_phone" id="father_phone" class="form-control @error('father_phone') is-invalid @enderror" value="{{ old('father_phone', $student->parent->father_phone ?? '') }}" placeholder="Father Phone">
-                            @error('father_phone') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Father Photo</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="father_photo" id="father_photo" class="form-control @error('father_photo') is-invalid @enderror" accept="image/*">
-                                <img id="father_preview" src="{{ $student->parent ? $student->parent->father_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
-                            </div>
-                            @error('father_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
+                {{-- 3. IDENTIFICATION DOCUMENTS --}}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDocs" aria-expanded="false" aria-controls="collapseDocs">
+                            <i class="bx bx-id-card me-2"></i> Identification Documents
+                        </button>
+                    </h2>
+                    <div id="collapseDocs" class="accordion-collapse collapse" data-bs-parent="#admissionAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="father_cnic">Father CNIC No.</label>
+                                    <input type="text" autocomplete="off" name="father_cnic" id="father_cnic" class="form-control form-control-sm @error('father_cnic') is-invalid @enderror" value="{{ old('father_cnic', $student->parent->father_cnic ?? '') }}" placeholder="eg: 42101-1234567-8">
+                                    @error('father_cnic') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="father_cnic_front">Father CNIC Front</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="father_cnic_front" id="father_cnic_front" class="form-control form-control-sm @error('father_cnic_front') is-invalid @enderror" accept="image/*">
+                                        <img id="father_cnic_front_preview" src="{{ !empty($student->parent->father_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('father_cnic_front') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="father_cnic_back">Father CNIC Back</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="father_cnic_back" id="father_cnic_back" class="form-control form-control-sm @error('father_cnic_back') is-invalid @enderror" accept="image/*">
+                                        <img id="father_cnic_back_preview" src="{{ !empty($student->parent->father_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('father_cnic_back') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Mother Name</label>
-                            <input type="text" name="mother_name" id="mother_name" class="form-control @error('mother_name') is-invalid @enderror" value="{{ old('mother_name', $student->parent->mother_name ?? '') }}" placeholder="Mother Name">
-                            @error('mother_name') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Mother Phone</label>
-                            <input type="text" name="mother_phone" id="mother_phone" class="form-control @error('mother_phone') is-invalid @enderror" value="{{ old('mother_phone', $student->parent->mother_phone ?? '') }}" placeholder="Mother Phone">
-                            @error('mother_phone') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Mother Photo</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="mother_photo" id="mother_photo" class="form-control @error('mother_photo') is-invalid @enderror" accept="image/*">
-                                <img id="mother_preview" src="{{ $student->parent ? $student->parent->mother_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="mother_cnic">Mother CNIC No.</label>
+                                    <input type="text" autocomplete="off" name="mother_cnic" id="mother_cnic" class="form-control form-control-sm @error('mother_cnic') is-invalid @enderror" value="{{ old('mother_cnic', $student->parent->mother_cnic ?? '') }}" placeholder="eg: 42101-1234567-9">
+                                    @error('mother_cnic') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="mother_cnic_front">Mother CNIC Front</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="mother_cnic_front" id="mother_cnic_front" class="form-control form-control-sm @error('mother_cnic_front') is-invalid @enderror" accept="image/*">
+                                        <img id="mother_cnic_front_preview" src="{{ !empty($student->parent->mother_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('mother_cnic_front') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="mother_cnic_back">Mother CNIC Back</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="file" name="mother_cnic_back" id="mother_cnic_back" class="form-control form-control-sm @error('mother_cnic_back') is-invalid @enderror" accept="image/*">
+                                        <img id="mother_cnic_back_preview" src="{{ !empty($student->parent->mother_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                    </div>
+                                    @error('mother_cnic_back') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
                             </div>
-                            @error('mother_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-12 my-2 py-2 bg-light rounded px-3 border-start border-3 border-secondary">
-                            <span class="fw-bold text-secondary me-3 small">If Guardian is :</span>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input g-check" type="radio" name="is_guardian" id="g_father" value="father" {{ old('is_guardian', $student->parent->is_guardian ?? 'father') == 'father' ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold" for="g_father">Father</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input g-check" type="radio" name="is_guardian" id="g_mother" value="mother" {{ old('is_guardian', $student->parent->is_guardian ?? '') == 'mother' ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold" for="g_mother">Mother</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input g-check" type="radio" name="is_guardian" id="g_other" value="other" {{ old('is_guardian', $student->parent->is_guardian ?? '') == 'other' ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold" for="g_other">Other</label>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Guardian Name <span class="text-danger">*</span></label>
-                            <input type="text" name="guardian_name" id="guardian_name" class="form-control @error('guardian_name') is-invalid @enderror" value="{{ old('guardian_name', $student->parent->guardian_name ?? '') }}" readonly>
-                            @error('guardian_name') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Guardian Relation <span class="text-danger">*</span></label>
-                            <input type="text" name="guardian_relation" id="guardian_relation" class="form-control @error('guardian_relation') is-invalid @enderror" value="{{ old('guardian_relation', $student->parent->guardian_relation ?? 'Father') }}" readonly>
-                            @error('guardian_relation') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Guardian Email</label>
-                            <input type="email" name="guardian_email" id="guardian_email" class="form-control @error('guardian_email') is-invalid @enderror" value="{{ old('guardian_email', $student->parent->guardian_email ?? '') }}" placeholder="guardian@example.com">
-                            @error('guardian_email') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Guardian Phone <span class="text-danger">*</span></label>
-                            <input type="text" name="guardian_phone" id="guardian_phone" class="form-control @error('guardian_phone') is-invalid @enderror" value="{{ old('guardian_phone', $student->parent->guardian_phone ?? '') }}" readonly>
-                            @error('guardian_phone') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Guardian Address</label>
-                            <input type="text" name="guardian_address" id="guardian_address" class="form-control @error('guardian_address') is-invalid @enderror" value="{{ old('guardian_address', $student->parent->guardian_address ?? '') }}" placeholder="Complete Residential Address">
-                            @error('guardian_address') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Guardian Photo</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="guardian_photo" id="guardian_photo" class="form-control @error('guardian_photo') is-invalid @enderror" accept="image/*" disabled>
-                                <img id="guardian_preview" src="{{ $student->parent ? $student->parent->guardian_photo_url : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
-                            </div>
-                            @error('guardian_photo') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card radius-10 border-top border-0 border-4 border-primary mb-4 shadow-sm">
-                <div class="card-header bg-transparent py-3">
-                    <h5 class="mb-0 text-primary fw-bold"><i class="bx bx-id-card me-2"></i>Identification Documents</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Father CNIC No.</label>
-                            <input type="text" name="father_cnic" id="father_cnic" class="form-control @error('father_cnic') is-invalid @enderror" value="{{ old('father_cnic', $student->parent->father_cnic ?? '') }}">
-                            @error('father_cnic') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Father CNIC Front</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="father_cnic_front" id="father_cnic_front" class="form-control @error('father_cnic_front') is-invalid @enderror" accept="image/*">
-                                <img id="father_cnic_front_preview" src="{{ !empty($student->parent->father_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
-                            </div>
-                            @error('father_cnic_front') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Father CNIC Back</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="father_cnic_back" id="father_cnic_back" class="form-control @error('father_cnic_back') is-invalid @enderror" accept="image/*">
-                                <img id="father_cnic_back_preview" src="{{ !empty($student->parent->father_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
-                            </div>
-                            @error('father_cnic_back') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
+                {{-- 4. LOGIN SECURITY SETUP (blank = current password rakho) --}}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurity" aria-expanded="false" aria-controls="collapseSecurity">
+                            <i class="bx bx-shield-quarter me-2"></i> Login Security Setup (Leave blank to keep current)
+                        </button>
+                    </h2>
+                    <div id="collapseSecurity" class="accordion-collapse collapse" data-bs-parent="#admissionAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="password">New Student System Password</label>
+                                    <div class="input-group">
+                                        <input type="password" autocomplete="new-password" name="password" id="password" class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="••••••••">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
+                                            <i class="bx bx-hide" id="password_icon"></i>
+                                        </button>
+                                    </div>
+                                    @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Mother CNIC No.</label>
-                            <input type="text" name="mother_cnic" id="mother_cnic" class="form-control @error('mother_cnic') is-invalid @enderror" value="{{ old('mother_cnic', $student->parent->mother_cnic ?? '') }}">
-                            @error('mother_cnic') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Mother CNIC Front</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="mother_cnic_front" id="mother_cnic_front" class="form-control @error('mother_cnic_front') is-invalid @enderror" accept="image/*">
-                                <img id="mother_cnic_front_preview" src="{{ !empty($student->parent->mother_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="password_confirmation">Confirm New Password</label>
+                                    <div class="input-group">
+                                        <input type="password" autocomplete="new-password" name="password_confirmation" id="password_confirmation" class="form-control form-control-sm @error('password_confirmation') is-invalid @enderror" placeholder="••••••••">
+                                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation">
+                                            <i class="bx bx-hide" id="password_confirmation_icon"></i>
+                                        </button>
+                                    </div>
+                                    @error('password_confirmation') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
                             </div>
-                            @error('mother_cnic_front') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-semibold">Mother CNIC Back</label>
-                            <div class="d-flex gap-2">
-                                <input type="file" name="mother_cnic_back" id="mother_cnic_back" class="form-control @error('mother_cnic_back') is-invalid @enderror" accept="image/*">
-                                <img id="mother_cnic_back_preview" src="{{ !empty($student->parent->mother_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
-                            </div>
-                            @error('mother_cnic_back') <div class="invalid-feedback fw-semibold d-block">{{ $message }}</div> @enderror
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card radius-10 border-top border-0 border-4 border-primary mb-4 shadow-sm">
-                <div class="card-header bg-transparent py-3">
-                    <h5 class="mb-0 text-primary fw-bold"><i class="bx bx-shield-quarter me-2"></i>Login Security Setup (Leave blank to keep current)</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-semibold">New System Password</label>
-                            <input type="password" name="password" id="password" class="form-control" placeholder="••••••••">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-semibold">Confirm New Password</label>
-                            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="••••••••">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </div> {{-- /accordion --}}
 
-            <div class="mb-4 text-end">
-                <button type="submit" class="btn btn-primary radius-30 px-4 fw-semibold"><i class="bx bx-save me-1"></i>Update Student Profile</button>
+            <div class="mt-3 text-end">
+                <button type="submit" class="btn btn-success btn-sm px-4">
+                    <i class="bx bx-save me-1"></i> Update Student Profile
+                </button>
             </div>
         </form>
 
@@ -612,7 +676,7 @@
         function checkParentSibling(cnicValue) {
             if (cnicValue.length >= 13) {
                 $.ajax({
-                    url: 'students/check-parent/' + cnicValue,
+                    url: "{{ route('students.checkParent', ':cnic') }}".replace(':cnic', encodeURIComponent(cnicValue)),
                     type: 'GET',
                     dataType: 'json',
                     success: function(response) {
@@ -677,19 +741,42 @@
         // --- 8. BACKEND VALIDATION ERRORS (create page jaisa toastr + pehle error tak scroll) ---
         let validationErrors = @json($errors->all());
         if (validationErrors && validationErrors.length > 0) {
-            toastr.error("Please fill all required fields correctly.", "Validation Error");
+            toastr.error(validationErrors.map(function(msg) { return $("<div>").text(msg).html(); }).join("<br>"), "Validation Error", {timeOut: 8000});
 
             validationErrors.forEach(function(error) {
                 console.error("SmartSchool Validation Error: " + error);
             });
 
-            // Edit page par accordion nahi, sirf pehli error wali field tak scroll
+            // Sirf PEHLE error wala accordion section kholo (data-bs-parent baqi band kar deta hai) aur us field tak scroll
             let firstError = $('.is-invalid').first();
             if (firstError.length) {
-                $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
-                firstError.trigger('focus');
+                let scrollToError = function() {
+                    $('html, body').animate({ scrollTop: Math.max(firstError.offset().top - 120, 0) }, 300);
+                    firstError.trigger('focus');
+                };
+                let errorPanel = firstError.closest('.accordion-collapse');
+                if (errorPanel.length && !errorPanel.hasClass('show')) {
+                    errorPanel.one('shown.bs.collapse', scrollToError);
+                    bootstrap.Collapse.getOrCreateInstance(errorPanel[0]).show();
+                } else {
+                    scrollToError();
+                }
             }
         }
+
+        // Password show/hide eye toggle (create page jaisa)
+        $('.toggle-password').on('click', function() {
+            var target = $('#' + $(this).data('target'));
+            var icon = $(this).find('i');
+
+            if (target.attr('type') === 'password') {
+                target.attr('type', 'text');
+                icon.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                target.attr('type', 'password');
+                icon.removeClass('bx-show').addClass('bx-hide');
+            }
+        });
 
         // Field change/input par us ka is-invalid aur error text hata do (input, select, file, input-group sab)
         $(document).on('input change', '.is-invalid', function() {
