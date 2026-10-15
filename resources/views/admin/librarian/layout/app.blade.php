@@ -47,6 +47,9 @@
 	<!-- 🔥 SweetAlert2 CSS -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
+	<!-- Page-specific styles (@push('styles')) -->
+	@stack('styles')
+
 	<!-- jQuery (Required) -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -185,6 +188,15 @@ if(document.querySelector('#editor')){
 		.create(document.querySelector('#editor'))
 		.catch(error => console.error(error));
 }
+</script>
+
+<!-- AJAX ke liye CSRF token set kar rahe hain -->
+<script>
+$.ajaxSetup({
+	headers: {
+		'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+	}
+});
 </script>
 
 <!-- Custom Scripts -->

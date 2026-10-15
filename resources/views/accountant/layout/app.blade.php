@@ -190,6 +190,15 @@ if(document.querySelector('#editor')){
 }
 </script>
 
+<!-- AJAX ke liye CSRF token set kar rahe hain -->
+<script>
+$.ajaxSetup({
+	headers: {
+		'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+	}
+});
+</script>
+
 <!-- Custom Scripts -->
 @stack('scripts')
 

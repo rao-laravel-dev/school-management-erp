@@ -15,36 +15,53 @@
             </a>
         </li>
 
-        {{-- Receptionist ke pass apni detail edit karne ki permission hoti hai, admin. ki nahi --}}
-        @can('access-receptionist')
-        <li>
-            <a href="{{ route('receptionist.index') }}">
-                <div class="parent-icon"><i class="bx bx-user-circle"></i></div>
-                <div class="menu-title">My Profile / Receptionist</div>
+        {{-- Front Office --}}
+        @can('access-front-office')
+        @php $open = request()->routeIs('admission-enquiry.*', 'complain.*', 'visitor-book.*', 'settings.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bx-building"></i></div>
+                <div class="menu-title">Front Office</div>
             </a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li><a href="{{ route('admission-enquiry.index') }}"><i class='bx bx-radio-circle'></i>Admission Enquiry</a></li>
+                <li><a href="{{ route('complain.index') }}"><i class='bx bx-radio-circle'></i>Complaints</a></li>
+                <li><a href="{{ route('visitor-book.index') }}"><i class='bx bx-radio-circle'></i>Visitor Book</a></li>
+                <li><a href="{{ route('settings.complaint-type.index') }}"><i class='bx bx-radio-circle'></i>Complaint Type</a></li>
+                <li><a href="{{ route('settings.purpose.index') }}"><i class='bx bx-radio-circle'></i>Purpose</a></li>
+                <li><a href="{{ route('settings.source.index') }}"><i class='bx bx-radio-circle'></i>Source</a></li>
+            </ul>
         </li>
         @endcan
 
         @can('access-students')
-        <li>
+        @php $open = request()->routeIs('students.*', 'student-category.*', 'student-house.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-user-plus"></i></div>
                 <div class="menu-title">Student Information</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
                 <li> <a href="{{ route('students.index') }}"><i class='bx bx-radio-circle'></i>All Students</a></li>
                 <li> <a href="{{ route('students.create') }}"><i class='bx bx-radio-circle'></i>Student's Admission</a></li>
+                @can('access-student-categories')
+                <li> <a href="{{ route('student-category.index') }}"><i class='bx bx-radio-circle'></i>Student Categories</a></li>
+                @endcan
+                @can('access-student-houses')
+                <li> <a href="{{ route('student-house.index') }}"><i class='bx bx-radio-circle'></i>Student Houses</a></li>
+                @endcan
             </ul>
         </li>
         @endcan
 
         @canany(['access-teacher', 'manage-teacher', 'access-teacher-assignment', 'manage-teacher-assignment'])
-        <li>
+        @php $open = request()->routeIs('teacher.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-chalkboard"></i></div>
                 <div class="menu-title">Teacher Management</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
                 {{-- Teachers Section --}}
                 @can('access-teacher')
                 <li><a href="{{ route('teacher.index') }}"><i class='bx bx-radio-circle'></i>All Teachers</a></li>
@@ -65,15 +82,17 @@
         @endcanany
 
         @can('access-leave-application')
-        <li>
+        @php $open = request()->routeIs('staffleaveapp.create'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class='bx bx-calendar-x'></i></div>
                 <div class="menu-title">Leave Applications</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                {{-- create route index page par redirect karta hai (apply modal wahin hai) --}}
                 <li>
-                    <a href="{{ route('staffleaveapp.index') }}">
-                        <i class='bx bx-radio-circle'></i>Leave List
+                    <a href="{{ route('staffleaveapp.create') }}">
+                        <i class='bx bx-radio-circle'></i>Apply Leave
                     </a>
                 </li>
             </ul>
@@ -83,12 +102,13 @@
         {{-- Attendance dropdown hata diya: receptionist sirf reports dekhta hai, links ab "Reports" menu mein --}}
 
         @can('access-academics')
-        <li>
+        @php $open = request()->routeIs('classes.*', 'sections.*', 'groups.*', 'subjects.*', 'school-class-subjects.*', 'academic_years.*', 'class_timetable.*', 'teacher_timetable.*', 'rooms.*', 'school_timing.*', 'academic_calendar.*', 'event_type.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i></div>
                 <div class="menu-title">Academics</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
                 {{-- Classes --}}
                 <li>
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Classes</a>
@@ -156,6 +176,11 @@
                 <li><a href="{{ route('rooms.index') }}"><i class='bx bx-radio-circle'></i>Manage Room</a></li>
                 @endcan
 
+                {{-- School Timing --}}
+                @can('access-school-timing')
+                <li><a href="{{ route('school_timing.index') }}"><i class='bx bx-radio-circle'></i>School Timing</a></li>
+                @endcan
+
                 {{-- Academic Calendar --}}
                 <li>
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Academic Calendar</a>
@@ -169,13 +194,14 @@
         @endcan
 
         {{-- Examination --}}
-        @canany(['access-exam-schedules', 'access-results', 'access-marksheets'])
-        <li>
+        @canany(['access-exam-schedules', 'access-results', 'access-marksheets', 'access-marksheet-templates', 'access-print-report-card'])
+        @php $open = request()->routeIs('exam_schedule.*', 'result.*', 'print_marksheet.*', 'marksheet_template.*', 'print_report_card.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class='bx bx-notepad'></i></div>
                 <div class="menu-title">Examination</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-exam-schedules')
                 <li><a href="{{ route('exam_schedule.index') }}"><i class='bx bx-radio-circle'></i>Exam Schedule</a></li>
                 @endcan
@@ -185,18 +211,25 @@
                 @can('access-marksheets')
                 <li><a href="{{ route('print_marksheet.index') }}"><i class='bx bx-radio-circle'></i>Print Marksheet</a></li>
                 @endcan
+                @can('access-marksheet-templates')
+                <li><a href="{{ route('marksheet_template.index') }}"><i class='bx bx-radio-circle'></i>Marksheet Template</a></li>
+                @endcan
+                @can('access-print-report-card')
+                <li><a href="{{ route('print_report_card.index') }}"><i class='bx bx-radio-circle'></i>Print Report Card</a></li>
+                @endcan
             </ul>
         </li>
         @endcanany
 
         {{-- ID Cards (sirf print) --}}
         @canany(['access-id-card-templates', 'access-staff-id-card-templates'])
-        <li>
+        @php $open = request()->routeIs('print_id_card.*', 'print_staff_id_card.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class='bx bx-id-card'></i></div>
                 <div class="menu-title">ID Cards</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-id-card-templates')
                 <li><a href="{{ route('print_id_card.index') }}"><i class='bx bx-radio-circle'></i>Print Student ID Card</a></li>
                 @endcan
@@ -208,18 +241,22 @@
         @endcanany
 
         {{-- Reports: logged-in user ki apni reports + attendance reports (aage aur links yahan aayenge) --}}
-        @canany(['access-my-attendance', 'access-my-salary-slips', 'access-attendance', 'access-staff-attendance'])
-        <li>
+        @canany(['access-my-attendance', 'access-leave-application', 'access-my-salary-slips', 'access-attendance', 'access-staff-attendance'])
+        @php $open = request()->routeIs('my.*', 'staffleaveapp.*', 'attendance.index', 'staff_attendance.report') && ! request()->routeIs('staffleaveapp.create'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class='bx bx-file'></i></div>
                 <div class="menu-title">Reports</div>
             </a>
-            <ul>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-my-attendance')
-                <li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance</a></li>
+                <li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>
+                @endcan
+                @can('access-leave-application')
+                <li><a href="{{ route('staffleaveapp.index') }}"><i class='bx bx-radio-circle'></i>My Leave Report</a></li>
                 @endcan
                 @can('access-my-salary-slips')
-                <li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slips</a></li>
+                <li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slip</a></li>
                 @endcan
                 @can('access-attendance')
                 <li><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
@@ -230,5 +267,13 @@
             </ul>
         </li>
         @endcanany
+
+        {{-- Logout (hamesha last) --}}
+        <li>
+            <a href="{{ route('reception.logout') }}">
+                <div class="parent-icon"><i class="bx bx-log-out-circle"></i></div>
+                <div class="menu-title">Logout</div>
+            </a>
+        </li>
     </ul>
 </div>
