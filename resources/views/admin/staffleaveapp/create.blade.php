@@ -30,7 +30,7 @@
                     <input type="date" name="apply_date" class="form-control" value="{{ date('Y-m-d') }}" readonly>
                 </div>
 
-                @if(auth()->user()->hasRole('admin'))
+                @if(auth()->user()->hasAnyRole(['admin', 'superadmin']))
                 <div class="col-md-3">
                     <label class="form-label">Select Staff *</label>
                     <select name="user_id" id="user_select" class="form-select" required>
@@ -84,7 +84,7 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        @if(!auth()->user()->hasRole('admin'))
+        @if(!auth()->user()->hasAnyRole(['admin', 'superadmin']))
         $('#user_select').trigger('change');
         @endif
     });

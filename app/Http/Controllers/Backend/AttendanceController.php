@@ -78,7 +78,7 @@ class AttendanceController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('admin')) {
+        if ($user->hasAnyRole(['admin', 'superadmin'])) {
             // Admin ke liye sab open hai
             $classes = SchoolClass::all();
             $sections = Section::all();
@@ -123,7 +123,7 @@ class AttendanceController extends Controller
         $date = $request->attendance_date ?? date('Y-m-d');
 
         // --- SECURITY CHECK (Sirf Admin ko sab allow hai, Teacher apni assigned class dekhega) ---
-        if (!$user->hasRole('admin')) {
+        if (!$user->hasAnyRole(['admin', 'superadmin'])) {
             $teacher = \App\Models\Teacher::where('user_id', $user->id)->first();
 
             if ($teacher) {
@@ -165,7 +165,7 @@ class AttendanceController extends Controller
     public function StoreAttendance(Request $request)
     {
         $user = auth()->user();
-        $isAdmin = $user->hasRole('admin');
+        $isAdmin = $user->hasAnyRole(['admin', 'superadmin']);
 
         // Ab line 199 par ye error nahi aayega
         Log::info("Logged In User ID: " . $user->id);
@@ -297,7 +297,7 @@ class AttendanceController extends Controller
         $user = auth()->user();
 
         // Authorization Check for Teacher
-        if (!$user->hasRole('admin')) {
+        if (!$user->hasAnyRole(['admin', 'superadmin'])) {
             $teacher = Teacher::where('user_id', $user->id)->first();
             $isAssigned = TeacherAssignment::where('teacher_id', $teacher->id ?? 0)
                 ->where('class_id', $id)

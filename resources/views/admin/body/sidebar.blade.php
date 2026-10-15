@@ -335,7 +335,9 @@
             </a>
             <ul>
                 @can('access-staff-salaries')
+                @if (Route::has('staff_salaries.index'))
                 <li><a href="{{ route('staff_salaries.index') }}"><i class='bx bx-radio-circle'></i>Salary Structure</a></li>
+                @endif
                 @endcan
                 @can('access-salary-slips')
                 <li><a href="{{ route('salary_slips.index') }}"><i class='bx bx-radio-circle'></i>Salary Slips</a></li>

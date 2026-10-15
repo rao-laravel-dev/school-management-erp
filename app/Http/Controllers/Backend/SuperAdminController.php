@@ -13,7 +13,8 @@ class SuperAdminController extends Controller
 {
      public function SuperAdminManage()
 {
-    return view('superadmin.dashboard');
+    // Superadmin shares the admin dashboard (old /superadmin/dashboard bookmarks still work)
+    return redirect()->route('admin.dashboard');
 }
 
      public function SuperAdminLogout(Request $request){
@@ -29,7 +30,7 @@ class SuperAdminController extends Controller
 
      public function SuperAdminLogin(Request $request){
         if (Auth::check()) {
-          return redirect()->route('superadmin.dashboard');
+          return redirect()->route('admin.dashboard');
         }
         return view('superadmin.superadmin_login');
        

@@ -113,8 +113,8 @@ Route::get('superadmin/login', [SuperAdminController::class, 'SuperAdminLogin'])
 
 
 
-// ADMIN ROUTES
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+// ADMIN ROUTES (superadmin uses the same admin dashboard/profile)
+Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::controller(AdminController::class)->group(function () {
 
