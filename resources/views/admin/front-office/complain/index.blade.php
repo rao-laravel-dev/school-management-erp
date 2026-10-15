@@ -66,12 +66,16 @@
                                     $statusClass = $statusColors[$complain->status] ?? 'btn-outline-secondary';
                                     $statusLabel = $statusLabels[$complain->status] ?? ucfirst($complain->status);
                                     @endphp
+                                    @can('manage-front-office')
                                     <button type="button"
                                         class="btn btn-sm {{ $statusClass }} toggle-complain-status"
                                         data-id="{{ $complain->id }}"
                                         data-status="{{ $complain->status }}">
                                         {{ $statusLabel }}
                                     </button>
+                                    @else
+                                    <span class="badge {{ str_replace('btn-outline-', 'bg-', $statusClass) }}">{{ $statusLabel }}</span>
+                                    @endcan
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="{{'#complainEdit-'.$complain->id}}">
@@ -155,7 +159,7 @@
     // 4. Global AJAX Function
     function sendComplaintAjax(btn, id) {
         $.ajax({
-            url: '/front-office/complain/status/' + id,
+            url: "{{ route('complain.status', ':id') }}".replace(':id', id),
             type: 'GET',
             success: function(res) {
                 let status = res.status;
@@ -170,11 +174,11 @@
                     'resolved': 'btn-outline-success'
                 };
 
-                btn.text(labels[status] ?? status);
+                btn.text(labels[status] || status);
                 btn.data('status', status);
 
                 btn.removeClass('btn-outline-success btn-outline-danger btn-outline-warning btn-outline-info btn-outline-secondary');
-                btn.addClass(colors[status] ?? 'btn-outline-secondary');
+                btn.addClass(colors[status] || 'btn-outline-secondary');
 
                 toastr.success(res.message);
             },

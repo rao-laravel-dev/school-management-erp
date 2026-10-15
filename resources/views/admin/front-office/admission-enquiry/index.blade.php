@@ -184,7 +184,7 @@
     // 4. Global AJAX Function
     function sendEnquiryAjax(btn, id, action) {
         $.ajax({
-            url: '/front-office/admission-enquiry/status/' + id,
+            url: "{{ route('admission-enquiry.status.update', ':id') }}".replace(':id', id),
             type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
