@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
                 ];
 
                 // 2. User ka role nikalen
-                $roleName = $user->getRoleNames()->first() ?? 'user';
+                $roleName = $user->activeRoleName() ?? 'user'; // pehla enabled role (disabled role skip)
 
                 // 3. Layout choose karein
                 $layout = $layoutMap[$roleName] ?? 'user.layout.app';

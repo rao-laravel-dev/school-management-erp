@@ -37,39 +37,40 @@ class AuthenticatedSessionController extends Controller
         |--------------------------------------
         */
 
-        if ($user->hasRole('superadmin')) {
-        return redirect()->route('superadmin.dashboard');
-    }
-
-    if ($user->hasRole('admin')) {
+        // Superadmin shares the admin dashboard
+        if ($user->hasEnabledRole('superadmin')) {
         return redirect()->route('admin.dashboard');
     }
 
-    if ($user->hasRole('receptionist')) {
+    if ($user->hasEnabledRole('admin')) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user->hasEnabledRole('receptionist')) {
         return redirect()->route('reception.dashboard');
     }
 
-    if ($user->hasRole('accountant')) {
+    if ($user->hasEnabledRole('accountant')) {
         return redirect()->route('accountant.dashboard');
     }
 
-    if ($user->hasRole('librarian')) {
+    if ($user->hasEnabledRole('librarian')) {
         return redirect()->route('librarian.dashboard');
     }
 
-    if ($user->hasRole('teacher')) {
+    if ($user->hasEnabledRole('teacher')) {
         return redirect()->route('teacher.dashboard');
     }
 
-    if ($user->hasRole('parent')) {
+    if ($user->hasEnabledRole('parent')) {
         return redirect()->route('parent.dashboard');
     }
 
-    if ($user->hasRole('student')) {
+    if ($user->hasEnabledRole('student')) {
         return redirect()->route('student.dashboard');
     }
 
-    if ($user->hasRole('user')) {
+    if ($user->hasEnabledRole('user')) {
         return redirect()->route('dashboard');
     }
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Accountant\AccountantProfileController;
 use App\Http\Controllers\Backend\AcademicCalendarController;
 use App\Http\Controllers\Backend\AcademicYearController;
+use App\Http\Controllers\Backend\AccessControlController;
 use App\Http\Controllers\Backend\AccountantController;
 use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\AttendanceController;
@@ -60,29 +61,30 @@ Route::get('/dashboard', function () {
     /** @var \App\Models\User $user */
     $user = Auth::user();
 
-    if ($user->hasRole('superadmin'))
-        return redirect()->route('superadmin.dashboard');
-
-    if ($user->hasRole('admin'))
+    // Superadmin shares the admin dashboard
+    if ($user->hasEnabledRole('superadmin'))
         return redirect()->route('admin.dashboard');
 
-    if ($user->hasRole('receptionist'))
+    if ($user->hasEnabledRole('admin'))
+        return redirect()->route('admin.dashboard');
+
+    if ($user->hasEnabledRole('receptionist'))
         return redirect()->route('reception.dashboard');
 
-    if ($user->hasRole('accountant'))
+    if ($user->hasEnabledRole('accountant'))
         return redirect()->route('accountant.dashboard');
 
-    if ($user->hasRole('librarian'))
+    if ($user->hasEnabledRole('librarian'))
         return redirect()->route('librarian.dashboard');
 
-    if ($user->hasRole('teacher'))
+    if ($user->hasEnabledRole('teacher'))
         return redirect()->route('teacher.dashboard');
 
-    if ($user->hasRole('parent'))
+    if ($user->hasEnabledRole('parent'))
         return redirect()->route('parent.dashboard');
 
     // Student: seedha apne dashboard par (pehle bare `return;` null deta tha)
-    if ($user->hasRole('student'))
+    if ($user->hasEnabledRole('student'))
         return redirect()->route('student.dashboard');
 
     // Default Fallback (agar koi role match na kare)
@@ -845,6 +847,18 @@ Route::prefix('school-timing')->name('school_timing.')->group(function () {
     });
 });
 
+
+// ACCESS CONTROL (superadmin only: admin users Active/Inactive, last active admin inactive = school lock, audit log)
+Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin/access-control')->name('superadmin.access.')->group(function () {
+
+    Route::controller(AccessControlController::class)->group(function () {
+
+        Route::get('/', 'index')->name('index');
+        Route::get('/users', 'users')->name('users');
+        Route::get('/logs', 'logs')->name('logs');
+        Route::post('/users/{id}/status', 'setUserStatus')->name('users.status');
+    });
+});
 
 // ROLE ROUTES
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {

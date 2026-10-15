@@ -315,9 +315,52 @@ class User extends Authenticatable
         return $qr->code;
     }
 
+    // Active admin users (role admin, status 1, not trashed, superadmin excluded)
+    public static function activeAdminCount(): int
+    {
+        return static::withoutSuperadmin()->role('admin')->where('status', 1)->count();
+    }
+
+    // School lock: koi bhi admin user active nahi = har non-superadmin user login blocked
+    public static function isSchoolLocked(): bool
+    {
+        return static::activeAdminCount() === 0;
+    }
+
     // Status 0 (inactive) / 2 (pending) login nahi kar sakte; superadmin kabhi block nahi
     public function isLoginBlocked(): bool
     {
-        return in_array((int) $this->status, [0, 2], true) && ! $this->hasRole('superadmin');
+        if ($this->hasRole('superadmin')) {
+            return false;
+        }
+
+        // School locked (no active admin): sab non-superadmin blocked, kisi ka users.status change nahi hota
+        if (static::isSchoolLocked()) {
+            return true;
+        }
+
+        // Role-level block: sirf tab jab user ke SAARE roles disabled hon (roles.is_active = 0)
+        $allRolesDisabled = $this->roles->isNotEmpty() && $this->enabledRoleNames()->isEmpty();
+
+        return in_array((int) $this->status, [0, 2], true) || $allRolesDisabled;
+    }
+
+    // Enabled roles ke naam (roles.is_active); Switch Role / layout / dashboard sirf inhi se
+    public function enabledRoleNames()
+    {
+        return $this->roles->filter(function ($role) {
+            return (int) ($role->is_active ?? 1) === 1;
+        })->pluck('name')->values();
+    }
+
+    // Active role = pehla ENABLED role (disabled role skip), warna null
+    public function activeRoleName(): ?string
+    {
+        return $this->enabledRoleNames()->first();
+    }
+
+    public function hasEnabledRole(string $name): bool
+    {
+        return $this->enabledRoleNames()->contains($name);
     }
 }

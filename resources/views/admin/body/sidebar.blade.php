@@ -15,6 +15,16 @@
             </a>
         </li>
 
+        {{-- Access Control: sirf superadmin (user + role block/unblock, audit log) --}}
+        @role('superadmin')
+        <li>
+            <a href="{{ route('superadmin.access.index') }}">
+                <div class="parent-icon"><i class='bx bx-shield-quarter'></i></div>
+                <div class="menu-title">Access Control</div>
+            </a>
+        </li>
+        @endrole
+
         @can('access-receptionist')
         <li>
             <a href="javascript:;" class="has-arrow">

@@ -23,6 +23,13 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
 
+        // Web login jaisa status check: inactive/pending/role-disabled/school-locked/trashed user ko token nahi milta
+        if ($user->isLoginBlocked() || $user->isStaffTrashed()) {
+            Auth::guard('web')->logout();
+
+            return response()->json(['message' => 'Your account is inactive or pending approval.'], 403);
+        }
+
         // Purane tokens revoke karna optional hai — abhi ke liye rehne dete hain
         $token = $user->createToken('api-token')->plainTextToken;
 
