@@ -2739,3 +2739,19 @@ input::placeholder {
     .directory-header .directory-badge-label { display: none; }
 }
 
+
+/* Staff details modal (teacher / receptionist / accountant / librarian) */
+/* Teacher + accountant modals sit inside .table-responsive (white-space: nowrap), reset it so values can wrap */
+.staff-detail { white-space: normal; }
+.staff-detail .staff-detail-photo { display: block; width: 100%; max-width: 180px; aspect-ratio: 1 / 1; height: auto; object-fit: cover; margin: 0 auto; }
+.staff-detail .staff-detail-grid { display: grid; grid-template-columns: 1fr; gap: .5rem 1rem; }
+@media (min-width: 576px) {
+    .staff-detail .staff-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.staff-detail .staff-detail-grid > div,
+.staff-detail .staff-detail-row > *,
+.staff-detail .staff-detail-value { min-width: 0; overflow-wrap: anywhere; }
+.staff-detail .staff-detail-heading { display: block; margin-bottom: .25rem; padding-bottom: .15rem; border-bottom: 1px solid rgba(127, 127, 127, .35); font-weight: 700; text-transform: uppercase; }
+.staff-detail .staff-detail-row { display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: .5rem; font-size: .875em; }
+.staff-detail .staff-detail-row > strong { margin-left: auto; text-align: right; }
+.staff-detail .staff-detail-total { margin-top: .25rem; padding-top: .25rem; border-top: 1px solid rgba(127, 127, 127, .35); }
