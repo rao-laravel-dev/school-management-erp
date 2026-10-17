@@ -13,6 +13,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
+use App\Services\StudentClassSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -339,6 +340,61 @@ class StudentProfileController extends Controller
             'message' => 'Password changed successfully. Please login with your new password.',
             'alert-type' => 'success'
         ]);
+    }
+    // End Method
+
+    // Class Schedule page (read-only, own class/section only)
+    public function myClassSchedule()
+    {
+        return view('student.class_schedule.index', [
+            'scheduleDataUrl'  => route('student.class_schedule.get_data'),
+            'scheduleStudentId' => null,
+            'scheduleTitle'    => 'My Class Schedule',
+            'dashboardUrl'     => route('student.dashboard'),
+        ]);
+    }
+    // End Method
+
+    // AJAX: weekly timetable of the logged-in student's own class/section (no ids from request)
+    public function myClassScheduleData(Request $request)
+    {
+        $request->validate(['week' => 'nullable|date']);
+
+        $student = Auth::user()->studentProfile;
+
+        if (!$student) {
+            return response()->json(['timetable' => (object) []]);
+        }
+
+        return response()->json(StudentClassSchedule::forStudent($student->id, $request->week));
+    }
+    // End Method
+
+    // Academic Records page (read-only): admission details, enrollment history, published results
+    public function academicRecords()
+    {
+        $student = Auth::user()->studentProfile;
+        abort_if(!$student, 404);
+
+        $student->load(['category', 'house']);
+
+        $enrollments = Enrollment::with(['academicYear', 'schoolClass', 'section', 'group'])
+            ->where('student_id', $student->id)
+            ->orderByDesc('id')
+            ->get();
+
+        $results = Result::with(['exam.examType', 'grade'])
+            ->whereIn('enrollment_id', $enrollments->pluck('id'))
+            ->whereHas('exam', function ($q) {
+                $q->where('publish_result', 1);
+            })
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Result details page only opens for the active enrollment
+        $activeEnrollmentId = optional($enrollments->firstWhere('enroll_status', 1))->id;
+
+        return view('student.academic_records.index', compact('student', 'enrollments', 'results', 'activeEnrollmentId'));
     }
     // End Method
 

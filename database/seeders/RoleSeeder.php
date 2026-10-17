@@ -309,7 +309,8 @@ class RoleSeeder extends Seeder
             'access-attendance',
             'access-marksheet-templates',
             'access-profile',     // Nayi permission
-            'access-assignments'  // Nayi permission
+            'access-student-timetable', // student portal: own class timetable (read-only)
+            'access-assignments',  // Nayi permission
         ]);
 
         // 10. User (Default)

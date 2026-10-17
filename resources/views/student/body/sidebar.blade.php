@@ -24,7 +24,9 @@
             </a>
             <ul>
                 <li><a href="{{ route('student.profile') }}"><i class='bx bx-radio-circle'></i>Personal Details</a></li>
-                <li><a href="#"><i class='bx bx-radio-circle'></i>Academic Records</a></li>
+                @can('access-profile')
+                <li><a href="{{ route('student.academic_records.index') }}"><i class='bx bx-radio-circle'></i>Academic Records</a></li>
+                @endcan
             </ul>
         </li>
 
@@ -36,7 +38,9 @@
             </a>
             <ul>
                 <li><a href="{{ route('student.subjects.view') }}"><i class='bx bx-radio-circle'></i>My Subjects</a></li>
-                <li><a href="#"><i class='bx bx-radio-circle'></i>Class Schedule</a></li>
+                @can('access-student-timetable')
+                <li><a href="{{ route('student.class_schedule.index') }}"><i class='bx bx-radio-circle'></i>Class Schedule</a></li>
+                @endcan
                 <li><a href="{{ route('student.teacher.myteacher') }}"><i class='bx bx-radio-circle'></i>My Teachers</a></li>
                 <li><a href="{{ route('student.results.index') }}"><i class='bx bx-radio-circle'></i>Results/Grades</a></li>
             </ul>

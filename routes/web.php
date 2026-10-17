@@ -267,6 +267,15 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         // Own account Change Password (same pattern as staff portals)
         Route::get('/change/password', 'StudentChangePassword')->name('change.password');
         Route::post('/password/update', 'StudentPasswordUpdate')->name('password.update');
+
+        Route::middleware('can:access-student-timetable')->group(function () {
+            Route::get('/class-schedule', 'myClassSchedule')->name('class_schedule.index');
+            Route::get('/class-schedule/get-data', 'myClassScheduleData')->name('class_schedule.get_data');
+        });
+
+        Route::middleware('can:access-profile')->group(function () {
+            Route::get('/academic-records', 'academicRecords')->name('academic_records.index');
+        });
     });
     // Student Attendance (Using AttendanceController)
     Route::controller(AttendanceController::class)->group(function () {

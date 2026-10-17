@@ -132,6 +132,7 @@ class PermissionSeeder extends Seeder
             'delete roles',
             // Student ki naye permissions
             'access-profile',
+            'access-student-timetable',     // student portal: own class timetable (read-only)
             'access-assignments',
         ];
 
