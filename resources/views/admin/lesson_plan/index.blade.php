@@ -4,7 +4,6 @@
 <x-breadcrumb :items="[
     ['label' => 'Lesson Plan', 'url' => '#'],
     ['label' => 'Manage Lesson Plan', 'url' => route('lesson_plan.index')],
-    ['label' => 'Manage Lesson Plan', 'url' => '#'],
 ]" />
 
 <div class="card">

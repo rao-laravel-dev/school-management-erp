@@ -2778,3 +2778,31 @@ html.dark-theme .tt-card .tt-meta { color: #aab0b6; }
 html.dark-theme .tt-not-scheduled { background: rgb(255 255 255 / 5%) !important; }
 html.dark-theme .tt-actions a.btn { color: var(--bs-btn-color); }
 html.dark-theme .tt-actions a.btn:hover { color: var(--bs-btn-hover-color); }
+
+/* Dark theme: student admission accordion (create + edit) */
+html.dark-theme #admissionAccordion { --bs-accordion-bg: #12181a; --bs-accordion-color: #e4e5e6; --bs-accordion-btn-color: #e4e5e6; --bs-accordion-active-color: #fff; --bs-accordion-active-bg: rgb(255 255 255 / 12%); --bs-accordion-border-color: rgb(255 255 255 / 14%); }
+html.dark-theme #admissionAccordion .accordion-button { color: #e4e5e6; }
+html.dark-theme #admissionAccordion .accordion-button::after { filter: invert(1) grayscale(1) brightness(1.6); }
+html.dark-theme #admissionAccordion .form-control::placeholder { opacity: .7 !important; }
+html.dark-theme #admissionAccordion #admission_no.bg-white { background-color: #12181a !important; }
+
+/* Dark theme: lesson plan weekly schedule cards */
+html.dark-theme .lp-card { background: rgb(255 255 255 / 4%); border-top-color: rgb(255 255 255 / 12%); border-right-color: rgb(255 255 255 / 12%); border-bottom-color: rgb(255 255 255 / 12%); }
+html.dark-theme .lp-card .lp-subject { color: #e4e5e6; }
+html.dark-theme .lp-card .lp-meta { color: #aab0b6; }
+html.dark-theme .lp-not-scheduled { background: rgb(255 255 255 / 5%); }
+
+/* Dark theme: academic calendar (FullCalendar) */
+html.dark-theme #calendar { background: transparent; }
+html.dark-theme .fc { --fc-page-bg-color: #12181a; --fc-neutral-bg-color: rgb(255 255 255 / 8%); --fc-list-event-hover-bg-color: rgb(255 255 255 / 8%); --fc-today-bg-color: rgb(255 220 40 / 12%); --fc-border-color: rgb(255 255 255 / 12%); }
+html.dark-theme .fc .fc-toolbar-title { color: #e4e5e6; }
+html.dark-theme .fc .fc-button-primary { border-color: rgb(255 255 255 / 20%); }
+
+/* Dark theme: native date/time picker icon visible */
+html.dark-theme input[type="date"],
+html.dark-theme input[type="datetime-local"],
+html.dark-theme input[type="time"],
+html.dark-theme input[type="month"] { color-scheme: dark; }
+
+/* Dark theme: bg-secondary-subtle + text-secondary badges (MarkSheet roll no, Leave badges) */
+html.dark-theme .bg-secondary-subtle.text-secondary { background-color: rgb(255 255 255 / 15%) !important; color: #e4e5e6 !important; border-color: rgb(255 255 255 / 14%); }
