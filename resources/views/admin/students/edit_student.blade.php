@@ -424,6 +424,102 @@
 
             </div> {{-- /accordion --}}
 
+            {{-- FEE CONCESSION / DISCOUNT (read-only on edit; own ids so the legacy create-page JS above can never touch it) --}}
+            <div class="card mt-3" id="edit_fee_concession_card">
+                <div class="card-header">
+                    <i class="bx bx-discount me-2"></i> Fee Concession / Discount <span class="badge bg-secondary-subtle text-secondary ms-1">Read only</span>
+                </div>
+                <div class="card-body">
+                    @if($discounts->isEmpty())
+                        <p class="text-muted mb-0">No discount applied.</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Policy</th>
+                                        <th>Type</th>
+                                        <th>Fee Type</th>
+                                        <th class="text-end">Value</th>
+                                        <th>Remarks</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($discounts as $discount)
+                                    @php $policy = $discount->discountPolicy; @endphp
+                                    <tr>
+                                        <td>{{ optional($policy)->name ?: '-' }}</td>
+                                        <td><span class="badge bg-secondary-subtle text-secondary text-uppercase">{{ optional($policy)->policy_type ?: '-' }}</span></td>
+                                        <td>{{ optional(optional($policy)->feeType)->name ?: 'All Fees' }}</td>
+                                        <td class="text-end">
+                                            @if($policy)
+                                                {{ $policy->discount_type === 'percentage' ? rtrim(rtrim(number_format($policy->discount_value, 2), '0'), '.') . '%' : 'Rs ' . number_format($policy->discount_value) }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td>{{ $discount->remarks ?: '-' }}</td>
+                                        <td><span class="badge {{ $discount->status ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }}">{{ $discount->status ? 'Active' : 'Inactive' }}</span></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- FEE STRUCTURE ALLOCATION (read-only on edit) --}}
+            <div class="card mt-3" id="edit_fee_allocation_card">
+                <div class="card-header">
+                    <i class="bx bx-money me-2"></i> Fee Structure Allocation <span class="badge bg-secondary-subtle text-secondary ms-1">Read only</span>
+                </div>
+                <div class="card-body">
+                    @if($studentFees->isEmpty())
+                        <p class="text-muted mb-0">No fees allocated.</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Fee Head</th>
+                                        <th class="text-end">Amount</th>
+                                        <th class="text-end">Discount</th>
+                                        <th class="text-end">Payable</th>
+                                        <th class="text-end">Paid</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($studentFees as $fee)
+                                    @php
+                                        $feeBadge = match ($fee->status) {
+                                            'paid' => 'bg-success-subtle text-success',
+                                            'partial' => 'bg-warning-subtle text-warning',
+                                            'excluded' => 'bg-secondary-subtle text-secondary',
+                                            default => 'bg-danger-subtle text-danger',
+                                        };
+                                    @endphp
+                                    <tr>
+                                        <td>{{ optional($fee->feeType)->name ?: '-' }}</td>
+                                        <td class="text-end">{{ number_format($fee->amount, 2) }}</td>
+                                        <td class="text-end">{{ number_format($fee->discount, 2) }}</td>
+                                        <td class="text-end">{{ number_format(max(0, $fee->amount - $fee->discount), 2) }}</td>
+                                        <td class="text-end">{{ number_format($fee->paid_amount, 2) }}</td>
+                                        <td>{{ $fee->due_date ? \Carbon\Carbon::parse($fee->due_date)->format('d M Y') : '-' }}</td>
+                                        <td><span class="badge {{ $feeBadge }} text-capitalize">{{ $fee->status }}</span></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                    <p class="small text-muted mt-2 mb-0">Discounts and fees are not editable here.</p>
+                </div>
+            </div>
+
             <div class="mt-3 text-end">
                 <button type="submit" class="btn btn-success btn-sm px-4">
                     <i class="bx bx-save me-1"></i> Update Student Profile

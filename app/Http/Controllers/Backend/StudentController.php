@@ -845,6 +845,10 @@ class StudentController extends Controller
 
 
 
+        // Read-only fee cards on edit (existing discounts + allocated fees); update does not touch them
+        $discounts = StudentDiscount::with('discountPolicy.feeType')->where('student_id', $student->id)->get();
+        $studentFees = StudentFees::with('feeType')->where('student_id', $student->id)->orderBy('due_date')->get();
+
         return view('admin.students.edit_student', compact(
             'student',
             'classes',
@@ -852,7 +856,9 @@ class StudentController extends Controller
             'groups',
             'academic_years',
             'categories',
-            'houses'
+            'houses',
+            'discounts',
+            'studentFees'
         ));
     }
 

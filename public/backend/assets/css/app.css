@@ -2785,6 +2785,8 @@ html.dark-theme #admissionAccordion .accordion-button { color: #e4e5e6; }
 html.dark-theme #admissionAccordion .accordion-button::after { filter: invert(1) grayscale(1) brightness(1.6); }
 html.dark-theme #admissionAccordion .form-control::placeholder { opacity: .7 !important; }
 html.dark-theme #admissionAccordion #admission_no.bg-white { background-color: #12181a !important; }
+html.dark-theme #discount_card .card-header.bg-white,
+html.dark-theme #fee_structure_card .card-header.bg-white { background-color: transparent !important; }
 
 /* Dark theme: lesson plan weekly schedule cards */
 html.dark-theme .lp-card { background: rgb(255 255 255 / 4%); border-top-color: rgb(255 255 255 / 12%); border-right-color: rgb(255 255 255 / 12%); border-bottom-color: rgb(255 255 255 / 12%); }
