@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -60,6 +61,45 @@ class AppServiceProvider extends ServiceProvider
                 // 5. Layout pass karein
                 $view->with('current_layout', $layout);
             }
+        });
+
+        // Student header "Class Teacher" badge: every student page gets it (dashboard/myteacher already pass their own)
+        View::composer('student.body.header', function ($view) {
+            if (array_key_exists('assignedTeacher', $view->getData()) || !auth()->check()) {
+                return;
+            }
+
+            $assignedTeacher = null;
+            $student = auth()->user()->studentProfile;
+
+            if ($student) {
+                // Same rule as StudentProfileController: latest active enrollment + its academic year
+                $enrollment = DB::table('enrollments')
+                    ->where('student_id', $student->id)
+                    ->where('enroll_status', 1)
+                    ->orderByDesc('id')
+                    ->first();
+
+                if ($enrollment && !empty($enrollment->class_id) && !empty($enrollment->section_id)) {
+                    $assignedTeacher = DB::table('teacher_assignments')
+                        ->join('teachers', 'teacher_assignments.teacher_id', '=', 'teachers.id')
+                        ->join('school_class', 'teacher_assignments.class_id', '=', 'school_class.id')
+                        ->join('sections', 'teacher_assignments.section_id', '=', 'sections.id')
+                        ->where('teacher_assignments.class_id', $enrollment->class_id)
+                        ->where('teacher_assignments.section_id', $enrollment->section_id)
+                        ->where('teacher_assignments.academic_year_id', $enrollment->academic_year_id)
+                        ->select(
+                            'teachers.first_name',
+                            'teachers.last_name',
+                            'teachers.photo',
+                            'school_class.name as class_name',
+                            'sections.name as section_name'
+                        )
+                        ->first();
+                }
+            }
+
+            $view->with('assignedTeacher', $assignedTeacher);
         });
     }
 }

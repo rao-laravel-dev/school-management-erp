@@ -41,7 +41,7 @@
                     
                     <div class="text-start" style="line-height: 1.2;">
                         <span class="d-block text-uppercase text-primary fw-bold" style="font-size: 9px; letter-spacing: 0.5px;">Class Teacher</span>
-                        <span class="fw-bold text-dark text-truncate d-inline-block" style="font-size: 13px; max-width: 130px;">
+                        <span class="fw-bold text-dark dark-readable text-truncate d-inline-block" style="font-size: 13px; max-width: 130px;">
                             {{ ucfirst($assignedTeacher->first_name) }} {{ ucfirst($assignedTeacher->last_name) }}
                         </span>
                     </div>
@@ -166,10 +166,10 @@
 					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('student.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href=""><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('student.change.password') }}"><i
 								class="bx bx-cog fs-5"></i><span>Change Password</span></a>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href=""><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('student.dashboard') }}"><i
 								class="bx bx-home-circle fs-5"></i><span>Dashboard</span></a>
 					</li>
 					<li>

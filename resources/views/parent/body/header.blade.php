@@ -659,10 +659,10 @@
 					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('parent.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href=""><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('parent.change.password') }}"><i
 								class="bx bx-cog fs-5"></i><span>Change Password</span></a>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href=""><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('parent.dashboard') }}"><i
 								class="bx bx-home-circle fs-5"></i><span>Dashboard</span></a>
 					</li>
 					<li>

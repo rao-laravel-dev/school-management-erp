@@ -238,6 +238,9 @@ Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->g
         Route::get('/student-dashboard/{id}', 'StudentDashboard')->name('students.dashboard');
         Route::get('/student-details/{id}', 'StudentDashboard')->name('students.details');
         Route::get('/logout', 'ParentLogout')->name('logout');
+        // Own account Change Password (same pattern as staff portals)
+        Route::get('/change/password', 'ParentChangePassword')->name('change.password');
+        Route::post('/password/update', 'ParentPasswordUpdate')->name('password.update');
         Route::get('/profile', 'ParentProfile')->name('profile');
         Route::post('/profile/update', 'ParentProfileUpdate')->name('profile.update');
         // UPDATED: Results (simple summary, not marksheet template)
@@ -261,6 +264,9 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         // UPDATED ROUTES: Results (simple summary, not marksheet template)
         Route::get('/results', 'resultIndex')->name('results.index');
         Route::get('/results/{result}', 'resultDetails')->name('results.details');
+        // Own account Change Password (same pattern as staff portals)
+        Route::get('/change/password', 'StudentChangePassword')->name('change.password');
+        Route::post('/password/update', 'StudentPasswordUpdate')->name('password.update');
     });
     // Student Attendance (Using AttendanceController)
     Route::controller(AttendanceController::class)->group(function () {

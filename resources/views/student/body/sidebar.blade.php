@@ -23,7 +23,7 @@
                 <div class="menu-title">My Profile</div>
             </a>
             <ul>
-                <li><a href="#"><i class='bx bx-radio-circle'></i>Personal Details</a></li>
+                <li><a href="{{ route('student.profile') }}"><i class='bx bx-radio-circle'></i>Personal Details</a></li>
                 <li><a href="#"><i class='bx bx-radio-circle'></i>Academic Records</a></li>
             </ul>
         </li>

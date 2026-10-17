@@ -30,6 +30,12 @@
 
                                         <h4>{{ $profileData->name }}</h4>
                                         <p class="text-secondary mb-1">{{ $profileData->username }}</p>
+                                        @if($profileData->studentProfile)
+                                        @php $stStatus = $profileData->studentProfile->status; @endphp
+                                        <p class="mb-1">
+                                            <span class="badge bg-{{ $stStatus == 1 ? 'success' : ($stStatus == 2 ? 'warning' : 'danger') }}">{{ $stStatus == 1 ? 'Active' : ($stStatus == 2 ? 'Pending' : 'Inactive') }}</span>
+                                        </p>
+                                        @endif
                                        
                                         <p class="text-secondary mb-1">Since {{ $profileData->created_at }}</p>
                                     </div>

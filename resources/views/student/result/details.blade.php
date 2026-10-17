@@ -36,7 +36,7 @@
                     <i class="bx bx-user fs-1"></i>
                 </div>
                 @endif
-                <div class="fw-bold mt-2 text-dark">{{ $enrollment->student->full_name ?? '-' }}</div>
+                <div class="fw-bold mt-2 text-dark dark-readable">{{ $enrollment->student->full_name ?? '-' }}</div>
                 <div class="text-muted small">Roll No: <strong>{{ $enrollment->roll_no ?? '-' }}</strong></div>
             </div>
 
@@ -45,15 +45,15 @@
                 <div class="row g-3">
                     <div class="col-md-4 col-6">
                         <span class="text-muted small d-block">Student Name</span>
-                        <span class="fw-semibold text-dark">{{ $enrollment->student->full_name ?? '-' }}</span>
+                        <span class="fw-semibold text-dark dark-readable">{{ $enrollment->student->full_name ?? '-' }}</span>
                     </div>
                     <div class="col-md-4 col-6">
                         <span class="text-muted small d-block">Father's Name</span>
-                        <span class="fw-semibold text-dark">{{ $fatherName }}</span>
+                        <span class="fw-semibold text-dark dark-readable">{{ $fatherName }}</span>
                     </div>
                     <div class="col-md-4 col-6">
                         <span class="text-muted small d-block">Admission No</span>
-                        <span class="fw-semibold text-dark">{{ $admissionNo }}</span>
+                        <span class="fw-semibold text-dark dark-readable">{{ $admissionNo }}</span>
                     </div>
                     <div class="col-md-4 col-6">
                         <span class="text-muted small d-block">Exam Name</span>
@@ -61,7 +61,7 @@
                     </div>
                     <div class="col-md-4 col-6">
                         <span class="text-muted small d-block">Class & Section</span>
-                        <span class="fw-semibold text-dark">
+                        <span class="fw-semibold text-dark dark-readable">
                             {{ $enrollment->schoolClass->name ?? '-' }} {{ $enrollment->section->name ?? '' }}
                         </span>
                     </div>
@@ -81,7 +81,7 @@
                 <div class="row text-center g-2">
                     <div class="col-3">
                         <div class="text-muted small">Total Marks</div>
-                        <div class="fw-bold fs-5 text-dark">{{ $result->total_marks }}</div>
+                        <div class="fw-bold fs-5 text-dark dark-readable">{{ $result->total_marks }}</div>
                     </div>
                     <div class="col-3">
                         <div class="text-muted small">Obtained</div>

@@ -2806,3 +2806,6 @@ html.dark-theme input[type="month"] { color-scheme: dark; }
 
 /* Dark theme: bg-secondary-subtle + text-secondary badges (MarkSheet roll no, Leave badges) */
 html.dark-theme .bg-secondary-subtle.text-secondary { background-color: rgb(255 255 255 / 15%) !important; color: #e4e5e6 !important; border-color: rgb(255 255 255 / 14%); }
+
+/* Dark theme: student My Subjects code badge (bg-light-warning + text-danger was red on red) */
+html.dark-theme .badge.bg-light-warning.text-danger { color: #ffd27a !important; }

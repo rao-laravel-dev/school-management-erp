@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\Attendance;
 use App\Models\ClassSubject;
 use App\Models\Exam;
@@ -12,6 +13,7 @@ use App\Models\MarksheetTemplate;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\StaffSelfProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -162,6 +164,32 @@ return view('parent.student_details', compact(
 
         // view me data send
         return view('parent.parents_profile', compact('profileData'));
+    }
+    // End Method
+
+    // Change Password page (own account only)
+    public function ParentChangePassword()
+    {
+        return view('staff_profile.change_password', [
+            'updateRoute' => route('parent.password.update'),
+        ]);
+    }
+    // End Method
+
+    // Password Update (own account only), then logout like the staff pages
+    public function ParentPasswordUpdate(StaffPasswordUpdateRequest $request, StaffSelfProfileService $service)
+    {
+        $service->updatePassword(Auth::user(), $request->validated()['password']);
+
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/parent/login')->with([
+            'message' => 'Password changed successfully. Please login with your new password.',
+            'alert-type' => 'success'
+        ]);
     }
     // End Method
 

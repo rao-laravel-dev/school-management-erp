@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Students;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\Enrollment;
 use App\Models\ExamSchedule;
 use App\Models\MarkSheet;
@@ -11,6 +12,7 @@ use App\Models\Result;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\StaffSelfProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +38,8 @@ class StudentProfileController extends Controller
 
         // 🌟 NAYA CODE: Enrollment aur Assigned Teacher ka data topbar ke liye fetch karna
         $assignedTeacher = null;
-        $enrollment = DB::table('enrollments')->where('student_id', $student->id)->first();
+        // Latest active enrollment (same rule as header composer + results)
+        $enrollment = DB::table('enrollments')->where('student_id', $student->id)->where('enroll_status', 1)->orderByDesc('id')->first();
 
         if ($enrollment && !empty($enrollment->class_id) && !empty($enrollment->section_id)) {
             $assignedTeacher = DB::table('teacher_assignments')
@@ -45,6 +48,7 @@ class StudentProfileController extends Controller
                 ->join('sections', 'teacher_assignments.section_id', '=', 'sections.id')
                 ->where('teacher_assignments.class_id', $enrollment->class_id)
                 ->where('teacher_assignments.section_id', $enrollment->section_id)
+                ->where('teacher_assignments.academic_year_id', $enrollment->academic_year_id)
                 ->select(
                     'teachers.first_name',
                     'teachers.last_name',
@@ -156,8 +160,11 @@ class StudentProfileController extends Controller
         }
 
         // 2. Enrollment table se student ki current class_id aur section_id nikalna
+        // Latest active enrollment (same rule as dashboard + header composer)
         $enrollment = DB::table('enrollments')
             ->where('student_id', $studentProfile->id)
+            ->where('enroll_status', 1)
+            ->orderByDesc('id')
             ->first();
 
         // Agar student enrolled nahi hai kisi class mein
@@ -173,6 +180,7 @@ class StudentProfileController extends Controller
             ->join('sections', 'teacher_assignments.section_id', '=', 'sections.id')
             ->where('teacher_assignments.class_id', $enrollment->class_id)
             ->where('teacher_assignments.section_id', $enrollment->section_id)
+            ->where('teacher_assignments.academic_year_id', $enrollment->academic_year_id)
             ->select(
                 'teachers.first_name',
                 'teachers.last_name',
@@ -305,6 +313,32 @@ class StudentProfileController extends Controller
             'fatherName',
             'admissionNo'
         ));
+    }
+    // End Method
+
+    // Change Password page (own account only)
+    public function StudentChangePassword()
+    {
+        return view('staff_profile.change_password', [
+            'updateRoute' => route('student.password.update'),
+        ]);
+    }
+    // End Method
+
+    // Password Update (own account only), then logout like the staff pages
+    public function StudentPasswordUpdate(StaffPasswordUpdateRequest $request, StaffSelfProfileService $service)
+    {
+        $service->updatePassword(Auth::user(), $request->validated()['password']);
+
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('students.login')->with([
+            'message' => 'Password changed successfully. Please login with your new password.',
+            'alert-type' => 'success'
+        ]);
     }
     // End Method
 
