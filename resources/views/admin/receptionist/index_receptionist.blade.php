@@ -66,19 +66,19 @@
 <div class="row">
     <div class="col-xl">
         <div class="card radius-10">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap bg-transparent">
-                <h5 class="mb-0 text-primary">Receptionist Directory</h5>
+            <div class="card-header directory-header d-flex justify-content-between align-items-center bg-transparent">
+                <h5 class="directory-title mb-0 text-primary" title="Receptionist Directory">Receptionist Directory</h5>
 
-                <div class="d-flex align-items-center gap-2">
+                <div class="directory-actions d-flex align-items-center gap-2">
                     {{-- Trash button pe permission check --}}
                     @can('manage-receptionist')
-                    <a href="{{ route('receptionist.trash') }}" class="btn btn-danger btn-sm">
-                        <i class="bx bx-trash"></i> Trash Bin
+                    <a href="{{ route('receptionist.trash') }}" class="btn btn-danger btn-sm" title="Trash Bin" aria-label="Trash Bin">
+                        <i class="bx bx-trash"></i> <span class="directory-btn-text">Trash Bin</span>
                     </a>
                     @endcan
 
-                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge">
-                        Records: {{ $receptionists->count() }}
+                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge" title="Records">
+                        <span class="directory-badge-label">Records: </span>{{ $receptionists->count() }}
                     </span>
                 </div>
             </div>

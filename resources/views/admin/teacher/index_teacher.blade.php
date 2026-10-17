@@ -76,22 +76,22 @@
     <div class="col-xl">
         <div class="card radius-10">
             {{-- Updated Header with Buttons --}}
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+            <div class="card-header directory-header d-flex justify-content-between align-items-center bg-transparent">
                 {{-- Title --}}
-                <h5 class="mb-0 text-primary">Teachers Directory</h5>
+                <h5 class="directory-title mb-0 text-primary" title="Teachers Directory">Teachers Directory</h5>
 
                 {{-- Right Side Actions --}}
-                <div class="d-flex gap-2 align-items-center">
+                <div class="directory-actions d-flex gap-2 align-items-center">
                     {{-- Trash Bin Button --}}
                     @can('manage-teacher')
-                    <a href="{{ route('teacher.trash') }}" class="btn btn-danger btn-sm">
-                        <i class="bx bx-trash"></i> Trash Bin
+                    <a href="{{ route('teacher.trash') }}" class="btn btn-danger btn-sm" title="Trash Bin" aria-label="Trash Bin">
+                        <i class="bx bx-trash"></i> <span class="directory-btn-text">Trash Bin</span>
                     </a>
                     @endcan
 
                     {{-- Record Badge --}}
-                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge">
-                        Records: {{ $teachers->count() }}
+                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge" title="Records">
+                        <span class="directory-badge-label">Records: </span>{{ $teachers->count() }}
                     </span>
                 </div>
             </div>

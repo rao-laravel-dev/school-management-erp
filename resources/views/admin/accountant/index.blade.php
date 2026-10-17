@@ -81,18 +81,18 @@
 <div class="row">
     <div class="col-xl">
         <div class="card radius-10">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-                <h5 class="mb-0 text-primary">Accountant Directory</h5>
+            <div class="card-header directory-header d-flex justify-content-between align-items-center bg-transparent">
+                <h5 class="directory-title mb-0 text-primary" title="Accountant Directory">Accountant Directory</h5>
 
-                <div class="d-flex gap-2 align-items-center">
+                <div class="directory-actions d-flex gap-2 align-items-center">
                     @can('manage-accountant')
-                    <a href="{{ route('accountant.trash') }}" class="btn btn-danger btn-sm">
-                        <i class="bx bx-trash"></i> Trash Bin
+                    <a href="{{ route('accountant.trash') }}" class="btn btn-danger btn-sm" title="Trash Bin" aria-label="Trash Bin">
+                        <i class="bx bx-trash"></i> <span class="directory-btn-text">Trash Bin</span>
                     </a>
                     @endcan
 
-                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge">
-                        Records: {{ $accountants->count() }}
+                    <span class="badge bg-primary m-0 align-self-center" id="directory-badge" title="Records">
+                        <span class="directory-badge-label">Records: </span>{{ $accountants->count() }}
                     </span>
                 </div>
             </div>

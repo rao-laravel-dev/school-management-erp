@@ -2723,7 +2723,19 @@ input::placeholder {
     }
     .btn-primary { width: 100%; display: block; font-size: 14px; padding: 8px !important; }
 
-    
+
 }
 
+/* Directory card header (staff index pages): one row at every width */
+.directory-header { flex-wrap: nowrap; gap: .5rem; }
+.directory-header .directory-title { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.directory-header .directory-actions { flex-shrink: 0; }
+.directory-header .directory-actions .btn,
+.directory-header .directory-actions .badge { white-space: nowrap; }
+@media (max-width: 449.98px) {
+    .directory-header { padding-left: .75rem; padding-right: .75rem; }
+    .directory-header .directory-title { font-size: clamp(.85rem, 4.2vw, 1.25rem); }
+    .directory-header .directory-btn-text,
+    .directory-header .directory-badge-label { display: none; }
+}
 
