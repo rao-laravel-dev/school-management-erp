@@ -273,6 +273,10 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
             Route::get('/class-schedule/get-data', 'myClassScheduleData')->name('class_schedule.get_data');
         });
 
+        Route::middleware('can:access-student-homework')->group(function () {
+            Route::get('/homework', 'myHomework')->name('homework.index');
+        });
+
         Route::middleware('can:access-profile')->group(function () {
             Route::get('/academic-records', 'academicRecords')->name('academic_records.index');
         });

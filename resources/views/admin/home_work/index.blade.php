@@ -58,7 +58,7 @@
                                 </td>
                                 <td>
                                     @if($hw->attachment)
-                                    <a href="{{ asset($hw->attachment) }}" target="_blank" class="btn btn-outline-primary btn-sm">View</a>
+                                    <a href="{{ $hw->attachment_url }}" target="_blank" class="btn btn-outline-primary btn-sm">View</a>
                                     @else
                                     -
                                     @endif
@@ -85,7 +85,7 @@
                                         data-subject="{{ $hw->subject->name ?? '-' }}"
                                         data-homework-date="{{ optional($hw->homework_date)->format('d-M-Y') ?? '-' }}"
                                         data-due-date="{{ optional($hw->due_date)->format('d-M-Y') ?? '-' }}"
-                                        data-attachment="{{ $hw->attachment ? asset($hw->attachment) : '' }}"
+                                        data-attachment="{{ $hw->attachment_url }}"
                                         data-assigned-by="{{ $hw->createdBy->name ?? '-' }}"
                                         data-status="{{ $hw->status ? 'Active' : 'Inactive' }}"
                                         data-bs-toggle="modal" data-bs-target="#viewHomeworkModal">

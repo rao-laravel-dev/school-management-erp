@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class HomeWork extends Model
 {
@@ -28,6 +29,18 @@ class HomeWork extends Model
         'due_date'      => 'date',
         'status'        => 'integer',
     ];
+
+    // Images are saved on the public disk (storage/app/public) by ImageService; other files go to public/uploads
+    public function getAttachmentUrlAttribute(): ?string
+    {
+        if (!$this->attachment) {
+            return null;
+        }
+
+        return Storage::disk('public')->exists($this->attachment)
+            ? asset('storage/' . $this->attachment)
+            : asset($this->attachment);
+    }
 
     public function class()
     {

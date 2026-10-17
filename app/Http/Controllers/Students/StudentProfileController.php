@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Students;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
+use App\Models\ClassSubject;
 use App\Models\Enrollment;
 use App\Models\ExamSchedule;
+use App\Models\HomeWork;
 use App\Models\MarkSheet;
 use App\Models\Result;
 use App\Models\Subject;
@@ -14,6 +16,7 @@ use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
 use App\Services\StudentClassSchedule;
+use App\Services\StudentHomework;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -367,6 +370,20 @@ class StudentProfileController extends Controller
         }
 
         return response()->json(StudentClassSchedule::forStudent($student->id, $request->week));
+    }
+    // End Method
+
+    // My Homework page (read-only): homework of own class/section/subjects only, no ids from request
+    public function myHomework()
+    {
+        $student = Auth::user()->studentProfile;
+        abort_if(!$student, 404);
+
+        // Query shared with the parent child Homework page (latest active enrollment, class subjects, academic year)
+        return view('student.homework.index', StudentHomework::forStudent($student->id) + [
+            'homeworkTitle' => 'My Homework',
+            'dashboardUrl'  => route('student.dashboard'),
+        ]);
     }
     // End Method
 

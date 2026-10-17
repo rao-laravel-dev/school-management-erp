@@ -67,8 +67,9 @@
                 <div class="menu-title">Assignments</div>
             </a>
             <ul>
-                <li><a href="#"><i class='bx bx-radio-circle'></i>Pending Assignments</a></li>
-                <li><a href="#"><i class='bx bx-radio-circle'></i>Submitted Work</a></li>
+                @can('access-student-homework')
+                <li><a href="{{ route('student.homework.index') }}"><i class='bx bx-radio-circle'></i>My Homework</a></li>
+                @endcan
             </ul>
         </li>
         @endcan

@@ -2811,3 +2811,24 @@ html.dark-theme .bg-secondary-subtle.text-secondary { background-color: rgb(255 
 
 /* Dark theme: student My Subjects code badge (bg-light-warning + text-danger was red on red) */
 html.dark-theme .badge.bg-light-warning.text-danger { color: #ffd27a !important; }
+
+/* Homework cards (student My Homework + parent child Homework) and parent active child header */
+.hw-card { border: 1px solid #e5e7eb; border-left: 4px solid #6c757d; border-radius: 8px; }
+.hw-card.hw-upcoming { border-left-color: #198754; }
+.hw-card.hw-today { border-left-color: #ffc107; }
+.hw-card.hw-past { border-left-color: #dc3545; }
+.hw-card .hw-title { font-weight: 600; overflow-wrap: break-word; }
+.hw-card .hw-desc { color: #6c757d; overflow-wrap: break-word; }
+.hw-card .hw-meta { color: #6c757d; }
+.hw-card .hw-meta i { font-size: 14px; vertical-align: middle; }
+.child-switcher-name { overflow-wrap: break-word; }
+@media (max-width: 575px) {
+    .child-switcher .child-switcher-actions { margin-left: 0 !important; width: 100%; flex-wrap: wrap; }
+}
+html.dark-theme .hw-card { background: rgb(255 255 255 / 4%); border-top-color: rgb(255 255 255 / 12%); border-right-color: rgb(255 255 255 / 12%); border-bottom-color: rgb(255 255 255 / 12%); }
+html.dark-theme .hw-card .hw-subject,
+html.dark-theme .hw-card .hw-title,
+html.dark-theme .child-switcher .child-switcher-name { color: #e4e5e6; }
+html.dark-theme .hw-card .hw-desc,
+html.dark-theme .hw-card .hw-meta,
+html.dark-theme .child-switcher .child-switcher-class { color: #aab0b6 !important; }
