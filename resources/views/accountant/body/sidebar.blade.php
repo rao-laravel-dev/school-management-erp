@@ -39,9 +39,11 @@
                 @can('access-discount-policies')
                 <li><a href="{{ route('discount_policies.index') }}"><i class='bx bx-radio-circle'></i>Discount Policies</a></li>
                 @endcan
+                {{-- Fine Policies CRUD is not built yet (FinePolicyController is empty) - link hidden
                 @can('access-fine-policies')
                 <li><a href="{{ route('fine_policies.index') }}"><i class='bx bx-radio-circle'></i>Fine Policies</a></li>
                 @endcan
+                --}}
             </ul>
         </li>
         @endcanany
