@@ -14,7 +14,7 @@
         <span class="text-success fw-bold">{{ $accountant->accountant_id ?? 'N/A' }}</span>
     </td>
     <td>
-        <div class="text-dark">
+        <div class="text-dark dark-readable">
             <i class="bx bx-phone"></i> {{ $accountant->phone }}
         </div>
     </td>

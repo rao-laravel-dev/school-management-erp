@@ -17,7 +17,7 @@
         <span class="text-success fw-bold">{{ $librarian->librarian_id ?: '-' }}</span>
     </td>
     <td>
-        <div class="text-dark">
+        <div class="text-dark dark-readable">
             <i class="bx bx-phone"></i> {{ $librarian->phone ?: '-' }}
         </div>
     </td>

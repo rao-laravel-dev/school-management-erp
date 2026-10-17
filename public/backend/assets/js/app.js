@@ -23,14 +23,19 @@ $(function() {
 
 
 
+		// Saved dark theme (head script ne html par lagayi) ke saath icon sync
+		$("html").hasClass("dark-theme") && $(".dark-mode-icon i").attr("class", "bx bx-sun"),
+
 		$(".dark-mode").on("click", function() {
 
 			if($(".dark-mode-icon i").attr("class") == 'bx bx-sun') {
 				$(".dark-mode-icon i").attr("class", "bx bx-moon");
-				$("html").attr("class", "light-theme")
+				$("html").attr("class", "light-theme");
+				try { localStorage.setItem('smartschool-theme', 'light-theme'); } catch (e) {}
 			} else {
 				$(".dark-mode-icon i").attr("class", "bx bx-sun");
-				$("html").attr("class", "dark-theme")
+				$("html").attr("class", "dark-theme");
+				try { localStorage.setItem('smartschool-theme', 'dark-theme'); } catch (e) {}
 			}
 
 		}), 

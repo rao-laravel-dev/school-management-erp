@@ -105,7 +105,7 @@
 
                                 <!-- Subject Name: Model Attribute getter ki wajah se Ucwords hoga -->
                                 <td>
-                                    <div class="fw-bold text-dark">{{ $item->name }}</div>
+                                    <div class="fw-bold text-dark dark-readable">{{ $item->name }}</div>
                                 </td>
 
                                 <!-- Subject Code: Model Attribute getter ki wajah se auto-uppercase hoga -->

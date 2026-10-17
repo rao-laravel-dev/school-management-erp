@@ -96,7 +96,7 @@
                             <tr>
                                 <td>{{ $key + 1 }}</td>
                                 <td>
-                                    <div class="fw-bold text-dark">{{ $item->name }}</div>
+                                    <div class="fw-bold text-dark dark-readable">{{ $item->name }}</div>
                                 </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">

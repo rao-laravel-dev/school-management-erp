@@ -103,7 +103,7 @@
     <div class="col-xl-4 col-lg-5">
         <div class="card radius-10 border-top border-0 border-4 border-success" id="form-card-wrapper">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 card-title-text fw-bold text-dark">Add New Session</h5>
+                <h5 class="mb-0 card-title-text fw-bold text-dark dark-readable">Add New Session</h5>
                 <p class="mb-0 small text-muted card-subtitle-text">Configure a new active school cycle</p>
             </div>
 
@@ -168,7 +168,7 @@
     <div class="col-xl-8 col-lg-7">
         <div class="card radius-10">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
-                <h5 class="mb-0 fw-bold text-dark">Configured Cycles</h5>
+                <h5 class="mb-0 fw-bold text-dark dark-readable">Configured Cycles</h5>
                 <span class="badge bg-light-primary text-primary px-3 py-2 radius-30 font-13 fw-semibold">Records: {{ $academic_years->count() }}</span>
             </div>
             <div class="card-body">
@@ -189,7 +189,7 @@
                             <tr id="row-{{ $item->id }}">
                                 <td>{{ $key + 1 }}</td>
                                 <td>
-                                    <div class="fw-bold text-dark font-14">{{ $item->name }}</div>
+                                    <div class="fw-bold text-dark dark-readable font-14">{{ $item->name }}</div>
                                 </td>
                                 <td>
                                     @if($item->start_date && $item->end_date)

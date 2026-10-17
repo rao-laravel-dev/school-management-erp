@@ -64,7 +64,7 @@
                         <div class="row">
                             @foreach($subjects as $subject)
                             <div class="col-xl-2 col-md-3 col-sm-6 mb-3">
-                                <label class="fw-normal text-dark" style="cursor: pointer;">
+                                <label class="fw-normal text-dark dark-readable" style="cursor: pointer;">
                                     <input type="checkbox" 
                                            class="subject-checkbox @error('subject_ids') is-invalid @enderror"
                                            name="subject_ids[]"

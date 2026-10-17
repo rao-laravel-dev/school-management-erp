@@ -2755,3 +2755,26 @@ input::placeholder {
 .staff-detail .staff-detail-row { display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: .5rem; font-size: .875em; }
 .staff-detail .staff-detail-row > strong { margin-left: auto; text-align: right; }
 .staff-detail .staff-detail-total { margin-top: .25rem; padding-top: .25rem; border-top: 1px solid rgba(127, 127, 127, .35); }
+
+
+/* Compact topbar on phones (theme toggle visible down to 320px) */
+@media (max-width: 575.98px) {
+    .topbar .navbar { padding-left: .75rem; padding-right: .75rem; }
+    .topbar .navbar.gap-3 { gap: .5rem !important; }
+    .topbar .navbar .navbar-nav .nav-link { width: 34px; height: 34px; font-size: 20px; }
+    .topbar .user-box.px-3 { padding-left: .5rem !important; padding-right: .5rem !important; }
+}
+
+/* Plain text-dark text that must stay readable in dark theme (add class dark-readable) */
+html.dark-theme .dark-readable.text-dark { color: #e4e5e6 !important; }
+
+/* Dark theme: bg-light badges/text and timetable period cards */
+html.dark-theme .bg-light.text-dark,
+html.dark-theme .bg-light-dark.text-dark { color: #e4e5e6 !important; }
+html.dark-theme .badge.bg-light-dark { background-color: rgb(255 255 255 / 15%); }
+html.dark-theme .tt-card { background: rgb(255 255 255 / 4%); border-top-color: rgb(255 255 255 / 12%); border-right-color: rgb(255 255 255 / 12%); border-bottom-color: rgb(255 255 255 / 12%); }
+html.dark-theme .tt-card .tt-subject { color: #e4e5e6; }
+html.dark-theme .tt-card .tt-meta { color: #aab0b6; }
+html.dark-theme .tt-not-scheduled { background: rgb(255 255 255 / 5%) !important; }
+html.dark-theme .tt-actions a.btn { color: var(--bs-btn-color); }
+html.dark-theme .tt-actions a.btn:hover { color: var(--bs-btn-hover-color); }

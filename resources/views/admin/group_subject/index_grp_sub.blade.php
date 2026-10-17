@@ -99,7 +99,7 @@
         <td>{{ $key + 1 }}</td>
 
         <td>
-            <div><span class="fw-bold text-dark">{{ $item->name }}</span></div>
+            <div><span class="fw-bold text-dark dark-readable">{{ $item->name }}</span></div>
             @if($item->group_code)
                 <small class="text-muted d-block">Code: {{ $item->group_code }}</small>
             @endif

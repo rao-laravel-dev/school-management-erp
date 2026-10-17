@@ -583,7 +583,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><span class="fw-bold text-dark">Tuition Fee</span></td>
+                            <td><span class="fw-bold text-dark dark-readable">Tuition Fee</span></td>
                             <td><span class="badge bg-success">Monthly</span></td>
                             <td class="text-end fw-bold">--- (Pending Fee CRUD)</td>
                         </tr>

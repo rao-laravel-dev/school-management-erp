@@ -59,7 +59,7 @@
 							</li>
 						</ul>
 					</li>
-					<li class="nav-item dark-mode d-none d-sm-flex">
+					<li class="nav-item dark-mode d-flex">
 						<a class="nav-link dark-mode-icon" href="javascript:;"><i class='bx bx-moon'></i>
 						</a>
 					</li>

@@ -75,7 +75,7 @@
                                         value="{{ $subject->id }}"
                                         id="subject_{{ $subject->id }}"
                                         @checked(is_array(old('subject_ids')) && in_array($subject->id, old('subject_ids')))>
-                                    <label class="form-check-label fw-bold text-dark ms-1" for="subject_{{ $subject->id }}" style="cursor: pointer;">
+                                    <label class="form-check-label fw-bold text-dark dark-readable ms-1" for="subject_{{ $subject->id }}" style="cursor: pointer;">
                                         {{ $subject->name }}
                                         <span class="badge bg-secondary font-12 ms-1 text-uppercase">{{ $subject->type }}</span>
                                     </label>

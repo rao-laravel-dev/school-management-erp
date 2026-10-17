@@ -21,7 +21,7 @@
     </td>
 
     <td>
-        <div class="text-dark fw-bold">
+        <div class="text-dark fw-bold dark-readable">
             <i class="bx bx-phone"></i> {{ $enrollment->student->parent->father_phone ?? 'N/A' }}
         </div>
     </td>

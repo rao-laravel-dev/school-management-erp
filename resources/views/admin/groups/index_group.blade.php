@@ -96,7 +96,7 @@
                             <tr>
                                 <td>{{ $key + 1 }}</td>
                                 <td>
-                                    <div class="fw-bold text-dark text-capitalize">{{ $item->name }}</div>
+                                    <div class="fw-bold text-dark dark-readable text-capitalize">{{ $item->name }}</div>
                                 </td>
                                 
                                 <td>

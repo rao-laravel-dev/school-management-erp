@@ -50,9 +50,9 @@
                 <small class="text-uppercase fw-bold text-warning">Parent Details</small>
                 <hr class="my-1">
                 <div class="row mt-1 small">
-                    <div class="col-6">Father: <strong class="text-dark">{{ $student->parent->father_name ?? 'N/A' }}</strong></div>
-                    <div class="col-6">CNIC: <strong class="text-dark">{{ $student->parent->father_cnic ?? 'N/A' }}</strong></div>
-                    <div class="col-12">Contact: <strong class="text-dark">{{ $student->parent->father_phone ?? 'N/A' }}</strong></div>
+                    <div class="col-6">Father: <strong class="text-dark dark-readable">{{ $student->parent->father_name ?? 'N/A' }}</strong></div>
+                    <div class="col-6">CNIC: <strong class="text-dark dark-readable">{{ $student->parent->father_cnic ?? 'N/A' }}</strong></div>
+                    <div class="col-12">Contact: <strong class="text-dark dark-readable">{{ $student->parent->father_phone ?? 'N/A' }}</strong></div>
                 </div>
             </div>
         </div>
