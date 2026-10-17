@@ -14,6 +14,8 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
+use App\Services\StudentClassSchedule;
+use App\Services\StudentHomework;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -127,6 +129,54 @@ return view('parent.student_details', compact(
 }
     // End Method
 
+
+    // Child of the logged-in parent (404 for anyone else's child); remembers it as the active child for the sidebar
+    private function findOwnChild($id)
+    {
+        $student = auth()->user()->parentProfile->students()->where('students.id', $id)->first();
+        abort_if(!$student, 404);
+
+        session(['active_student_id' => $student->id]);
+
+        return $student;
+    }
+
+    // Variables for the "active child + Switch Student" header (parent.partials.child_switcher)
+    private function childHeader($student, $switchRoute)
+    {
+        return [
+            'activeChild'      => $student,
+            'activeEnrollment' => StudentHomework::activeEnrollment($student->id), // same row the schedule / homework use
+            'siblings'         => auth()->user()->parentProfile->students()->get(),
+            'switchRoute'      => $switchRoute,
+        ];
+    }
+
+    // Class Schedule page of one child (read-only, child must belong to the logged-in parent)
+    public function childClassSchedule($id)
+    {
+        $student = $this->findOwnChild($id);
+
+        return view('student.class_schedule.index', [
+            'scheduleDataUrl'   => route('parent.students.class_schedule.get_data', ':id'),
+            'scheduleStudentId' => $student->id,
+            'scheduleTitle'     => $student->full_name . "'s Class Schedule",
+            'dashboardUrl'      => route('parent.students.dashboard', $student->id),
+        ] + $this->childHeader($student, 'parent.students.class_schedule.index'));
+    }
+    // End Method
+
+    // AJAX: weekly timetable of one child (same ownership check)
+    public function childClassScheduleData(Request $request, $id)
+    {
+        $request->validate(['week' => 'nullable|date']);
+
+        $student = auth()->user()->parentProfile->students()->where('students.id', $id)->first();
+        abort_if(!$student, 404);
+
+        return response()->json(StudentClassSchedule::forStudent($student->id, $request->week));
+    }
+    // End Method
 
     // Logout
     public function ParentLogout(Request $request)

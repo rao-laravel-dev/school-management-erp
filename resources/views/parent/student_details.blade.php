@@ -194,7 +194,7 @@
 
     <div class="col" role="presentation">
         <div class="card h-100 module-card-custom nav-link text-center p-2 p-sm-3" id="pills-finance-tab" data-bs-toggle="pill" data-bs-target="#pills-finance" role="tab">
-            <div class="module-icon-box mx-auto mb-2 text-dark" style="background-color: #f4f5f7; border-radius: 12px; padding: 10px;">
+            <div class="module-icon-box mx-auto mb-2" style="color: #0d9488; background-color: #e6f7f5; border-radius: 12px; padding: 10px;">
                 <i class='bx bx-credit-card-front' style="font-size: 24px;"></i>
             </div>
             <span class="module-title">Fee Ledger</span>
@@ -212,7 +212,7 @@
 
     <div class="col" role="presentation">
         <div class="card h-100 module-card-custom nav-link text-center p-2 p-sm-3" id="pills-results-tab" data-bs-toggle="pill" data-bs-target="#pills-results" role="tab">
-            <div class="module-icon-box mx-auto mb-2 text-success" style="background-color: #edfbf7; border-radius: 12px; padding: 10px;">
+            <div class="module-icon-box mx-auto mb-2 text-success" style="background-color: #e3f6ea; border-radius: 12px; padding: 10px;">
                 <i class='bx bx-medal' style="font-size: 24px;"></i>
             </div>
             <span class="module-title">Results</span>
@@ -248,10 +248,10 @@
     <div class="tab-pane fade show active" id="pills-notices" role="tabpanel">
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-header bg-transparent border-0 pt-3">
-                <h6 class="mb-0 fw-bold text-dark">Latest School Notices</h6>
+                <h6 class="mb-0 fw-bold text-dark dark-readable">Latest School Notices</h6>
             </div>
             <div class="card-body">
-                <div class="alert alert-info border-0 bg-light-info text-dark">
+                <div class="alert alert-info border-0 bg-light-info text-dark dark-readable">
                     <h5 class="font-weight-bold">Summer Vacation Announcement</h5>
                     <p class="mb-0 small">Dear Parents, the school will remain closed for summer vacations starting next week.</p>
                 </div>
@@ -266,7 +266,7 @@
                 @if($attendanceRecords && $attendanceRecords->isNotEmpty())
                     <div class="card radius-10 shadow-sm border-0">
                         <div class="card-body text-center">
-                            <h6 class="fw-bold mb-3 text-start text-dark">Attendance Overview</h6>
+                            <h6 class="fw-bold mb-3 text-start text-dark dark-readable">Attendance Overview</h6>
                             <div id="attendanceChart"></div>
                         </div>
                     </div>
@@ -282,7 +282,7 @@
             <div class="col-12 col-lg-8">
                 <div class="card radius-10 shadow-sm border-0">
                     <div class="card-header bg-transparent border-0 pt-3">
-                        <h6 class="mb-0 fw-bold text-dark">Recent Attendance Logs</h6>
+                        <h6 class="mb-0 fw-bold text-dark dark-readable">Recent Attendance Logs</h6>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -325,7 +325,7 @@
     <div class="tab-pane fade" id="pills-homework" role="tabpanel">
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-header bg-transparent border-0 pt-3">
-                <h6 class="mb-0 fw-bold text-dark">Pending & Recent Homework</h6>
+                <h6 class="mb-0 fw-bold text-dark dark-readable">Pending & Recent Homework</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -376,7 +376,7 @@
     <div class="tab-pane fade" id="pills-finance" role="tabpanel">
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-header bg-transparent border-0 pt-3">
-                <h6 class="mb-0 fw-bold text-dark">Fee Ledger History</h6>
+                <h6 class="mb-0 fw-bold text-dark dark-readable">Fee Ledger History</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -406,7 +406,10 @@
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-body p-4">
                 <h6>Class Time Table</h6>
+                @can('access-parent-timetable')
                 <p class="text-muted small">Daily subject lecture timetable schedule list.</p>
+                <a href="{{ route('parent.students.class_schedule.index', $student->id) }}" class="btn btn-primary btn-sm px-3"><i class="bx bx-time-five"></i> View Class Schedule</a>
+                @endcan
             </div>
         </div>
     </div>
@@ -415,7 +418,7 @@
     <div class="tab-pane fade" id="pills-results" role="tabpanel">
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-header bg-transparent border-0 pt-3">
-                <h6 class="mb-0 fw-bold text-dark">Examination Marks Sheet</h6>
+                <h6 class="mb-0 fw-bold text-dark dark-readable">Examination Marks Sheet</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -447,7 +450,7 @@
         <div class="col-lg-4">
             <div class="card radius-10 shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-0 pt-3">
-                    <h6 class="mb-0 fw-bold text-dark">Syllabus Breakdown</h6>
+                    <h6 class="mb-0 fw-bold text-dark dark-readable">Syllabus Breakdown</h6>
                 </div>
                 <div class="card-body d-flex align-items-center justify-content-center">
                     @if(isset($bookList) && count($bookList) > 0)
@@ -468,7 +471,7 @@
             <div class="card radius-10 shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-0 pt-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="mb-0 fw-bold text-dark">Class Book List</h6>
+                        <h6 class="mb-0 fw-bold text-dark dark-readable">Class Book List</h6>
                         <p class="text-muted small mb-0">Class: <span class="text-primary fw-bold">{{ $className }}</span></p>
                     </div>
                     <span class="badge bg-light-orange text-orange px-3 py-2 radius-10" style="color: #e67e22; background-color: #fff9f2; font-weight: bold;">
@@ -499,7 +502,7 @@
                                             </td>
                                             
                                             <td>
-                                                <span class="fw-bold text-dark">
+                                                <span class="fw-bold text-dark dark-readable">
                                                     {{ $item->subject->name ?? 'N/A' }}
                                                 </span>
                                             </td>
@@ -516,7 +519,7 @@
                                             
                                             <td class="text-center">
                                                 <span class="badge bg-light-success text-success px-3 py-1.5" style="background-color: #e8f5e9; color: #2e7d32;">
-                                                    {{ $book->pass_marks ?? '33' }} Marks
+                                                    {{ $item->pass_marks }} Marks
                                                 </span>
                                             </td>
                                         </tr>
@@ -544,8 +547,8 @@
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-body p-4">
                 <h6>Support & Contact Info</h6>
-                <p class="mb-1 text-dark"><strong>Email:</strong> support@school.edu.pk</p>
-                <p class="text-dark"><strong>Phone:</strong> +92-21-111-222-333</p>
+                <p class="mb-1 text-dark dark-readable"><strong>Email:</strong> support@school.edu.pk</p>
+                <p class="text-dark dark-readable"><strong>Phone:</strong> +92-21-111-222-333</p>
             </div>
         </div>
     </div>
@@ -641,7 +644,7 @@
             ],
             chart: { type: 'pie', height: 250 },
             labels: [
-                @foreach($bookList as $book) "{{ $book->subject_name ?? 'Subject' }}", @endforeach
+                @foreach($bookList as $book) @json($book->subject->name ?? 'Subject'), @endforeach
             ],
             legend: { position: 'bottom' }
         };

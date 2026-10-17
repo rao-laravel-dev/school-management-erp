@@ -246,6 +246,12 @@ Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->g
         // UPDATED: Results (simple summary, not marksheet template)
         Route::get('/student/{id}/results', 'resultIndex')->name('students.results.index');
         Route::get('/student/{id}/results/{result}', 'resultDetails')->name('students.results.details');
+
+        // Selected child's class schedule (ownership checked in the controller)
+        Route::middleware('can:access-parent-timetable')->group(function () {
+            Route::get('/student/{id}/class-schedule', 'childClassSchedule')->whereNumber('id')->name('students.class_schedule.index');
+            Route::get('/student/{id}/class-schedule/get-data', 'childClassScheduleData')->whereNumber('id')->name('students.class_schedule.get_data');
+        });
     });
 });
 // PARENTS LOGIN

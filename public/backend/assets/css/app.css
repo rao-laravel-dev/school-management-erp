@@ -2812,6 +2812,19 @@ html.dark-theme .bg-secondary-subtle.text-secondary { background-color: rgb(255 
 /* Dark theme: student My Subjects code badge (bg-light-warning + text-danger was red on red) */
 html.dark-theme .badge.bg-light-warning.text-danger { color: #ffd27a !important; }
 
+/* Dark theme: parent child dashboard (profile card + tiles stay white; headings/text use dark-readable) */
+html.dark-theme .alert.bg-light-info.dark-readable h5 { color: #e4e5e6; }
+/* Dark theme: parent child dashboard (profile card + module tiles; headings/text use dark-readable) */
+html.dark-theme .custom-dashboard-card,
+html.dark-theme .module-card-custom { background-color: rgb(255 255 255 / 5%) !important; border-color: rgb(255 255 255 / 12%) !important; }
+html.dark-theme .module-card-custom.active { background-color: rgb(255 255 255 / 14%) !important; }
+html.dark-theme .module-card-custom .module-icon-box { background-color: rgb(255 255 255 / 8%) !important; }
+html.dark-theme .module-card-custom .module-title,
+html.dark-theme .custom-dashboard-card .text-header-custom,
+html.dark-theme .custom-dashboard-card .text-value-custom { color: #e4e5e6 !important; }
+html.dark-theme .custom-dashboard-card .text-label-custom { color: #aab0b6 !important; }
+html.dark-theme .custom-dashboard-card .img-avatar-custom { border-color: rgb(255 255 255 / 15%) !important; }
+html.dark-theme .alert.bg-light-info.dark-readable h5 { color: #e4e5e6; }
 /* Homework cards (student My Homework + parent child Homework) and parent active child header */
 .hw-card { border: 1px solid #e5e7eb; border-left: 4px solid #6c757d; border-radius: 8px; }
 .hw-card.hw-upcoming { border-left-color: #198754; }

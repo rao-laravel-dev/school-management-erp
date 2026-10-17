@@ -300,6 +300,7 @@ class RoleSeeder extends Seeder
             'view dashboard',
             'access-attendance',
             'access-marksheet-templates',
+            'access-parent-timetable', // parent portal: selected child's class timetable (read-only)
         ]);
 
         // 9. Student
