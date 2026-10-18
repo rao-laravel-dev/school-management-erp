@@ -132,6 +132,9 @@ class PermissionSeeder extends Seeder
             'delete roles',
             // Student ki naye permissions
             'access-profile',
+            // Student portal-only (P1 portal permission security)
+            'access-student-academics',     // student portal: My Subjects, My Teachers, Results
+            'access-student-attendance',    // student portal: own attendance view
             'access-student-timetable',     // student portal: own class timetable (read-only)
             'access-assignments',
             'access-student-homework',      // student portal: own class homework (read-only)

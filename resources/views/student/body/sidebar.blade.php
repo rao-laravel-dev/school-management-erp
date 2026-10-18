@@ -30,7 +30,7 @@
             </ul>
         </li>
 
-        @can('access-academics')
+        @can('access-student-academics')
         <li>
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-book-reader"></i></div>
@@ -47,7 +47,7 @@
         </li>
         @endcan
 
-        @can('access-attendance')
+        @can('access-student-attendance')
         {{-- app.js active item ko poore URL (query string samet) se match karta hai; ?month=&year= par menu band ho jata tha, isliye route se active --}}
         <li class="{{ request()->routeIs('student.attendance.*') ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">

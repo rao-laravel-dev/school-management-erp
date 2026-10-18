@@ -298,8 +298,6 @@ class RoleSeeder extends Seeder
         // 8. Parent
         Role::findByName('parent', 'web')->syncPermissions([
             'view dashboard',
-            'access-attendance',
-            'access-marksheet-templates',
             'access-parent-timetable', // parent portal: selected child's class timetable (read-only)
             'access-parent-homework',  // parent portal: selected child's homework (read-only)
         ]);
@@ -307,9 +305,8 @@ class RoleSeeder extends Seeder
         // 9. Student
         Role::findByName('student', 'web')->syncPermissions([
             'view dashboard',
-            'access-academics',
-            'access-attendance',
-            'access-marksheet-templates',
+            'access-student-academics',   // student portal only (admin access-academics removed)
+            'access-student-attendance',  // student portal only (admin access-attendance removed)
             'access-profile',     // Nayi permission
             'access-student-timetable', // student portal: own class timetable (read-only)
             'access-assignments',  // Nayi permission

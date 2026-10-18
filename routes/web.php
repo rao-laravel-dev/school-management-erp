@@ -270,11 +270,13 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         Route::get('/profile', 'StudentProfile')->name('profile');
         Route::post('/profile/update', 'StudentProfileUpdate')->name('profile.update');
         // NAYA ROUTE: Iska auto name 'student.teachers.index' banega
-        Route::get('/teacher/myteacher', 'myTeachers')->name('teacher.myteacher');
-        Route::get('/my-subjects', 'viewMySubjects')->name('subjects.view');
-        // UPDATED ROUTES: Results (simple summary, not marksheet template)
-        Route::get('/results', 'resultIndex')->name('results.index');
-        Route::get('/results/{result}', 'resultDetails')->name('results.details');
+        Route::middleware('can:access-student-academics')->group(function () {
+            Route::get('/teacher/myteacher', 'myTeachers')->name('teacher.myteacher');
+            Route::get('/my-subjects', 'viewMySubjects')->name('subjects.view');
+            // UPDATED ROUTES: Results (simple summary, not marksheet template)
+            Route::get('/results', 'resultIndex')->name('results.index');
+            Route::get('/results/{result}', 'resultDetails')->name('results.details');
+        });
         // Own account Change Password (same pattern as staff portals)
         Route::get('/change/password', 'StudentChangePassword')->name('change.password');
         Route::post('/password/update', 'StudentPasswordUpdate')->name('password.update');
@@ -293,7 +295,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         });
     });
     // Student Attendance (Using AttendanceController)
-    Route::controller(AttendanceController::class)->group(function () {
+    Route::middleware('can:access-student-attendance')->controller(AttendanceController::class)->group(function () {
         Route::get('/attendance', 'viewMyAttendance')->name('attendance.view');
         Route::get('/attendance/report', 'viewReport')->name('attendance.report');
     });
