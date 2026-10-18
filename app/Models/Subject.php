@@ -35,7 +35,7 @@ class Subject extends Model
     // Relationships (Pivot tables ke liye ready rahein gi)
     public function school_class(): BelongsToMany
     {
-        return $this->belongsToMany(SchoolClass::class, 'class_subject', 'subject_id', 'class_id')->withPivot('group_id');
+        return $this->belongsToMany(SchoolClass::class, 'class_subject', 'subject_id', 'class_id')->withPivot('group_id', 'full_marks', 'pass_marks');
     }
 
     public function groups(): BelongsToMany
