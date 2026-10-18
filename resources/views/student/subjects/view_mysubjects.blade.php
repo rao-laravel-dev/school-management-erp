@@ -44,7 +44,8 @@
         
         <td>
             <span class="badge bg-light-warning text-danger border border-info px-2 py-1">
-                {{ $subject->subject_code }}
+                @php $codeRow = $subject->school_class->first(); @endphp
+                {{ ($codeRow && $codeRow->pivot->subject_code) ? $codeRow->pivot->subject_code : $subject->subject_code }}
             </span>
         </td>
         

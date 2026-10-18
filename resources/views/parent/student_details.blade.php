@@ -512,7 +512,7 @@
                                             
                                             <td>
                                                 <span class="badge bg-light text-dark border px-2 py-1">
-                                                    {{ $item->subject->subject_code ?? 'N/A' }}
+                                                    {{ $item->subject_code ?: ($item->subject->subject_code ?? 'N/A') }}
                                                 </span>
                                             </td>
                                             
