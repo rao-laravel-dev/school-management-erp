@@ -67,6 +67,8 @@
     html.dark-theme .att-unmarked { border-color: #6c757d; color: #adb5bd; }
     html.dark-theme .att-future, html.dark-theme .att-none { color: #6c757d; }
     html.dark-theme .att-year-table .weekoff-cell { background-color: #3a3520 !important; }
+    /* Total Leaves icon circle: .bg-light-secondary has no rule, so it showed the white .widgets-icons-2 default in dark mode */
+    html.dark-theme .att-stat .widgets-icons-2.bg-light-secondary { background-color: rgb(108 117 125 / 33%) !important; color: #aab0b6 !important; }
 </style>
 @endpush
 
@@ -361,15 +363,20 @@
             return isDark() ? '#ced4da' : '#495057';
         }
 
+        // Monthly donut fill colour per month (Jan-Dec); no green, green is only for the Yearly donut
+        var MONTH_COLORS = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#eab308', '#dc2626', '#06b6d4', '#c026d3', '#b45309', '#4f46e5', '#e11d48', '#0284c7'];
+        var YEAR_COLOR = '#198754';
+        var monthColor = MONTH_COLORS[@json($selectedMonth->month) - 1];
+
         // Ring: percent null ho to poora grey ring (tooltip off)
-        function makeRing(id, percent) {
+        function makeRing(id, percent, fillColor) {
             var hasData = percent !== null;
             var chart = new Chart(document.getElementById(id), {
                 type: 'doughnut',
                 data: {
                     datasets: [{
                         data: hasData ? [percent, 100 - percent] : [1],
-                        backgroundColor: hasData ? ['#198754', trackColor()] : [trackColor()],
+                        backgroundColor: hasData ? [fillColor, trackColor()] : [trackColor()],
                         borderWidth: 0
                     }]
                 },
@@ -380,11 +387,11 @@
                     plugins: { legend: { display: false }, tooltip: { enabled: false } }
                 }
             });
-            charts.push({ chart: chart, hasData: hasData });
+            charts.push({ chart: chart, hasData: hasData, fill: fillColor });
         }
 
-        makeRing('monthRing', monthPercent);
-        makeRing('yearRing', yearPercent);
+        makeRing('monthRing', monthPercent, monthColor);
+        makeRing('yearRing', yearPercent, YEAR_COLOR);
 
         // Tooltip mouse ke paas (null month ka element y=0 par hota hai, default position wahin chipak jati thi); sirf ek dafa register
         if (!Chart.Tooltip.positioners.cursor) {
@@ -438,7 +445,7 @@
         new MutationObserver(function() {
             charts.forEach(function(c) {
                 var ds = c.chart.data.datasets[0];
-                ds.backgroundColor = c.hasData ? ['#198754', trackColor()] : [trackColor()];
+                ds.backgroundColor = c.hasData ? [c.fill, trackColor()] : [trackColor()];
                 c.chart.update();
             });
             if (barChart) {
