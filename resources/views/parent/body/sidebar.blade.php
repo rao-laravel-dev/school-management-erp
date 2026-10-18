@@ -59,16 +59,19 @@
             </ul>
         </li>
 
-        <li>
+        @can('access-parent-homework')
+        @php $open = request()->routeIs('parent.students.homework.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>
                 </div>
                 <div class="menu-title">Home Work</div>
             </a>
-            <ul>
-                <li> <a href="#"><i class='bx bx-radio-circle'></i>Home Work</a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li class="{{ $open ? 'mm-active' : '' }}"> <a href="{{ $parentChildId ? route('parent.students.homework.index', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Home Work</a>
                 </li>
             </ul>
         </li>
+        @endcan
     </ul>
     </div>

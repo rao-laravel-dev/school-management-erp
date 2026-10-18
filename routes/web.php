@@ -252,6 +252,11 @@ Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->g
             Route::get('/student/{id}/class-schedule', 'childClassSchedule')->whereNumber('id')->name('students.class_schedule.index');
             Route::get('/student/{id}/class-schedule/get-data', 'childClassScheduleData')->whereNumber('id')->name('students.class_schedule.get_data');
         });
+
+        // Selected child's homework (ownership checked in the controller)
+        Route::middleware('can:access-parent-homework')->group(function () {
+            Route::get('/student/{id}/homework', 'childHomework')->whereNumber('id')->name('students.homework.index');
+        });
     });
 });
 // PARENTS LOGIN

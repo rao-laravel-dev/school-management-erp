@@ -171,6 +171,18 @@ return view('parent.student_details', compact(
     }
     // End Method
 
+    // Homework page of one child (read-only, same query as the student My Homework page)
+    public function childHomework($id)
+    {
+        $student = $this->findOwnChild($id);
+
+        return view('student.homework.index', StudentHomework::forStudent($student->id) + [
+            'homeworkTitle' => $student->full_name . "'s Homework",
+            'dashboardUrl'  => route('parent.students.dashboard', $student->id),
+        ] + $this->childHeader($student, 'parent.students.homework.index'));
+    }
+    // End Method
+
     // AJAX: weekly timetable of one child (same ownership check)
     public function childClassScheduleData(Request $request, $id)
     {

@@ -326,6 +326,9 @@
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-header bg-transparent border-0 pt-3">
                 <h6 class="mb-0 fw-bold text-dark dark-readable">Pending & Recent Homework</h6>
+                @can('access-parent-homework')
+                <a href="{{ route('parent.students.homework.index', $student->id) }}" class="btn btn-primary btn-sm px-3 mt-2"><i class="bx bx-book-open"></i> View Homework</a>
+                @endcan
             </div>
             <div class="card-body">
                 <div class="table-responsive">

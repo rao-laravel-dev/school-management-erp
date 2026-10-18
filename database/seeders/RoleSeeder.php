@@ -301,6 +301,7 @@ class RoleSeeder extends Seeder
             'access-attendance',
             'access-marksheet-templates',
             'access-parent-timetable', // parent portal: selected child's class timetable (read-only)
+            'access-parent-homework',  // parent portal: selected child's homework (read-only)
         ]);
 
         // 9. Student
