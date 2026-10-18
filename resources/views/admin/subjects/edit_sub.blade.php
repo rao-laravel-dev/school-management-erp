@@ -35,30 +35,14 @@
                 <form action="{{ route('subjects.update', $subject->id) }}" method="POST" class="row g-3">
                     @csrf
 
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary">Select Class <span class="text-danger">*</span></label>
-                        <select name="class_id" class="form-select @error('class_id') is-invalid @enderror">
-                            <option disabled>Choose Class...</option>
-                            @foreach($classes as $class)
-                            <option value="{{ $class->id }}" {{ old('class_id', $subject->class_id) == $class->id ? 'selected' : '' }}>
-                                {{ $class->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('class_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary">Select Academic Group <span class="text-danger">*</span></label>
-                        <select name="group_id" class="form-select @error('group_id') is-invalid @enderror">
-                            <option disabled>Choose Group...</option>
-                            @foreach($groups as $group)
-                            <option value="{{ $group->id }}" {{ old('group_id', $subject->group_id) == $group->id ? 'selected' : '' }}>
-                                {{ $group->name }} ({{ $group->group_code }})
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('group_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <div class="col-md-12">
+                        <div class="alert alert-info d-flex align-items-center gap-2 mb-0">
+                            <i class="bx bx-info-circle fs-5"></i>
+                            <div>
+                                Classes, groups and class-wise subject codes are managed from
+                                <a href="{{ route('school-class-subjects.index') }}" class="alert-link">Class Subjects Assignment</a>.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-md-6">

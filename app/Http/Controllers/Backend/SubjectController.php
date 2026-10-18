@@ -97,12 +97,9 @@ public function EditSubject($id) // Ya jo bhi aapke method ka naam hai
 
     // 1. Validation with English Messages
     $request->validate([
-        'class_id' => 'required|exists:school_class,id',
         'name'     => 'required|string|max:255',
         'type'     => 'required|in:Theory,Practical,Both',
-        'group_id' => 'nullable|exists:groups,id',
     ], [
-        'class_id.required' => 'Class selection is mandatory.',
         'name.required'     => 'Please provide the subject name.',
         'type.required'     => 'You must select a subject type.',
     ]);
@@ -112,24 +109,15 @@ public function EditSubject($id) // Ya jo bhi aapke method ka naam hai
         'name'        => $request->name,
         'type'        => $request->type,
         'description' => $request->description,
-        'status'      => $request->status ?? 1,
+        'status'      => $request->has('status') ? 1 : 0, // Unchecked switch request mein nahi aata, isliye off = 0
     ]);
 
-    // 3. Update Class Link (Detach then Attach)
-    // Pehle purani saari classes ka link khatam karein
-    $subject->school_class()->detach(); 
-    // Phir nayi selected class attach karein
-    $subject->school_class()->attach($request->class_id);
+    // 3. Class/Group links yahan se nahi badalte: class_subject rows (classes, groups, marks, class-wise codes)
+    // sirf Class Subjects Assignment page se manage hoti hain. Pehle yahan detach hota tha jo sab mappings mita deta tha.
 
-    // 4. Update Group Link (Detach then Attach if exists)
-    $subject->groups()->detach();
-    if ($request->group_id) {
-        $subject->groups()->attach($request->group_id);
-    }
-
-    // 5. Success Notification
+    // 4. Success Notification
     $notification = [
-        'message' => 'Subject and Class updated successfully!',
+        'message' => 'Subject updated successfully!',
         'alert-type' => 'success'
     ];
 
