@@ -23,6 +23,11 @@
                         <small class="text-muted">Letters/digits only, no dash or space.</small>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label small fw-bold">Subject Code Prefix <span class="text-danger">*</span></label>
+                        <input type="text" name="subject_prefix" class="form-control form-control-sm" placeholder="e.g. NR, K1, 01, 10" maxlength="4" style="text-transform:uppercase">
+                        <small class="text-muted">Max 4 letters/digits. Subject codes of this class become prefix + 01, 02...</small>
+                    </div>
+                    <div class="mb-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="has_subjects" id="has_subjects" value="1" checked>
                             <label class="form-check-label small" for="has_subjects">This class has subject-wise teachers</label>
@@ -72,6 +77,11 @@
                         <label class="form-label small fw-bold">Class Code <span class="text-danger">*</span></label>
                         <input type="text" name="class_code" id="edit_class_code" class="form-control form-control-sm" maxlength="20" style="text-transform:uppercase">
                         <small class="text-muted">Letters/digits only, no dash or space.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Subject Code Prefix <span class="text-danger">*</span></label>
+                        <input type="text" name="subject_prefix" id="edit_subject_prefix" class="form-control form-control-sm" maxlength="4" style="text-transform:uppercase">
+                        <small class="text-muted">Max 4 letters/digits. Existing subject codes are not renamed.</small>
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">

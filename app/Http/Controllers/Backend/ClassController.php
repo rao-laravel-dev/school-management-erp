@@ -16,7 +16,7 @@ class ClassController extends Controller
 {
     use Exportable, Importable;
 
-    private const EXPORT_HEADINGS = ['Class', 'Class Code', 'Numeric Name', 'Has Subjects', 'Description', 'Status'];
+    private const EXPORT_HEADINGS = ['Class', 'Class Code', 'Subject Prefix', 'Numeric Name', 'Has Subjects', 'Description', 'Status'];
     private const IMPORT_HEADINGS = ['name', 'class_code', 'numeric_name', 'has_subjects', 'description'];
 
     private function classExportRows(): array
@@ -24,6 +24,7 @@ class ClassController extends Controller
         return SchoolClass::orderBy('numeric_name')->get()->map(fn($c) => [
             $c->name,
             $c->class_code,
+            $c->subject_prefix ?: '-',
             $c->numeric_name,
             $c->has_subjects ? 'Yes' : 'No',
             $c->description ?: '-',
@@ -95,14 +96,22 @@ class ClassController extends Controller
 
     public function StoreClass(Request $request)
     {
-        $request->merge(['class_code' => strtoupper(trim((string) $request->class_code))]);
+        $request->merge([
+            'class_code' => strtoupper(trim((string) $request->class_code)),
+            'subject_prefix' => strtoupper(trim((string) $request->subject_prefix)),
+        ]);
 
         $request->validate([
             'name' => 'required|string|max:255|unique:school_class,name',
             'numeric_name' => 'required|integer|unique:school_class,numeric_name',
             'class_code' => $this->classCodeRules(),
+            'subject_prefix' => ['required', 'max:4', 'regex:/^[A-Z0-9]+$/', 'unique:school_class,subject_prefix'],
             'description' => 'nullable|string',
         ], [
+            'subject_prefix.required' => 'Subject code prefix is required.',
+            'subject_prefix.max' => 'Subject code prefix: max 4 characters.',
+            'subject_prefix.regex' => 'Subject code prefix: only capital letters and digits (no dash/space).',
+            'subject_prefix.unique' => 'This subject code prefix is already used by another class.',
             'name.required' => 'The class name is mandatory.',
             'name.unique' => 'This class name already exists.',
             'numeric_name.required' => 'Numeric name is required.',
@@ -121,6 +130,7 @@ class ClassController extends Controller
             'has_subjects' => $request->has('has_subjects'),
             'numeric_name' => $request->numeric_name,
             'class_code' => $classCode,
+            'subject_prefix' => $request->subject_prefix,
             'slug' => $slug,
             'description' => $request->description,
             'status' => $request->has('status') ? 1 : 0,
@@ -132,13 +142,21 @@ class ClassController extends Controller
 
     public function UpdateClass(Request $request, $id)
     {
-        $request->merge(['class_code' => strtoupper(trim((string) $request->class_code))]);
+        $request->merge([
+            'class_code' => strtoupper(trim((string) $request->class_code)),
+            'subject_prefix' => strtoupper(trim((string) $request->subject_prefix)),
+        ]);
 
         $request->validate([
             'name' => 'required|unique:school_class,name,' . $id,
             'numeric_name' => 'required|numeric',
             'class_code' => $this->classCodeRules($id),
+            'subject_prefix' => ['required', 'max:4', 'regex:/^[A-Z0-9]+$/', 'unique:school_class,subject_prefix,' . $id],
         ], [
+            'subject_prefix.required' => 'Subject code prefix is required.',
+            'subject_prefix.max' => 'Subject code prefix: max 4 characters.',
+            'subject_prefix.regex' => 'Subject code prefix: only capital letters and digits (no dash/space).',
+            'subject_prefix.unique' => 'This subject code prefix is already used by another class.',
             'name.required' => 'Class name is required.',
             'name.unique' => 'This class name is already taken.',
             'class_code.required' => 'Class code is required.',
@@ -151,6 +169,7 @@ class ClassController extends Controller
             'slug' => Str::slug($request->name),
             'numeric_name' => $request->numeric_name,
             'class_code' => 'CLS-' . $request->class_code,
+            'subject_prefix' => $request->subject_prefix,
             'description' => $request->description,
             'status' => $request->has('status') ? 1 : 0,
         ]);

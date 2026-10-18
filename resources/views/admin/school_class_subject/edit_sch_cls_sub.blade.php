@@ -89,6 +89,13 @@
                                         <span class="badge bg-secondary font-12 ms-1">{{ $subject->type }}</span>
                                     </label>
                                 </div>
+                                {{-- Class-wise subject code: khali = purana ya auto (prefix + serial) --}}
+                                <input type="text"
+                                    class="form-control form-control-sm mt-1 text-uppercase"
+                                    name="subject_codes[{{ $subject->id }}]"
+                                    value="{{ old('subject_codes.' . $subject->id, isset($subjectCodes[$subject->id]) ? $subjectCodes[$subject->id] : '') }}"
+                                    maxlength="10"
+                                    placeholder="{{ $class->subject_prefix ? 'Auto' : 'Set class prefix' }}">
                             </div>
                             @endforeach
                         </div>
@@ -137,7 +144,7 @@
 
         // VS Code Extension formatter safe alert logic
         if ("{{ $errors->any() ? '1' : '0' }}" === "1") {
-            toastr.error("Please select at least one required subject.");
+            toastr.error(@json($errors->first()));
 
             <?php if ($errors->any()): ?>
                 <?php foreach ($errors->all() as $error): ?>

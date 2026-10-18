@@ -87,11 +87,12 @@
                             <tr>
                                 <th width="5%">#</th>
                                 <th width="15%">Class Name</th>
-                                <th width="20%">Assigned Sections</th>
+                                <th width="15%">Assigned Sections</th>
                                 <th width="10%">Code</th>
+                                <th width="10%">Subject Prefix</th>
                                 <th width="10%">Numeric</th>
                                 <th width="10%">Students</th>
-                                <th width="15%">Status</th>
+                                <th width="10%">Status</th>
                                 <th width="15%">Action</th>
                             </tr>
                         </thead>
@@ -112,6 +113,13 @@
                                     @endif
                                 </td>
                                 <td><span class="badge bg-light-info text-info border border-info px-3">{{ $item->class_code }}</span></td>
+                                <td>
+                                    @if($item->subject_prefix)
+                                    <span class="badge bg-light-secondary text-secondary border px-3">{{ $item->subject_prefix }}</span>
+                                    @else
+                                    <span class="text-muted small">Not set</span>
+                                    @endif
+                                </td>
                                 <td>{{ $item->numeric_name }}</td>
                                 <td><span class="badge bg-info text-dark">{{ $item->enrollments_count }}</span></td>
                                 <td>
@@ -141,7 +149,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted">No Classes Found</td>
+                                <td colspan="9" class="text-center text-muted">No Classes Found</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -259,6 +267,7 @@
                     $('#edit_name').val(data.name);
                     $('#edit_numeric_name').val(data.numeric_name);
                     $('#edit_class_code').val((data.class_code || '').replace(/^CLS-/, '')); // CLS-MONT -> MONT
+                    $('#edit_subject_prefix').val(data.subject_prefix || '');
                     $('#edit_has_subjects').prop('checked', data.has_subjects == 1);
                     $('#edit_description').val(data.description);
                     $('#edit_status').prop('checked', data.status == 1);

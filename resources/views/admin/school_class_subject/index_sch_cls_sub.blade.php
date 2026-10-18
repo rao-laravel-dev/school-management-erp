@@ -97,13 +97,19 @@
                                 <td>{{ $key + 1 }}</td>
                                 <td>
                                     <div class="fw-bold text-dark dark-readable">{{ $item->name }}</div>
+                                    @if($item->subject_prefix)
+                                    <small class="text-secondary">Prefix: {{ $item->subject_prefix }}</small>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
                                         @if($item->subjects->isNotEmpty())
                                             @foreach($item->subjects as $subject)
                                             <span class="badge bg-light-info text-info border border-info px-2 py-1">
-                                                {{ $subject->name }} 
+                                                {{ $subject->name }}
+                                                @if($subject->pivot->subject_code)
+                                                <span class="fw-bold">· {{ $subject->pivot->subject_code }}</span>
+                                                @endif
                                                 <small class="text-secondary">({{ $subject->type }})</small>
                                             </span>
                                             @endforeach

@@ -13,6 +13,7 @@ class SchoolClass extends Model
         'name',
         'has_subjects',
         'class_code',
+        'subject_prefix',
         'numeric_name',
         'slug',
         'description',
@@ -53,7 +54,7 @@ class SchoolClass extends Model
     public function subjects()
     {
         return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id')
-            ->withPivot('group_id', 'full_marks', 'pass_marks')
+            ->withPivot('group_id', 'full_marks', 'pass_marks', 'subject_code')
             ->withTimestamps();
     }
     // SchoolClass Model mein

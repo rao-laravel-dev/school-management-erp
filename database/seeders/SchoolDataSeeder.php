@@ -43,22 +43,23 @@ class SchoolDataSeeder extends Seeder
         //
         // has_subjects: Nursery/Montessori/Prep/KG-1/KG-2 aur Class 1-3 = false (whole-class/homeroom teacher)
         // Class 4 se Class 10 tak = true (subject-wise teacher assignment)
+        // 'prefix' = class-wise subject code prefix (subject code = prefix + 01, 02...); admin Manage Class se badal sakta hai
         $classes = [
-            ['name' => 'Montessori', 'code' => 'CLS-MONT', 'num' => -4, 'has_subjects' => false],
-            ['name' => 'Nursery',    'code' => 'CLS-NUR',  'num' => -3, 'has_subjects' => false],
-            ['name' => 'Prep',       'code' => 'CLS-PRP',  'num' => -2, 'has_subjects' => false],
-            ['name' => 'KG-1',       'code' => 'CLS-KG1',  'num' => -1, 'has_subjects' => false],
-            ['name' => 'KG-2',       'code' => 'CLS-KG2',  'num' =>  0, 'has_subjects' => false],
-            ['name' => 'Class 1',    'code' => 'CLS-1',    'num' =>  1, 'has_subjects' => false],
-            ['name' => 'Class 2',    'code' => 'CLS-2',    'num' =>  2, 'has_subjects' => false],
-            ['name' => 'Class 3',    'code' => 'CLS-3',    'num' =>  3, 'has_subjects' => false],
-            ['name' => 'Class 4',    'code' => 'CLS-4',    'num' =>  4, 'has_subjects' => true],
-            ['name' => 'Class 5',    'code' => 'CLS-5',    'num' =>  5, 'has_subjects' => true],
-            ['name' => 'Class 6',    'code' => 'CLS-6',    'num' =>  6, 'has_subjects' => true],
-            ['name' => 'Class 7',    'code' => 'CLS-7',    'num' =>  7, 'has_subjects' => true],
-            ['name' => 'Class 8',    'code' => 'CLS-8',    'num' =>  8, 'has_subjects' => true],
-            ['name' => 'Class 9',    'code' => 'CLS-9',    'num' =>  9, 'has_subjects' => true],
-            ['name' => 'Class 10',   'code' => 'CLS-10',   'num' => 10, 'has_subjects' => true],
+            ['name' => 'Montessori', 'code' => 'CLS-MONT', 'prefix' => 'MT', 'num' => -4, 'has_subjects' => false],
+            ['name' => 'Nursery',    'code' => 'CLS-NUR',  'prefix' => 'NR', 'num' => -3, 'has_subjects' => false],
+            ['name' => 'Prep',       'code' => 'CLS-PRP',  'prefix' => 'PR', 'num' => -2, 'has_subjects' => false],
+            ['name' => 'KG-1',       'code' => 'CLS-KG1',  'prefix' => 'K1', 'num' => -1, 'has_subjects' => false],
+            ['name' => 'KG-2',       'code' => 'CLS-KG2',  'prefix' => 'K2', 'num' =>  0, 'has_subjects' => false],
+            ['name' => 'Class 1',    'code' => 'CLS-1',    'prefix' => '01', 'num' =>  1, 'has_subjects' => false],
+            ['name' => 'Class 2',    'code' => 'CLS-2',    'prefix' => '02', 'num' =>  2, 'has_subjects' => false],
+            ['name' => 'Class 3',    'code' => 'CLS-3',    'prefix' => '03', 'num' =>  3, 'has_subjects' => false],
+            ['name' => 'Class 4',    'code' => 'CLS-4',    'prefix' => '04', 'num' =>  4, 'has_subjects' => true],
+            ['name' => 'Class 5',    'code' => 'CLS-5',    'prefix' => '05', 'num' =>  5, 'has_subjects' => true],
+            ['name' => 'Class 6',    'code' => 'CLS-6',    'prefix' => '06', 'num' =>  6, 'has_subjects' => true],
+            ['name' => 'Class 7',    'code' => 'CLS-7',    'prefix' => '07', 'num' =>  7, 'has_subjects' => true],
+            ['name' => 'Class 8',    'code' => 'CLS-8',    'prefix' => '08', 'num' =>  8, 'has_subjects' => true],
+            ['name' => 'Class 9',    'code' => 'CLS-9',    'prefix' => '09', 'num' =>  9, 'has_subjects' => true],
+            ['name' => 'Class 10',   'code' => 'CLS-10',   'prefix' => '10', 'num' => 10, 'has_subjects' => true],
         ];
 
         foreach ($classes as $c) {
@@ -68,6 +69,7 @@ class SchoolDataSeeder extends Seeder
                 'name'         => $c['name'],
                 'has_subjects' => $c['has_subjects'],
                 'class_code'   => $c['code'],
+                'subject_prefix' => $c['prefix'],
                 'numeric_name' => $num,
                 'slug'         => Str::slug($c['name']),
                 'created_at'   => now()
