@@ -110,7 +110,7 @@
                                                 @if($subject->pivot->subject_code)
                                                 <span class="fw-bold">· {{ $subject->pivot->subject_code }}</span>
                                                 @endif
-                                                <small class="text-secondary">({{ $subject->type }})</small>
+                                                <small class="text-secondary">({{ $subject->type }}@if($subject->pivot->group_id) · {{ $groupCodes[$subject->pivot->group_id] ?? '' }}@endif)</small>
                                             </span>
                                             @endforeach
                                         @else

@@ -91,8 +91,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
-                                <th>Code</th>
                                 <th>Subject Name</th>
+                                <th>Code</th>
                                 <th>Class</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -117,7 +117,7 @@
                                         @if($item->school_class->isNotEmpty())
                                         @foreach($item->school_class as $class)
                                         <span class="badge bg-light-info text-info border border-info px-2">
-                                            {{ $class->name }}
+                                            {{ $class->name }}@if($class->pivot->subject_code) · {{ $class->pivot->subject_code }}@endif @if($class->pivot->group_id) · {{ $groupCodes[$class->pivot->group_id] ?? '' }}@endif
                                         </span>
                                         @endforeach
                                         @else

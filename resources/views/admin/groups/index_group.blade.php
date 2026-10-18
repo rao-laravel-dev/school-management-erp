@@ -84,8 +84,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th width="5%">#</th>
-                                <th width="20%">Group Code</th>
                                 <th width="25%">Group Name</th>
+                                <th width="20%">Group Code</th>
                                 <th width="25%">Description</th>
                                 <th width="10%">Status</th>
                                 <th width="15%">Action</th>

@@ -38,7 +38,10 @@ class SchoolClassSubjectController extends Controller
         // Aur 'orderBy' se classes sequence mein aayengi
         $classes = SchoolClass::with('subjects')->orderBy('id', 'asc')->get();
 
-        return view('admin.school_class_subject.index_sch_cls_sub', compact('classes'));
+        // Badge mein group code dikhane ke liye (id => group_code)
+        $groupCodes = Group::pluck('group_code', 'id');
+
+        return view('admin.school_class_subject.index_sch_cls_sub', compact('classes', 'groupCodes'));
     }
     // End Method
 

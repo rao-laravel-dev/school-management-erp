@@ -16,9 +16,12 @@ class SubjectController extends Controller
     {
        // Yahan variable ka naam $subjects (plural) hona chahiye
     $subjects = Subject::with(['school_class', 'groups'])->latest()->get();
-    
+
+    // Class badge mein group code dikhane ke liye (id => group_code)
+    $groupCodes = Group::pluck('group_code', 'id');
+
     // View ka path aur variable pass karna
-    return view('admin.subjects.index_sub', compact('subjects'));
+    return view('admin.subjects.index_sub', compact('subjects', 'groupCodes'));
     }
 
     // 2. Create form dikhane ke liye
