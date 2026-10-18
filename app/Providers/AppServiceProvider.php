@@ -101,5 +101,17 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('assignedTeacher', $assignedTeacher);
         });
+
+        // Parent sidebar: active child id, only if it really belongs to the logged-in parent (else null = child selection page)
+        View::composer('parent.body.sidebar', function ($view) {
+            $parentChildId = null;
+            $profile = auth()->check() ? auth()->user()->parentProfile : null;
+
+            if ($profile && session('active_student_id')) {
+                $parentChildId = $profile->students()->where('students.id', session('active_student_id'))->value('students.id');
+            }
+
+            $view->with('parentChildId', $parentChildId);
+        });
     }
 }

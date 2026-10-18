@@ -23,8 +23,13 @@ use Illuminate\Support\Facades\DB;
 class ParentsController extends Controller
 {
 
-    public function ParentManage()
+    public function ParentManage(Request $request)
     {
+        // Sidebar "no child selected" links use ?select=1; land on the clean URL so only Dashboard is highlighted
+        if ($request->has('select')) {
+            return redirect()->route('parent.dashboard');
+        }
+
         $parent = auth()->user()->parentProfile;
 
         if (!$parent) {

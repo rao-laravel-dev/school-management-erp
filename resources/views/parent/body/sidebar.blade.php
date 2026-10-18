@@ -10,7 +10,7 @@
         </div>
     </div>
     <ul class="metismenu" id="menu">
-        <li>
+        <li class="{{ request()->routeIs('parent.dashboard') ? 'mm-active' : '' }}">
             <a href="{{ route('parent.dashboard') }}">
                 <div class="parent-icon"><i class='bx bx-home-alt'></i>
                 </div>
@@ -18,29 +18,34 @@
             </a>
         </li>
 
-        <li>
+        {{-- Child links without an active child go to ?select=1 (redirects to the clean dashboard), so they never exact-match the current URL for app.js --}}
+        @php $open = request()->routeIs('parent.students.dashboard', 'parent.students.details'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>
                 </div>
                 <div class="menu-title">Student Information</div>
             </a>
-            <ul>
-                <li> <a href="#"><i class='bx bx-radio-circle'></i>Students Information</a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li class="{{ $open ? 'mm-active' : '' }}"> <a href="{{ $parentChildId ? route('parent.students.dashboard', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Students Information</a>
                 </li>
             </ul>
         </li>
 
-        <li>
+        @can('access-parent-timetable')
+        @php $open = request()->routeIs('parent.students.class_schedule.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>
                 </div>
-                <div class="menu-title">Acedemics</div>
+                <div class="menu-title">Academics</div>
             </a>
-            <ul>
-                <li> <a href="#"><i class='bx bx-radio-circle'></i>Acedemics</a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li class="{{ $open ? 'mm-active' : '' }}"> <a href="{{ $parentChildId ? route('parent.students.class_schedule.index', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Class Schedule</a>
                 </li>
             </ul>
         </li>
+        @endcan
 
         <li>
             <a href="javascript:;" class="has-arrow">
