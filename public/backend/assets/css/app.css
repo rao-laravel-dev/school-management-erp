@@ -2825,6 +2825,21 @@ html.dark-theme .custom-dashboard-card .text-value-custom { color: #e4e5e6 !impo
 html.dark-theme .custom-dashboard-card .text-label-custom { color: #aab0b6 !important; }
 html.dark-theme .custom-dashboard-card .img-avatar-custom { border-color: rgb(255 255 255 / 15%) !important; }
 html.dark-theme .alert.bg-light-info.dark-readable h5 { color: #e4e5e6; }
+
+/* Weekly timetable grids on phones/tablets: same scroll pattern as Lesson Plan (lp-week-wrapper).
+   Fixed-width day columns inside their own overflow-x container; desktop (>= 992px) unchanged.
+   Extra .card prefix: the views' inline <style> loads after app.css. */
+@media (max-width: 991px) {
+    .card .tt-week-wrapper { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 8px; }
+    .tt-week-wrapper .tt-day-col { flex: 0 0 220px; min-width: 220px; }
+    .tt-week-wrapper .tt-card span,
+    .tt-week-wrapper .tt-not-scheduled { overflow-wrap: break-word; min-width: 0; }
+    .tt-week-wrapper .tt-actions { flex-wrap: wrap; }
+    /* Timetable Result header: title + week nav (+ Edit Timetable) wrap instead of overflowing */
+    #resultWrapper .card-header.d-flex { flex-wrap: wrap; gap: 8px; }
+    #resultWrapper .card-header.d-flex > .d-flex { flex-wrap: wrap; }
+}
+
 /* Homework cards (student My Homework + parent child Homework) and parent active child header */
 .hw-card { border: 1px solid #e5e7eb; border-left: 4px solid #6c757d; border-radius: 8px; }
 .hw-card.hw-upcoming { border-left-color: #198754; }
