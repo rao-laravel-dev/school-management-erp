@@ -18,7 +18,7 @@
     <div class="col-12 col-md-3">
         <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm">
             <div class="card-body">
-                <p class="text-secondary mb-0">Total Classes</p>
+                <p class="text-secondary mb-0">Total Class Sections</p>
                 <h4 class="text-primary">{{ $totalClasses }}</h4>
             </div>
         </div>
@@ -51,7 +51,7 @@
                     <tr>
                         <th>Class/Section</th>
                         <th>Status</th>
-                        <th>Stats (P/A/L/H/Lv)</th>
+                        <th>Stats (P/A/L/H/Lv/Hol)</th>
                         <th>Time In/Out</th>
                         <th>Marked By</th>
                         <th>Action</th>
@@ -61,29 +61,34 @@
     @foreach($classes as $class)
         {{-- Yahan humne loop update kiya hai taake har mapped section ke liye row bane --}}
         @forelse($class->mappedSections as $section)
+        @php
+            $c = $sectionCounts->get($class->id . '-' . $section->id, ['P' => 0, 'A' => 0, 'L' => 0, 'H' => 0, 'Lv' => 0, 'HOL' => 0]);
+            $marked = array_sum($c) > 0;
+        @endphp
         <tr>
             <td>{{ $class->name }} - {{ $section->name }}</td>
             <td>
                 {{-- Check: Kya is specific class/section ki attendance mark hui hai? --}}
-                @if($class->present_count + $class->absent_count + $class->late_count + $class->halfday_count + $class->leave_count > 0)
+                @if($marked)
                     <span class="badge bg-success">Marked</span>
                 @else
                     <span class="badge bg-danger">Pending</span>
                 @endif
             </td>
             <td>
-                @if($class->present_count + $class->absent_count + $class->late_count + $class->halfday_count + $class->leave_count > 0)
-                    <span class="text-success" title="Present">P:{{ $class->present_count }}</span> |
-                    <span class="text-danger" title="Absent">A:{{ $class->absent_count }}</span> |
-                    <span class="text-warning" title="Late">L:{{ $class->late_count }}</span> |
-                    <span class="text-info" title="Half Day">H:{{ $class->halfday_count }}</span> |
-                    <span class="text-secondary" title="Leave">Lv:{{ $class->leave_count }}</span>
+                @if($marked)
+                    <span class="text-success" title="Present">P:{{ $c['P'] }}</span> |
+                    <span class="text-danger" title="Absent">A:{{ $c['A'] }}</span> |
+                    <span class="text-warning" title="Late">L:{{ $c['L'] }}</span> |
+                    <span class="text-info" title="Half Day">H:{{ $c['H'] }}</span> |
+                    <span class="text-secondary" title="Leave">Lv:{{ $c['Lv'] }}</span> |
+                    <span class="text-primary" title="Holiday">Hol:{{ $c['HOL'] }}</span>
                 @else
                     <span class="text-muted">N/A</span>
                 @endif
             </td>
             <td>
-                @if($class->present_count + $class->absent_count + $class->late_count + $class->halfday_count + $class->leave_count > 0)
+                @if($marked)
                     <small>In: {{ $class->first_time_in ?? 'N/A' }}<br>Out: {{ $class->last_time_out ?? 'N/A' }}</small>
                 @else
                     <span class="text-muted">---</span>

@@ -28,8 +28,6 @@ class AttendanceController extends Controller
     public function AllAttendance(Request $request)
     {
         $date = $request->input('date', date('Y-m-d'));
-        $totalClasses = SchoolClass::count();
-
         // Attendance done check (Grouped by class and section)
         $attendanceDone = Attendance::where('attendance_date', $date)
             ->select('class_id', 'section_id')
@@ -37,27 +35,31 @@ class AttendanceController extends Controller
             ->get()
             ->count();
 
-        $classes = SchoolClass::with('mappedSections')->withCount([
-            // Present Card: 1 (Present) + 2 (Late) dono shamil hain
-            'attendances as present_count' => fn($q) => $q->where('attendance_date', $date)
-                ->whereIn('status', [1, 2]),
+        $classes = SchoolClass::with('mappedSections')->get();
 
-            // Absent Card
-            'attendances as absent_count'  => fn($q) => $q->where('attendance_date', $date)
-                ->where('status', 0),
+        // Card: total = mapped class-sections (table rows), class ginti nahi
+        $totalClasses = $classes->sum(fn($c) => $c->mappedSections->count());
 
-            // Late Card: Ye alag se sirf status 2 ko ginega
-            'attendances as late_count'    => fn($q) => $q->where('attendance_date', $date)
-                ->where('status', 2),
-
-            // Half-Day Card
-            'attendances as halfday_count' => fn($q) => $q->where('attendance_date', $date)
-                ->where('status', 3),
-
-            // Leave Card
-            'attendances as leave_count'   => fn($q) => $q->where('attendance_date', $date)
-                ->where('status', 4),
-        ])->get();
+        // Counts har class + section ke alag: Present = sirf 1 (Late alag L mein), 4 + remarks "Holiday" = Hol (Lv nahi)
+        $sectionCounts = Attendance::where('attendance_date', $date)->toBase()
+            ->selectRaw('attendances.class_id, attendances.section_id, attendances.status as st, ' . self::HOLIDAY_SQL . ' as is_holiday, COUNT(*) as c')
+            ->groupBy('attendances.class_id', 'attendances.section_id', 'st', 'is_holiday')
+            ->get()
+            ->groupBy(fn($r) => $r->class_id . '-' . $r->section_id)
+            ->map(function ($rows) {
+                $c = ['P' => 0, 'A' => 0, 'L' => 0, 'H' => 0, 'Lv' => 0, 'HOL' => 0];
+                foreach ($rows as $r) {
+                    $key = match ((int) $r->st) {
+                        1 => 'P',
+                        0 => 'A',
+                        2 => 'L',
+                        3 => 'H',
+                        default => ((int) $r->is_holiday === 1 ? 'HOL' : 'Lv'),
+                    };
+                    $c[$key] += (int) $r->c;
+                }
+                return $c;
+            });
 
         // Marked By: us date par har class-section ki attendance kin users ne mark ki ("Name (Role)")
         $markers = Attendance::with('markedBy.roles')
@@ -67,7 +69,7 @@ class AttendanceController extends Controller
             ->groupBy(fn($r) => $r->class_id . '-' . $r->section_id)
             ->map(fn($rows) => $rows->pluck('markedBy.name_with_role')->filter()->unique()->implode(', '));
 
-        return view('admin.attendance.index_attendance', compact('totalClasses', 'attendanceDone', 'classes', 'date', 'markers'));
+        return view('admin.attendance.index_attendance', compact('totalClasses', 'attendanceDone', 'classes', 'date', 'markers', 'sectionCounts'));
     }
 
 
