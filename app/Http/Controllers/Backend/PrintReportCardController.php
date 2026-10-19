@@ -26,7 +26,7 @@ class PrintReportCardController extends Controller
     public function index()
     {
         $exams     = Exam::orderBy('name')->get();
-        $classes   = SchoolClass::where('status', 1)->orderBy('name')->get();
+        $classes   = SchoolClass::where('status', 1)->orderBy('numeric_name')->get();
         $templates = ReportCardTemplate::orderBy('template_name')->get();
  
         return view('admin.print_report_card.index', compact('exams', 'classes', 'templates'));
@@ -112,15 +112,15 @@ class PrintReportCardController extends Controller
         $student = $enrollment->student;
  
         $replacements = [
-            '[name]'          => $student->name ?? '',
-            '[father_name]'   => $student->father_name ?? '',
-            '[mother_name]'   => $student->mother_name ?? '',
+            '[name]'          => $student->full_name ?? '',
+            '[father_name]'   => optional($student->parent)->father_name ?? '',
+            '[mother_name]'   => optional($student->parent)->mother_name ?? '',
             '[admission_no]'  => $student->admission_no ?? '',
             '[roll_number]'   => $enrollment->roll_no ?? '',
             '[class]'         => $enrollment->schoolClass->name ?? '',
             '[section]'       => $enrollment->section->name ?? '',
             '[exam_name]'     => $exam->name ?? '',
-            '[dob]'           => $student->dob ?? '',
+            '[dob]'           => $student->date_of_birth ? Carbon::parse($student->date_of_birth)->format('d M Y') : '',
         ];
  
         return strtr($text, $replacements);
@@ -156,7 +156,7 @@ class PrintReportCardController extends Controller
  
         foreach ($request->enrollment_ids as $enrollmentId) {
  
-            $enrollment = Enrollment::with(['student', 'schoolClass', 'section'])
+            $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section'])
                 ->findOrFail($enrollmentId);
  
             // Marks & Grade -> ALWAYS current exam only (no cumulative logic here)

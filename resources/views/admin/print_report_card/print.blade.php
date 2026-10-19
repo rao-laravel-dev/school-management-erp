@@ -88,13 +88,13 @@
                         @endif
 
                         @if($template->show_name)
-                            <div><span class="label" style="font-weight:bold;">Name:</span> {{ $student->name ?? '' }}</div>
+                            <div><span class="label" style="font-weight:bold;">Name:</span> {{ $student->full_name ?? '' }}</div>
                         @endif
                         @if($template->show_father_name)
-                            <div><span class="label" style="font-weight:bold;">Father Name:</span> {{ $student->father_name ?? '' }}</div>
+                            <div><span class="label" style="font-weight:bold;">Father Name:</span> {{ optional($student->parent)->father_name ?? '' }}</div>
                         @endif
                         @if($template->show_mother_name)
-                            <div><span class="label" style="font-weight:bold;">Mother Name:</span> {{ $student->mother_name ?? '' }}</div>
+                            <div><span class="label" style="font-weight:bold;">Mother Name:</span> {{ optional($student->parent)->mother_name ?? '' }}</div>
                         @endif
                         @if($template->show_admission_no)
                             <div><span class="label" style="font-weight:bold;">Admission No:</span> {{ $student->admission_no ?? '' }}</div>
@@ -109,7 +109,7 @@
                             <div><span class="label" style="font-weight:bold;">Section:</span> {{ $enrollment->section->name ?? '' }}</div>
                         @endif
                         @if($template->show_dob)
-                            <div><span class="label" style="font-weight:bold;">Date of Birth:</span> {{ $student->dob ?? '' }}</div>
+                            <div><span class="label" style="font-weight:bold;">Date of Birth:</span> {{ $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('d M Y') : '' }}</div>
                         @endif
                     </td>
                 </tr>

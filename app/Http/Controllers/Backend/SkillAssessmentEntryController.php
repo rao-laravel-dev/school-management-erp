@@ -16,7 +16,7 @@ class SkillAssessmentEntryController extends Controller
     public function index()
     {
         $exams = Exam::all(); // 'name' field already sahi hai, blade mein $exam->name use ho raha hai
-        $classes = SchoolClass::where('status', 1)->get();
+        $classes = SchoolClass::where('status', 1)->orderBy('numeric_name')->get();
         $areas = SkillAssessmentArea::where('status', 1)->with('category')->get();
 
         return view('admin.skill_assessment_entry.index', compact('exams', 'classes', 'areas'));
