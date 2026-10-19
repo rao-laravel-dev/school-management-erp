@@ -27,11 +27,13 @@
 				<div class="menu-title">Attendance</div>
 			</a>
 			<ul class="{{ $open ? 'mm-show' : '' }}">
+				@can('mark-attendance')
 				<li>
 					<a href="{{ route('attendance.create') }}">
 						<i class='bx bx-radio-circle'></i>Mark Attendance
 					</a>
 				</li>
+				@endcan
 				@can('access-scan-attendance')
 				<li>
 					<a href="{{ route('attendance.scan') }}">

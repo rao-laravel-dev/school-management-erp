@@ -751,13 +751,14 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['can:access-attendance'])->group(function () {
             Route::controller(AttendanceController::class)->group(function () {
                 Route::get('/', 'AllAttendance')->name('index');
-                Route::get('/create', 'AddAttendance')->name('create');
-                Route::get('/mark/{class_id?}/{section_id?}/{date?}', 'markAttendance')->name('mark');
+                // mark-attendance: likhne wale routes (accountant sirf read, access-attendance se)
+                Route::get('/create', 'AddAttendance')->name('create')->middleware('can:mark-attendance');
+                Route::get('/mark/{class_id?}/{section_id?}/{date?}', 'markAttendance')->name('mark')->middleware('can:mark-attendance');
                 Route::get('/details/{class_id}', 'showDetails')->name('details');
-                Route::get('/get-students', 'GetStudents')->name('get.students');
-                Route::post('/store', 'StoreAttendance')->name('store');
-                Route::get('/edit/{id}', 'EditAttendance')->name('edit');
-                Route::post('/update/{id}', 'UpdateAttendance')->name('update');
+                Route::get('/get-students', 'GetStudents')->name('get.students')->middleware('can:mark-attendance');
+                Route::post('/store', 'StoreAttendance')->name('store')->middleware('can:mark-attendance');
+                Route::get('/edit/{id}', 'EditAttendance')->name('edit')->middleware('can:mark-attendance');
+                Route::post('/update/{id}', 'UpdateAttendance')->name('update')->middleware('can:mark-attendance');
                 Route::get('/my-class-attendance', 'myClassAttendanceReport')->name('report');
             });
         });

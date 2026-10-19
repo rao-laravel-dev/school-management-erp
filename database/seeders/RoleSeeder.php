@@ -100,6 +100,7 @@ class RoleSeeder extends Seeder
             'manage-leave-application',
             'access-attendance',
             'manage-attendance',
+            'mark-attendance',
             'access-scan-attendance',       // web.php attendance.scan*
             'access-front-office',
             'manage-front-office',
@@ -183,6 +184,7 @@ class RoleSeeder extends Seeder
             'access-student-categories',
             'access-student-houses',
             'access-attendance',
+            'mark-attendance',
             'access-scan-attendance',       // web.php attendance.scan* (gate: student + staff)
             'access-leave-application',
             'access-front-office',
@@ -270,6 +272,7 @@ class RoleSeeder extends Seeder
             'access-student-categories',
             'access-student-houses',
             'access-attendance',
+            'mark-attendance',
             'access-scan-attendance',       // web.php attendance.scan* (own class students only, controller scope)
             'access-my-salary-slips',       // web.php Only for Teacher this permission.
             'access-my-attendance',         // web.php my.attendance.index
