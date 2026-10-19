@@ -808,75 +808,75 @@ Route::middleware(['auth'])->group(function () {
             });
         });
     });
-});
 
-// ==========================================
-// SKILL ASSESSMENT ENTRY CRUD ALL ROUTES
-// ==========================================
-Route::prefix('skill-assessment-entry')->name('skill_assessment_entry.')->group(function () {
-    Route::controller(SkillAssessmentEntryController::class)->group(function () {
-        Route::middleware('can:access-skill-assessment-entry')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/get-sections', 'getSections')->name('get_sections');
-            Route::get('/get-grades', 'getGrades')->name('get_grades');
-            Route::get('/get-students', 'getStudents')->name('get_students');
-        });
-        Route::middleware('can:manage-skill-assessment-entry')->group(function () {
-            Route::post('/save', 'save')->name('save');
-        });
-    });
-});
-
-// ==========================================
-// REPORT CARD TEMPLATE CRUD ALL ROUTES
-// ==========================================
-Route::prefix('report-card-template')->name('report_card_template.')->group(function () {
-    Route::controller(ReportCardTemplateController::class)->group(function () {
-        Route::middleware('can:access-report-card-template')->group(function () {
-            Route::get('/', 'index')->name('index');
-        });
-        Route::middleware('can:manage-report-card-template')->group(function () {
-            Route::post('/save', 'save')->name('save');
-            Route::get('/{report_card_template}/edit', 'edit')->name('edit');
-            Route::put('/{report_card_template}', 'update')->name('update');
-            Route::delete('/{report_card_template}', 'destroy')->name('destroy');
-        });
-    });
-});
-
-// ==========================================
-// PRINT REPORT CARD ALL ROUTES
-// ==========================================
-Route::prefix('print-report-card')->name('print_report_card.')->group(function () {
-    Route::controller(PrintReportCardController::class)->group(function () {
-        Route::middleware('can:access-print-report-card')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
-            Route::post('/get-students', 'getStudents')->name('get_students');
-        });
-        Route::middleware('can:manage-print-report-card')->group(function () {
-            Route::post('/generate', 'generate')->name('generate');
-        });
-    });
-});
-
-// ==========================================
-// SCHOOL TIMING CURD ALL ROUTES
-// ==========================================
-Route::prefix('school-timing')->name('school_timing.')->group(function () {
-    Route::middleware(['can:access-school-timing'])->group(function () {
-        Route::controller(SchoolTimingController::class)->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/edit/{id}', 'edit')->name('edit');
+    // ==========================================
+    // SKILL ASSESSMENT ENTRY CRUD ALL ROUTES
+    // ==========================================
+    Route::prefix('skill-assessment-entry')->name('skill_assessment_entry.')->group(function () {
+        Route::controller(SkillAssessmentEntryController::class)->group(function () {
+            Route::middleware('can:access-skill-assessment-entry')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/get-sections', 'getSections')->name('get_sections');
+                Route::get('/get-grades', 'getGrades')->name('get_grades');
+                Route::get('/get-students', 'getStudents')->name('get_students');
+            });
+            Route::middleware('can:manage-skill-assessment-entry')->group(function () {
+                Route::post('/save', 'save')->name('save');
+            });
         });
     });
 
-    Route::middleware(['can:manage-school-timing'])->group(function () {
-        Route::controller(SchoolTimingController::class)->group(function () {
-            Route::post('/store', 'store')->name('store');
-            Route::post('/update/{id}', 'update')->name('update');
-            Route::post('/set-active/{id}', 'setActive')->name('set_active');
-            Route::post('/status/{id}', 'status')->name('status');
+    // ==========================================
+    // REPORT CARD TEMPLATE CRUD ALL ROUTES
+    // ==========================================
+    Route::prefix('report-card-template')->name('report_card_template.')->group(function () {
+        Route::controller(ReportCardTemplateController::class)->group(function () {
+            Route::middleware('can:access-report-card-template')->group(function () {
+                Route::get('/', 'index')->name('index');
+            });
+            Route::middleware('can:manage-report-card-template')->group(function () {
+                Route::post('/save', 'save')->name('save');
+                Route::get('/{report_card_template}/edit', 'edit')->name('edit');
+                Route::put('/{report_card_template}', 'update')->name('update');
+                Route::delete('/{report_card_template}', 'destroy')->name('destroy');
+            });
+        });
+    });
+
+    // ==========================================
+    // PRINT REPORT CARD ALL ROUTES
+    // ==========================================
+    Route::prefix('print-report-card')->name('print_report_card.')->group(function () {
+        Route::controller(PrintReportCardController::class)->group(function () {
+            Route::middleware('can:access-print-report-card')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
+                Route::post('/get-students', 'getStudents')->name('get_students');
+            });
+            Route::middleware('can:manage-print-report-card')->group(function () {
+                Route::post('/generate', 'generate')->name('generate');
+            });
+        });
+    });
+
+    // ==========================================
+    // SCHOOL TIMING CURD ALL ROUTES
+    // ==========================================
+    Route::prefix('school-timing')->name('school_timing.')->group(function () {
+        Route::middleware(['can:access-school-timing'])->group(function () {
+            Route::controller(SchoolTimingController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/edit/{id}', 'edit')->name('edit');
+            });
+        });
+
+        Route::middleware(['can:manage-school-timing'])->group(function () {
+            Route::controller(SchoolTimingController::class)->group(function () {
+                Route::post('/store', 'store')->name('store');
+                Route::post('/update/{id}', 'update')->name('update');
+                Route::post('/set-active/{id}', 'setActive')->name('set_active');
+                Route::post('/status/{id}', 'status')->name('status');
+            });
         });
     });
 });
