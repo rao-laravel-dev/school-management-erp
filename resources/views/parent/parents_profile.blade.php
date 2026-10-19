@@ -64,7 +64,7 @@
                                         <h6 class="mb-0">Phone</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" class="form-control" name="profilePhone" value="{{ old('profilePhone', $profileData->phone) }}" />
+                                        <input type="text" class="form-control" name="profilePhone" value="{{ old('profilePhone', $profileData->phone ?: optional($profileData->parentProfile)->father_phone ?: optional($profileData->parentProfile)->guardian_phone) }}" />
                                         <span class="text-danger small">@error('profilePhone'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
@@ -86,7 +86,7 @@
                                         <h6 class="mb-0">Address</h6>
                                     </div>
                                     <div class="col-sm-9 text-secondary">
-                                        <input type="text" class="form-control" name="address" value="{{ old('address', $profileData->address) }}" />
+                                        <input type="text" class="form-control" name="address" value="{{ old('address', $profileData->address ?: optional($profileData->parentProfile)->guardian_address) }}" />
                                         <span class="text-danger small">@error('address'){{ $message }}@enderror</span>
                                     </div>
                                 </div>
