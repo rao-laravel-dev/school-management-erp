@@ -205,10 +205,11 @@ class PrintReportCardController extends Controller
                 'footerText' => $this->renderTemplateText($template->footer_text, $enrollment, $exam),
             ]);
  
-            PrintReportCard::create([
+            PrintReportCard::updateOrCreate([
                 'enrollment_id' => $enrollmentId,
                 'exam_id'       => $exam->id,
                 'template_id'   => $template->id,
+            ], [
                 'issued_by'     => Auth::id(),
                 'issued_at'     => now(),
             ]);

@@ -38,5 +38,21 @@ class ReportCardTemplate extends Model
     {
         return $this->hasMany(PrintReportCard::class, 'template_id');
     }
-    
+
+    // Purani images public/uploads me hain, nayi (ImageService) storage/app/public/uploads me; dono ka URL yahan se
+    public function imageUrl(string $field): ?string
+    {
+        $file = $this->{$field};
+
+        if (!$file) {
+            return null;
+        }
+
+        if (file_exists(public_path('uploads/report_card_template/' . $file))) {
+            return asset('uploads/report_card_template/' . $file);
+        }
+
+        return asset('storage/uploads/report_card_template/' . $file);
+    }
+
 }

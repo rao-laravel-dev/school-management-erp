@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ReportCardTemplate;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportCardTemplateController extends Controller
 {
@@ -116,8 +117,40 @@ class ReportCardTemplateController extends Controller
         return response()->json(['success' => true, 'message' => 'Report Card Template updated successfully.']);
     }
 
-    public function destroy(ReportCardTemplate $report_card_template)
+    public function destroy(Request $request, ReportCardTemplate $report_card_template)
     {
+        // FK print_report_cards.template_id: printed cards hain to pehle confirm (force=1), phir history + template ek transaction me
+        $printedCount = $report_card_template->printReportCards()->count();
+        if ($printedCount > 0) {
+            if (!$request->boolean('force')) {
+                return response()->json([
+                    'success'       => false,
+                    'needs_confirm' => true,
+                    'count'         => $printedCount,
+                    'message'       => "This template is used in {$printedCount} printed report cards. Delete the template and its print history?",
+                ], 422);
+            }
+
+            // Files transaction commit ke baad hi delete hongi
+            $files = [];
+            foreach ($this->imageFields as $field) {
+                if ($report_card_template->{$field}) {
+                    $files[] = $report_card_template->{$field};
+                }
+            }
+
+            DB::transaction(function () use ($report_card_template) {
+                $report_card_template->printReportCards()->delete();
+                $report_card_template->delete();
+            });
+
+            foreach ($files as $file) {
+                $this->imageService->delete($file, $this->folder);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Report Card Template deleted successfully.']);
+        }
+
         foreach ($this->imageFields as $field) {
             if ($report_card_template->{$field}) {
                 $this->imageService->delete($report_card_template->{$field}, $this->folder);

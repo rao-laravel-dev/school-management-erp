@@ -58,7 +58,7 @@
     <div class="sheet">
 
         @if($template->background_image)
-            <img class="sheet-bg" src="{{ asset('uploads/report_card_template/' . $template->background_image) }}">
+            <img class="sheet-bg" src="{{ $template->imageUrl('background_image') }}">
         @endif
 
         <div class="sheet-content">
@@ -66,7 +66,7 @@
             {{-- Header: always from Site Settings, never from template --}}
             <div class="header">
                 @if($template->header_image)
-                    <img class="header-img" src="{{ asset('uploads/report_card_template/' . $template->header_image) }}">
+                    <img class="header-img" src="{{ $template->imageUrl('header_image') }}">
                 @elseif($siteSetting?->logo)
                     <img class="header-img" src="{{ asset('uploads/site_settings/' . $siteSetting->logo) }}">
                 @endif
@@ -208,19 +208,19 @@
             <div class="signatures">
                 <div>
                     @if($template->left_sign)
-                        <img src="{{ asset('uploads/report_card_template/' . $template->left_sign) }}">
+                        <img src="{{ $template->imageUrl('left_sign') }}">
                     @endif
                     <div class="line">Class Teacher</div>
                 </div>
                 <div>
                     @if($template->middle_sign)
-                        <img src="{{ asset('uploads/report_card_template/' . $template->middle_sign) }}">
+                        <img src="{{ $template->imageUrl('middle_sign') }}">
                     @endif
                     <div class="line">Principal</div>
                 </div>
                 <div>
                     @if($template->right_sign)
-                        <img src="{{ asset('uploads/report_card_template/' . $template->right_sign) }}">
+                        <img src="{{ $template->imageUrl('right_sign') }}">
                     @endif
                     <div class="line">Parent / Guardian</div>
                 </div>

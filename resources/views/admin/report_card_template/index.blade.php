@@ -141,7 +141,7 @@
                                 <td>{{ $t->template_name }}</td>
                                 <td>
                                     @if($t->background_image)
-                                        <img src="{{ asset('uploads/report_card_template/' . $t->background_image) }}" width="40" height="30" class="rounded" style="border:1px solid #adb5bd; object-fit:cover;">
+                                        <img src="{{ $t->imageUrl('background_image') }}" width="40" height="30" class="rounded" style="border:1px solid #adb5bd; object-fit:cover;">
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif
@@ -294,8 +294,34 @@
                             toastr.success(res.message);
                             setTimeout(() => location.reload(), 800);
                         },
-                        error: function () {
-                            toastr.error('Unable to delete template.');
+                        error: function (xhr) {
+                            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.needs_confirm) {
+                                // Template print history me use hua hai: confirm ke baad force=1 ke saath dobara bhejo
+                                Swal.fire({
+                                    title: 'Are you sure?',
+                                    text: xhr.responseJSON.message,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes, delete both',
+                                }).then((confirmResult) => {
+                                    if (confirmResult.isConfirmed) {
+                                        $.ajax({
+                                            url: `{{ url('report-card-template') }}/${id}?force=1`,
+                                            method: 'DELETE',
+                                            dataType: 'json',
+                                            success: function (res) {
+                                                toastr.success(res.message);
+                                                setTimeout(() => location.reload(), 800);
+                                            },
+                                            error: function (xhr2) {
+                                                toastr.error((xhr2.responseJSON && xhr2.responseJSON.message) || 'Unable to delete template.');
+                                            }
+                                        });
+                                    }
+                                });
+                                return;
+                            }
+                            toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to delete template.');
                         }
                     });
                 }
