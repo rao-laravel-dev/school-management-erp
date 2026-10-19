@@ -48,6 +48,7 @@
                         <th>Time In</th>
                         <th>Time Out</th>
                         <th>Remarks</th>
+                        <th>Marked By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,6 +68,7 @@
                             <td>{{ $item->created_at ? $item->created_at->format('h:i A') : 'N/A' }}</td>
                             <td>{{ $item->time_out ?? 'N/A' }}</td>
                             <td>{{ $item->remarks ?? '-' }}</td>
+                            <td>{{ $item->markedBy->name_with_role ?? '-' }}</td>
                         </tr>
                         @endforeach
                     @endforeach

@@ -100,6 +100,7 @@ class RoleSeeder extends Seeder
             'manage-leave-application',
             'access-attendance',
             'manage-attendance',
+            'access-scan-attendance',       // web.php attendance.scan*
             'access-front-office',
             'manage-front-office',
             'access-fee-structures',
@@ -182,6 +183,7 @@ class RoleSeeder extends Seeder
             'access-student-categories',
             'access-student-houses',
             'access-attendance',
+            'access-scan-attendance',       // web.php attendance.scan* (gate: student + staff)
             'access-leave-application',
             'access-front-office',
             // Fee + finance permissions receptionist se hata di (08-10-2026)
@@ -268,6 +270,7 @@ class RoleSeeder extends Seeder
             'access-student-categories',
             'access-student-houses',
             'access-attendance',
+            'access-scan-attendance',       // web.php attendance.scan* (own class students only, controller scope)
             'access-my-salary-slips',       // web.php Only for Teacher this permission.
             'access-my-attendance',         // web.php my.attendance.index
             'access-home-works',

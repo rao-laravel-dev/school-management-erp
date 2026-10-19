@@ -8,6 +8,13 @@
     ['label' => 'Scan Attendance', 'url' => '#'],
 ]" />
 
+@if($noClass)
+<div class="kiosk-wrapper">
+    <div class="alert alert-warning mb-0">
+        <i class="bx bx-error-circle"></i> No class assigned to you for the current session. Ask the admin to assign you as Class Teacher to use Scan Attendance.
+    </div>
+</div>
+@else
 <div class="kiosk-wrapper">
     <div class="kiosk-card">
 
@@ -23,6 +30,9 @@
             <div class="kiosk-subtitle-row row justify-content-end">
                 <div class="col-md-4 text-center">
                     <span class="kiosk-subtitle fw-semi-bold fs-5">Attendance Gadget</span>
+                    @if($classScoped)
+                    <div class="kiosk-subtitle small">Scanning for: {{ $scopeLabel }}</div>
+                    @endif
                 </div>
                 <div class="col-md-2 offset-md-2 text-end d-flex align-items-center justify-content-end gap-1">
                     <input type="text" id="scan-input" class="form-control form-control-sm kiosk-scan-input"
@@ -76,6 +86,10 @@
                         <td>Date / Time</td>
                         <td id="kiosk-value-datetime">-</td>
                     </tr>
+                    <tr>
+                        <td>Marked By</td>
+                        <td id="kiosk-value-marked-by">-</td>
+                    </tr>
                 </table>
             </div>
 
@@ -107,6 +121,7 @@
         </div>
     </div>
 </div>
+@endif
 
 @endsection
 
@@ -344,10 +359,11 @@
             padding: 20px 14px;
         }
 
-        .kiosk-subtitle-row .col-md-3,
-        .kiosk-subtitle-row .col-md-3.offset-md-3 {
+        .kiosk-subtitle-row .col-md-4,
+        .kiosk-subtitle-row .col-md-2.offset-md-2 {
             text-align: center !important;
             margin-left: 0 !important;
+            justify-content: center !important;
         }
 
         .kiosk-scan-input {
@@ -390,6 +406,12 @@
         /* ---------- camera QR/barcode scanning inside modal ---------- */
         $('#qrScannerModal').on('shown.bs.modal', function() {
             if (qrScanner || isStarting) return; // guard against double-init
+
+            // Camera sirf HTTPS (ya localhost) par chalta hai; http par phone browser block karta hai
+            if (!window.isSecureContext) {
+                toastr.warning('Camera needs HTTPS. Use the Roll No / Admission No box instead.');
+                return;
+            }
             isStarting = true;
 
             qrScanner = new Html5Qrcode("qr-reader", {
@@ -486,16 +508,25 @@
             });
         }
 
-        setInterval(pollLatestScan, 1500);
+        // Class teacher ka page gate ka latest-scan card poll nahi karta (server bhi [] deta hai)
+        const classScoped = @json($classScoped);
+        // Phone/tablet (touch): auto-refocus band, warna on-screen keyboard baar baar khulta hai
+        const isTouchDevice = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+        if (!classScoped) {
+            setInterval(pollLatestScan, 1500);
+        }
 
         /* ---------- keep input focused so hardware scanner (keyboard-wedge) keeps working even if user clicks elsewhere ---------- */
         window.refocusScanInput = function refocusScanInput() {
-            if ($('#qrScannerModal').hasClass('show')) return;
+            if ($('#qrScannerModal').hasClass('show') || isTouchDevice) return;
             if (!$('#scan-input').is(':focus')) {
                 $('#scan-input').trigger('focus');
             }
         };
-        setInterval(refocusScanInput, 1500);
+        if (!isTouchDevice) {
+            setInterval(refocusScanInput, 1500);
+        }
 
         $(document).on('keypress', '#scan-input', function(e) {
             if (e.key === 'Enter') {
@@ -541,7 +572,7 @@
             $('#kiosk-label-2').text('Class / Section');
             $('#kiosk-label-3').text('Group');
             $('#kiosk-label-4').text('Admission / Joining Date');
-            $('#kiosk-value-1, #kiosk-value-2, #kiosk-value-3, #kiosk-value-4, #kiosk-value-datetime').text('-');
+            $('#kiosk-value-1, #kiosk-value-2, #kiosk-value-3, #kiosk-value-4, #kiosk-value-datetime, #kiosk-value-marked-by').text('-');
             $('#kiosk-value-3, #kiosk-value-4').closest('tr').show();
         }
 
@@ -587,6 +618,7 @@
 
             let dateTime = [person.date, person.time].filter(Boolean).join(' , ');
             $('#kiosk-value-datetime').text(dateTime || '-');
+            $('#kiosk-value-marked-by').text(person.marked_by || '-');
             $('#kiosk-photo').attr('src', person.photo).off('error').on('error', function() {
                 $(this).attr('src', "{{ asset('uploads/no_image.jpg') }}");
             });

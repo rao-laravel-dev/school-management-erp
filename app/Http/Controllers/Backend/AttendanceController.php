@@ -59,7 +59,15 @@ class AttendanceController extends Controller
                 ->where('status', 4),
         ])->get();
 
-        return view('admin.attendance.index_attendance', compact('totalClasses', 'attendanceDone', 'classes', 'date'));
+        // Marked By: us date par har class-section ki attendance kin users ne mark ki ("Name (Role)")
+        $markers = Attendance::with('markedBy.roles')
+            ->where('attendance_date', $date)
+            ->whereNotNull('marked_by')
+            ->get(['class_id', 'section_id', 'marked_by'])
+            ->groupBy(fn($r) => $r->class_id . '-' . $r->section_id)
+            ->map(fn($rows) => $rows->pluck('markedBy.name_with_role')->filter()->unique()->implode(', '));
+
+        return view('admin.attendance.index_attendance', compact('totalClasses', 'attendanceDone', 'classes', 'date', 'markers'));
     }
 
 
@@ -573,14 +581,47 @@ class AttendanceController extends Controller
         return view('admin.attendance.student_report_attendance', compact('student', 'attendanceRecords', 'startDate', 'endDate'));
     }
 
+    // Scan scope: null = full access (admin / superadmin / receptionist gate).
+    // Teacher = apni class-teacher assignment(s) (active session) ki collection; assignment na ho to empty (fail closed)
+    private function scanScope()
+    {
+        $user = auth()->user();
+
+        if ($user->enabledRoleNames()->intersect(['admin', 'superadmin', 'receptionist'])->isNotEmpty()) {
+            return null;
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if (!$teacher) {
+            return collect();
+        }
+
+        return TeacherAssignment::with(['schoolClass', 'section'])
+            ->where('teacher_id', $teacher->id)
+            ->where('academic_year_id', $this->getActiveSessionId())
+            ->get();
+    }
+
     public function ScanAttendance()
     {
-        return view('admin.attendance.scan_attendance');
+        $scope       = $this->scanScope();
+        $classScoped = $scope !== null;
+        $noClass     = $classScoped && $scope->isEmpty();
+        $scopeLabel  = $classScoped
+            ? $scope->map(fn($a) => optional($a->schoolClass)->name . ' - ' . optional($a->section)->name)->implode(', ')
+            : null;
+
+        return view('admin.attendance.scan_attendance', compact('classScoped', 'noClass', 'scopeLabel'));
     }
     // End Method
 
     public function GetLatestScan()
     {
+        // Class-scoped teacher ko gate ka global latest-scan card nahi dikhana
+        if ($this->scanScope() !== null) {
+            return response()->json([]);
+        }
+
         return response()->json(Cache::get('kiosk_latest_scan', []));
     }
     // End Method
@@ -594,14 +635,24 @@ class AttendanceController extends Controller
 
         $code = preg_replace('/\s+/', '', ltrim(trim($request->code), '#')); // leading "#" aur spaces hata do
 
+        // Scope server-side (client par bharosa nahi): null = full, collection = teacher ki apni class(es)
+        $scope = $this->scanScope();
+        if ($scope !== null && $scope->isEmpty()) {
+            return response()->json(['status' => 'error', 'message' => 'No class assigned to you for the current session.'], 403);
+        }
+        $staffDenied = response()->json(['status' => 'error', 'message' => 'Staff attendance cannot be marked from the teacher portal.'], 403);
+
         // STEP 1: QR/Barcode code se owner dhoondo — Student ya Staff dono isi table se aate hain
         $qrRecord = QrCode::where('code', $code)->first();
 
         if ($qrRecord && $qrRecord->owner) {
             if ($qrRecord->owner_type === Student::class) {
-                return $this->handleStudentScan($qrRecord->owner, $request->device_id);
+                return $this->handleStudentScan($qrRecord->owner, $request->device_id, $scope);
             }
             if ($qrRecord->owner_type === User::class) {
+                if ($scope !== null) {
+                    return $staffDenied;
+                }
                 return $this->handleStaffScan($qrRecord->owner, $request->device_id);
             }
         }
@@ -618,29 +669,39 @@ class AttendanceController extends Controller
             ->with('roles')
             ->first();
         if ($staffUser) {
+            if ($scope !== null) {
+                return $staffDenied;
+            }
             return $this->handleStaffScan($staffUser, $request->device_id);
         }
 
-        // STEP 3: Roll No (current session)
+        // STEP 3: Roll No (current session); teacher ke liye sirf apni class-section ke andar
         $activeSessionId = $this->getActiveSessionId();
         $enrollmentsByRoll = Enrollment::with('student')
             ->where('roll_no', $code)
             ->where('academic_year_id', $activeSessionId)
             ->where('enroll_status', 1) // sirf Active enrollment
             ->whereHas('student') // soft-deleted student skip
+            ->when($scope !== null, function ($q) use ($scope) {
+                $q->where(function ($w) use ($scope) {
+                    foreach ($scope as $a) {
+                        $w->orWhere(fn($x) => $x->where('class_id', $a->class_id)->where('section_id', $a->section_id));
+                    }
+                });
+            })
             ->get();
         if ($enrollmentsByRoll->count() > 1) { // roll no sirf class+section ke andar unique hai
             return response()->json(['status' => 'error', 'message' => 'Roll no matches more than one student. Use admission no.'], 422);
         }
         $enrollmentByRoll = $enrollmentsByRoll->first();
         if ($enrollmentByRoll && $enrollmentByRoll->student) { // soft-deleted student = null, scan aage "Invalid code" par jaye
-            return $this->handleStudentScan($enrollmentByRoll->student, $request->device_id);
+            return $this->handleStudentScan($enrollmentByRoll->student, $request->device_id, $scope);
         }
 
         // STEP 4: Admission No
         $student = Student::where('admission_no', $code)->first();
         if ($student) {
-            return $this->handleStudentScan($student, $request->device_id);
+            return $this->handleStudentScan($student, $request->device_id, $scope);
         }
 
         return response()->json(['status' => 'error', 'message' => 'Invalid code. No matching student or staff found.'], 404);
@@ -666,7 +727,7 @@ class AttendanceController extends Controller
     // ==========================================
     // STUDENT scan handle karna (purana logic yahan move hua, + late-detection add hui)
     // ==========================================
-    protected function handleStudentScan(Student $student, $deviceId)
+    protected function handleStudentScan(Student $student, $deviceId, $scope = null)
     {
         $activeSessionId = $this->getActiveSessionId();
         $student->load('parent');
@@ -676,13 +737,21 @@ class AttendanceController extends Controller
             ->where('academic_year_id', $activeSessionId)
             ->first();
 
+        // Teacher scope: sirf apni class-section ka student; baqi reject, koi record save nahi (kisi write se pehle)
+        if ($scope !== null && (!$enrollment || !$scope->contains(fn($a) => $a->class_id == $enrollment->class_id && $a->section_id == $enrollment->section_id))) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => "{$student->first_name} is not in your class. Attendance not saved.",
+            ], 403);
+        }
+
         if (!$enrollment) {
             $data = [
                 'status'  => 'error',
                 'message' => "{$student->first_name}'s active enrollment not found for this session.",
             ];
             $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
-            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+            if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
 
             return response()->json($data, 404);
         }
@@ -701,9 +770,13 @@ class AttendanceController extends Controller
         ];
 
         $today = date('Y-m-d');
-        $existing = Attendance::where('enrollment_id', $enrollment->id)
+        $existing = Attendance::with('markedBy.roles')
+            ->where('enrollment_id', $enrollment->id)
             ->where('attendance_date', $today)
             ->first();
+
+        // Marked By: naya scan = abhi wala user, warna pehle scan karne wala
+        $studentInfo['marked_by'] = $existing ? optional($existing->markedBy)->name_with_role : auth()->user()->name_with_role;
 
         if (!$existing) {
             $now = now();
@@ -731,7 +804,7 @@ class AttendanceController extends Controller
                 'student'   => $studentInfo,
             ];
             $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
-            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+            if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
 
             return response()->json($data);
         }
@@ -746,7 +819,7 @@ class AttendanceController extends Controller
                 'student'   => $studentInfo,
             ];
             $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
-            Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+            if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
 
             return response()->json($data);
         }
@@ -758,7 +831,7 @@ class AttendanceController extends Controller
             'student'   => $studentInfo,
         ];
         $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
-        Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+        if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
 
         return response()->json($data);
     }
@@ -785,9 +858,12 @@ class AttendanceController extends Controller
         ];
 
         $today = date('Y-m-d');
-        $existing = StaffAttendance::where('user_id', $staffUser->id)
+        $existing = StaffAttendance::with('markedBy.roles')
+            ->where('user_id', $staffUser->id)
             ->where('date', $today)
             ->first();
+
+        $staffInfo['marked_by'] = $existing ? optional($existing->markedBy)->name_with_role : auth()->user()->name_with_role;
 
         if (!$existing) {
             $now = now();
@@ -866,7 +942,7 @@ class AttendanceController extends Controller
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
         // Sirf unki assigned classes ka data fetch karna
-        $attendanceRecords = Attendance::with(['enrollment.student', 'enrollment.schoolClass', 'enrollment.section'])
+        $attendanceRecords = Attendance::with(['enrollment.student', 'enrollment.schoolClass', 'enrollment.section', 'markedBy.roles'])
             ->whereIn('class_id', $assignedClassIds)
             ->whereBetween('attendance_date', [$startDate, $endDate])
             ->orderBy('attendance_date', 'DESC')

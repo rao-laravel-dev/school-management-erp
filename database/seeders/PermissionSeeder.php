@@ -86,6 +86,7 @@ class PermissionSeeder extends Seeder
             'manage-librarian',             // web.php librarians.* (admin CRUD)
             'access-attendance',
             'manage-attendance',
+            'access-scan-attendance',       // web.php attendance.scan* (admin, receptionist, class teacher)
             'access-leave-setting',
             'manage-leave-setting',
             'access-leave-application',

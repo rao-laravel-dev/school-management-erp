@@ -359,6 +359,17 @@ class User extends Authenticatable
         return $this->enabledRoleNames()->first();
     }
 
+    // "Marked by" label: "Rao Imran (Teacher)". Role stored nahi hota, display time par active role (layout wala same rule); superadmin = Admin
+    public function getNameWithRoleAttribute(): string
+    {
+        $role = $this->activeRoleName();
+        if ($role === 'superadmin') {
+            $role = 'admin';
+        }
+
+        return $role ? $this->name . ' (' . ucfirst($role) . ')' : (string) $this->name;
+    }
+
     public function hasEnabledRole(string $name): bool
     {
         return $this->enabledRoleNames()->contains($name);

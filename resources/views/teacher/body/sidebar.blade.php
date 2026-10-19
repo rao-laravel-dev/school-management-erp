@@ -32,6 +32,13 @@
 						<i class='bx bx-radio-circle'></i>Mark Attendance
 					</a>
 				</li>
+				@can('access-scan-attendance')
+				<li>
+					<a href="{{ route('attendance.scan') }}">
+						<i class='bx bx-radio-circle'></i>Scan Attendance
+					</a>
+				</li>
+				@endcan
 				<li>
 					<a href="{{ route('attendance.report') }}">
 						<i class='bx bx-radio-circle'></i>My Class Report

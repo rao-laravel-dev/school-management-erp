@@ -758,10 +758,16 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/store', 'StoreAttendance')->name('store');
                 Route::get('/edit/{id}', 'EditAttendance')->name('edit');
                 Route::post('/update/{id}', 'UpdateAttendance')->name('update');
+                Route::get('/my-class-attendance', 'myClassAttendanceReport')->name('report');
+            });
+        });
+
+        // 1b. Scan Attendance (admin, receptionist, class teacher): scope controller mein (teacher = apni class)
+        Route::middleware(['can:access-scan-attendance'])->group(function () {
+            Route::controller(AttendanceController::class)->group(function () {
                 Route::get('/scan', 'ScanAttendance')->name('scan');
                 Route::get('/scan-latest', 'GetLatestScan')->name('scan.latest');
                 Route::post('/scan-store', 'StoreScanAttendance')->name('scan.store');
-                Route::get('/my-class-attendance', 'myClassAttendanceReport')->name('report');
             });
         });
 

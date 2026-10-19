@@ -99,7 +99,19 @@
         </li>
         @endcan
 
-        {{-- Attendance dropdown hata diya: receptionist sirf reports dekhta hai, links ab "Reports" menu mein --}}
+        {{-- Attendance: sirf Scan Attendance (gate); reports ke links "Reports" menu mein hain --}}
+        @can('access-scan-attendance')
+        @php $open = request()->routeIs('attendance.scan*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bx-calendar-check"></i></div>
+                <div class="menu-title">Attendance</div>
+            </a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li><a href="{{ route('attendance.scan') }}"><i class='bx bx-radio-circle'></i>Scan Attendance</a></li>
+            </ul>
+        </li>
+        @endcan
 
         @can('access-academics')
         @php $open = request()->routeIs('classes.*', 'sections.*', 'groups.*', 'subjects.*', 'school-class-subjects.*', 'academic_years.*', 'class_timetable.*', 'teacher_timetable.*', 'rooms.*', 'school_timing.*', 'academic_calendar.*', 'event_type.*'); @endphp

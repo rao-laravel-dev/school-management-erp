@@ -110,7 +110,7 @@
                         <td>{{ $record->marked_at ? $record->marked_at->format('d-m-Y h:i A') : '-' }}</td> {{-- NEW --}}
                         <td>{{ $record->time_out ? \Carbon\Carbon::parse($record->time_out)->format('h:i A') : '-' }}</td>
                         <td>{{ $record->remarks ?? '-' }}</td>
-                        <td>{{ $record->markedBy->name ?? '-' }}</td>
+                        <td>{{ $record->markedBy->name_with_role ?? '-' }}</td>
                         <td>
                             @can('manage-staff-attendance')
                             <a href="{{ route('staff_attendance.edit', ['date' => $record->date, 'role' => $record->staff ? $record->staff->roles->pluck('name')->first() : null]) }}" class="btn btn-sm btn-outline-primary">

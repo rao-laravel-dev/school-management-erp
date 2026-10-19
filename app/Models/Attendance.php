@@ -44,6 +44,12 @@ class Attendance extends Model
             'user_id'      // Enrollment table mein User ka FK
         );
     }
+    // Marker user (soft-deleted staff ka naam bhi history mein dikhe)
+    public function markedBy()
+    {
+        return $this->belongsTo(User::class, 'marked_by')->withTrashed();
+    }
+
     public function enrollment()
     {
         return $this->belongsTo(Enrollment::class, 'enrollment_id');

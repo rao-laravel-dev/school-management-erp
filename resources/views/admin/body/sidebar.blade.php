@@ -330,7 +330,9 @@
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Student Attendance</a>
                     <ul class="{{ $subOpen ? 'mm-show' : '' }}">
                         <li class="{{ request()->routeIs('attendance.create', 'attendance.mark') ? 'mm-active' : '' }}"><a href="{{ route('attendance.create') }}"><i class='bx bx-right-arrow-alt'></i>Mark Attendance</a></li>
+                        @can('access-scan-attendance')
                         <li class="{{ request()->routeIs('attendance.scan*') ? 'mm-active' : '' }}"><a href="{{ route('attendance.scan') }}"><i class='bx bx-right-arrow-alt'></i>Scan Attendance</a></li>
+                        @endcan
                         <li class="{{ request()->routeIs('attendance.index', 'attendance.details', 'attendance.report', 'attendance.edit') ? 'mm-active' : '' }}"><a href="{{ route('attendance.index') }}"><i class='bx bx-right-arrow-alt'></i>Attendance Report</a></li>
                     </ul>
                 </li>

@@ -163,7 +163,7 @@
                         <td>{{ $record->marked_at ? $record->marked_at->format('d-m-Y h:i A') : '-' }}</td>
                         <td>{{ $record->time_out ? \Carbon\Carbon::parse($record->time_out)->format('h:i A') : '-' }}</td>
                         <td>{{ $record->remarks ?? '-' }}</td>
-                        <td>{{ $record->markedBy->name ?? '-' }}</td>
+                        <td>{{ $record->markedBy->name_with_role ?? '-' }}</td>
                     </tr>
                     @empty
                     <tr>

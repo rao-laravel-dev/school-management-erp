@@ -32,7 +32,7 @@ class StaffAttendanceController extends Controller
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 
-        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'staff.librarianWithTrashed', 'markedBy'])
+        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'staff.librarianWithTrashed', 'markedBy.roles'])
             ->where('date', $date);
 
         if ($roleFilter) {
@@ -322,7 +322,7 @@ class StaffAttendanceController extends Controller
 
         $roles = Role::whereNotIn('name', $this->excludedRoles)->pluck('name');
 
-        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'staff.librarianWithTrashed', 'markedBy'])
+        $query = StaffAttendance::with(['staff.roles', 'staff.teacherWithTrashed', 'staff.accountantWithTrashed', 'staff.receptionistWithTrashed', 'staff.librarianWithTrashed', 'markedBy.roles'])
             ->whereBetween('date', [$fromDate, $toDate]);
 
         if ($roleFilter) {
@@ -483,7 +483,7 @@ class StaffAttendanceController extends Controller
         $toDate       = $request->query('to_date', now()->toDateString());
         $statusFilter = $request->query('status');
 
-        $query = StaffAttendance::with('markedBy')
+        $query = StaffAttendance::with('markedBy.roles')
             ->where('user_id', $staff->id)
             ->whereBetween('date', [$fromDate, $toDate]);
 

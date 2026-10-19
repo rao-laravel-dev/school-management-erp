@@ -53,6 +53,7 @@
                         <th>Status</th>
                         <th>Stats (P/A/L/H/Lv)</th>
                         <th>Time In/Out</th>
+                        <th>Marked By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -89,6 +90,14 @@
                 @endif
             </td>
             <td>
+                @php $markedBy = isset($markers) ? $markers->get($class->id . '-' . $section->id) : null; @endphp
+                @if($markedBy)
+                    <small>{{ $markedBy }}</small>
+                @else
+                    <span class="text-muted">---</span>
+                @endif
+            </td>
+            <td>
                 {{-- Ab yahan $section->id sahi tarah se pass hoga --}}
                 <a href="{{ route('attendance.edit', $class->id) . '?section_id=' . $section->id . '&date=' . $date }}" 
    class="btn btn-sm btn-outline-primary">
@@ -98,7 +107,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="5" class="text-center">No sections mapped for {{ $class->name }}</td>
+            <td colspan="6" class="text-center">No sections mapped for {{ $class->name }}</td>
         </tr>
         @endforelse
     @endforeach
