@@ -953,5 +953,256 @@ class AttendanceController extends Controller
     }
     // End Method
 
+    // ==========================================
+    // T205: read-only Class Attendance Report + Individual Student Report
+    // ==========================================
+    // attendances.status jo asal mein save hota hai: 1 Present, 0 Absent, 2 Late, 3 Half Day, 4 Leave (4 + remarks "Holiday" = holiday)
+    private const REPORT_STATUSES = ['present' => 1, 'absent' => 0, 'late' => 2, 'half_day' => 3, 'leave' => 4];
+    private const HOLIDAY_SQL = "(attendances.status = 4 AND LOWER(TRIM(COALESCE(attendances.remarks, ''))) = 'holiday')";
+
+    // Report scope: null = sab classes (admin / superadmin / receptionist / accountant, sirf read).
+    // Teacher = apni assignment(s) (active session); baqi roles empty (fail closed). Role = activeRoleName() (layout wala same source)
+    private function reportScope()
+    {
+        $user = auth()->user();
+        $role = $user->activeRoleName();
+
+        if (in_array($role, ['admin', 'superadmin', 'receptionist', 'accountant'], true)) {
+            return null;
+        }
+        if ($role !== 'teacher') {
+            return collect();
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if (!$teacher) {
+            return collect();
+        }
+
+        return TeacherAssignment::with(['schoolClass', 'section'])
+            ->where('teacher_id', $teacher->id)
+            ->where('academic_year_id', $this->getActiveSessionId())
+            ->get();
+    }
+
+    private function inReportScope($scope, $classId, $sectionId): bool
+    {
+        return $scope === null || $scope->contains(fn($a) => $a->class_id == $classId && $a->section_id == $sectionId);
+    }
+
+    // Query string validate karke filters banata hai. Return [filters, error message ya null]
+    private function reportFilters(Request $request): array
+    {
+        $v = \Illuminate\Support\Facades\Validator::make($request->query(), [
+            'date'      => 'nullable|date_format:Y-m-d',
+            'from_date' => 'nullable|date_format:Y-m-d',
+            'to_date'   => 'nullable|date_format:Y-m-d',
+            'status'    => 'nullable|in:' . implode(',', array_keys(self::REPORT_STATUSES)),
+            'q'         => 'nullable|string|max:50',
+            'page'      => 'nullable|integer|min:1',
+        ]);
+        if ($v->fails()) {
+            return [null, $v->errors()->first()];
+        }
+
+        $date = $request->query('date');
+        $from = $request->query('from_date') ?: ($date ?: now()->startOfMonth()->toDateString());
+        $to   = $request->query('to_date') ?: ($date ?: now()->toDateString());
+
+        if ($to < $from) {
+            return [null, 'To date must be on or after From date.'];
+        }
+        if (Carbon::parse($from)->diffInDays(Carbon::parse($to)) > 366) {
+            return [null, 'Date range cannot be more than 366 days.'];
+        }
+
+        return [[
+            'from'   => $from,
+            'to'     => $to,
+            'status' => $request->query('status') ?: null,
+            'q'      => trim((string) $request->query('q')),
+        ], null];
+    }
+
+    // leave = status 4 jo holiday nahi; baqi statuses 1:1. Holiday rows Leave mein nahi ginti jati
+    private function applyReportStatus($query, ?string $status): void
+    {
+        if (!$status) {
+            return;
+        }
+        if ($status === 'leave') {
+            $query->where('attendances.status', 4)->whereRaw('NOT ' . self::HOLIDAY_SQL);
+            return;
+        }
+        $query->where('attendances.status', self::REPORT_STATUSES[$status]);
+    }
+
+    // Base query (sirf where + join, koi select / orderBy nahi): rows aur summary dono isi ko clone karte hain
+    private function classReportBase($classId, $sectionId, array $f)
+    {
+        $query = Attendance::query()
+            ->join('enrollments as e', 'e.id', '=', 'attendances.enrollment_id')
+            ->leftJoin('students as s', 's.id', '=', 'e.student_id')
+            ->where('attendances.class_id', $classId)
+            ->where('attendances.section_id', $sectionId)
+            ->whereBetween('attendances.attendance_date', [$f['from'], $f['to']])
+            ->where('e.academic_year_id', $this->getActiveSessionId())
+            ->whereNull('e.deleted_at');
+        $this->applyReportStatus($query, $f['status']);
+
+        if ($f['q'] !== '') {
+            $like = '%' . addcslashes($f['q'], '%_\\') . '%';
+            $query->where(function ($w) use ($like) {
+                $w->where('s.first_name', 'like', $like)
+                    ->orWhere('s.last_name', 'like', $like)
+                    ->orWhereRaw("CONCAT(s.first_name, ' ', s.last_name) like ?", [$like])
+                    ->orWhere('s.admission_no', 'like', $like)
+                    ->orWhere('e.roll_no', 'like', $like);
+            });
+        }
+
+        return $query;
+    }
+
+    // Grouped count (status + holiday flag): P / A / L / H / F (leave) / HOL (holiday). Base ko clone karke, koi orderBy nahi
+    private function reportCounts($base): array
+    {
+        $rows = (clone $base)->toBase()
+            ->selectRaw('attendances.status as st, ' . self::HOLIDAY_SQL . ' as is_holiday, COUNT(*) as c')
+            ->groupBy('st', 'is_holiday')
+            ->get();
+
+        $counts = ['P' => 0, 'A' => 0, 'L' => 0, 'H' => 0, 'F' => 0, 'HOL' => 0];
+        foreach ($rows as $r) {
+            $key = match ((int) $r->st) {
+                1 => 'P',
+                0 => 'A',
+                2 => 'L',
+                3 => 'H',
+                default => ((int) $r->is_holiday === 1 ? 'HOL' : 'F'),
+            };
+            $counts[$key] += (int) $r->c;
+        }
+
+        return $counts;
+    }
+
+    public function classReport(Request $request, $class_id = null, $section_id = null)
+    {
+        $scope = $this->reportScope();
+
+        // Class/section nahi diya: admin / receptionist / accountant ko report index, teacher ko apni class
+        if ($class_id === null || $section_id === null) {
+            if ($scope === null) {
+                return redirect()->route('attendance.index');
+            }
+            if ($scope->count() === 1) {
+                $a = $scope->first();
+                return redirect()->route('attendance.class_report', ['class_id' => $a->class_id, 'section_id' => $a->section_id] + $request->query());
+            }
+
+            return view('admin.attendance.class_report', [
+                'class' => null, 'section' => null, 'scope' => $scope, 'noClass' => $scope->isEmpty(),
+                'rows' => null, 'summary' => null, 'filters' => null, 'studentCount' => 0,
+            ]);
+        }
+
+        $class = SchoolClass::findOrFail($class_id);
+        $section = Section::findOrFail($section_id);
+        if (!$this->inReportScope($scope, $class->id, $section->id)) {
+            abort(403);
+        }
+
+        [$filters, $error] = $this->reportFilters($request);
+        if ($error) {
+            return redirect()->route('attendance.class_report', ['class_id' => $class->id, 'section_id' => $section->id])
+                ->with(['message' => $error, 'alert-type' => 'error']);
+        }
+
+        $base = $this->classReportBase($class->id, $section->id, $filters);
+
+        $rows = (clone $base)
+            ->select('attendances.*')
+            ->with(['enrollment.student' => fn($q) => $q->withTrashed(), 'markedBy.roles'])
+            ->orderByDesc('attendances.attendance_date')
+            ->orderByRaw('CAST(e.roll_no AS UNSIGNED), e.roll_no')
+            ->orderBy('attendances.id')
+            ->paginate(50)
+            ->withQueryString();
+
+        $summary = $this->reportCounts($base);
+        $studentCount = Enrollment::where('class_id', $class->id)
+            ->where('section_id', $section->id)
+            ->where('academic_year_id', $this->getActiveSessionId())
+            ->where('enroll_status', 1)
+            ->count();
+
+        return view('admin.attendance.class_report', [
+            'class' => $class, 'section' => $section, 'scope' => $scope, 'noClass' => false,
+            'rows' => $rows, 'summary' => $summary, 'filters' => $filters, 'studentCount' => $studentCount,
+        ]);
+    }
+    // End Method
+
+    public function studentReport(Request $request, Enrollment $enrollment)
+    {
+        $scope = $this->reportScope();
+        if ($scope !== null && ($enrollment->academic_year_id != $this->getActiveSessionId()
+            || !$this->inReportScope($scope, $enrollment->class_id, $enrollment->section_id))) {
+            abort(403);
+        }
+
+        $enrollment->load(['student' => fn($q) => $q->withTrashed(), 'schoolClass', 'section']);
+
+        [$filters, $error] = $this->reportFilters($request);
+        if ($error) {
+            return redirect()->route('attendance.student_report', $enrollment->id)
+                ->with(['message' => $error, 'alert-type' => 'error']);
+        }
+
+        // Base: sirf where (select / orderBy nahi); history, cards aur charts sab isi ko clone karte hain
+        $base = Attendance::query()
+            ->where('attendances.enrollment_id', $enrollment->id)
+            ->whereBetween('attendances.attendance_date', [$filters['from'], $filters['to']]);
+        $this->applyReportStatus($base, $filters['status']);
+
+        $history = (clone $base)
+            ->with('markedBy.roles')
+            ->orderByDesc('attendances.attendance_date')
+            ->orderByDesc('attendances.id')
+            ->paginate(50)
+            ->withQueryString();
+
+        $summary = $this->reportCounts($base);
+        $percent = $this->attendancePercent(['P' => $summary['P'], 'A' => $summary['A'], 'L' => $summary['L'], 'H' => $summary['H']]);
+
+        // Monthly chart: mahine + status ke hisaab se grouped count
+        $monthRows = (clone $base)->toBase()
+            ->selectRaw("DATE_FORMAT(attendances.attendance_date, '%Y-%m') as ym, attendances.status as st, " . self::HOLIDAY_SQL . ' as is_holiday, COUNT(*) as c')
+            ->groupBy('ym', 'st', 'is_holiday')
+            ->orderBy('ym')
+            ->get();
+        $monthly = [];
+        foreach ($monthRows as $r) {
+            $monthly[$r->ym] = $monthly[$r->ym] ?? ['label' => Carbon::createFromFormat('Y-m-d', $r->ym . '-01')->format('M Y'), 'P' => 0, 'A' => 0, 'L' => 0, 'H' => 0, 'F' => 0];
+            $key = match ((int) $r->st) {
+                1 => 'P',
+                0 => 'A',
+                2 => 'L',
+                3 => 'H',
+                default => ((int) $r->is_holiday === 1 ? null : 'F'),
+            };
+            if ($key) {
+                $monthly[$r->ym][$key] += (int) $r->c;
+            }
+        }
+
+        return view('admin.attendance.student_report', [
+            'enrollment' => $enrollment, 'student' => $enrollment->student, 'history' => $history,
+            'summary' => $summary, 'percent' => $percent, 'monthly' => array_values($monthly), 'filters' => $filters,
+        ]);
+    }
+    // End Method
+
 
 }

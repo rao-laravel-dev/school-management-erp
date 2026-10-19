@@ -779,6 +779,14 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/delete/{id}', 'AttendanceDestroy')->name('delete');
             });
         });
+
+        // 3. Read-only reports: class report + individual student report (scope controller mein)
+        Route::middleware(['can:access-attendance'])->group(function () {
+            Route::controller(AttendanceController::class)->group(function () {
+                Route::get('/class-report/{class_id?}/{section_id?}', 'classReport')->whereNumber(['class_id', 'section_id'])->name('class_report');
+                Route::get('/student-report/{enrollment}', 'studentReport')->whereNumber('enrollment')->name('student_report');
+            });
+        });
     });
 
     // ==========================================

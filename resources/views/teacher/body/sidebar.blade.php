@@ -44,6 +44,11 @@
 						<i class='bx bx-radio-circle'></i>My Class Report
 					</a>
 				</li>
+				<li class="{{ request()->routeIs('attendance.class_report', 'attendance.student_report') ? 'mm-active' : '' }}">
+					<a href="{{ route('attendance.class_report') }}">
+						<i class='bx bx-radio-circle'></i>Class Attendance Report
+					</a>
+				</li>
 			</ul>
 		</li>
 		@endcan

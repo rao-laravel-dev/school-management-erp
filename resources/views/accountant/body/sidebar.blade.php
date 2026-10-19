@@ -141,7 +141,7 @@
                 <li><a href="{{ route('finance_report.index') }}"><i class='bx bx-radio-circle'></i>Finance Report</a></li>
                 @endcan
                 @can('access-attendance')
-                <li><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
+                <li class="{{ request()->routeIs('attendance.index', 'attendance.class_report', 'attendance.student_report') ? 'mm-active' : '' }}"><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
                 @endcan
                 @can('access-my-attendance')
                 <li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>

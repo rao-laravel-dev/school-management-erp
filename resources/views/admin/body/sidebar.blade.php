@@ -333,7 +333,7 @@
                         @can('access-scan-attendance')
                         <li class="{{ request()->routeIs('attendance.scan*') ? 'mm-active' : '' }}"><a href="{{ route('attendance.scan') }}"><i class='bx bx-right-arrow-alt'></i>Scan Attendance</a></li>
                         @endcan
-                        <li class="{{ request()->routeIs('attendance.index', 'attendance.details', 'attendance.report', 'attendance.edit') ? 'mm-active' : '' }}"><a href="{{ route('attendance.index') }}"><i class='bx bx-right-arrow-alt'></i>Attendance Report</a></li>
+                        <li class="{{ request()->routeIs('attendance.index', 'attendance.details', 'attendance.report', 'attendance.edit', 'attendance.class_report', 'attendance.student_report') ? 'mm-active' : '' }}"><a href="{{ route('attendance.index') }}"><i class='bx bx-right-arrow-alt'></i>Attendance Report</a></li>
                     </ul>
                 </li>
                 @endcan

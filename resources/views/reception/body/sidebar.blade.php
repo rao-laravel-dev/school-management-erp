@@ -254,7 +254,7 @@
 
         {{-- Reports: logged-in user ki apni reports + attendance reports (aage aur links yahan aayenge) --}}
         @canany(['access-my-attendance', 'access-leave-application', 'access-my-salary-slips', 'access-attendance', 'access-staff-attendance'])
-        @php $open = request()->routeIs('my.*', 'staffleaveapp.*', 'attendance.index', 'staff_attendance.report') && ! request()->routeIs('staffleaveapp.create'); @endphp
+        @php $open = request()->routeIs('my.*', 'staffleaveapp.*', 'attendance.index', 'attendance.class_report', 'attendance.student_report', 'staff_attendance.report') && ! request()->routeIs('staffleaveapp.create'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class='bx bx-file'></i></div>
@@ -271,7 +271,7 @@
                 <li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slip</a></li>
                 @endcan
                 @can('access-attendance')
-                <li><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
+                <li class="{{ request()->routeIs('attendance.index', 'attendance.class_report', 'attendance.student_report') ? 'mm-active' : '' }}"><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
                 @endcan
                 @can('access-staff-attendance')
                 <li><a href="{{ route('staff_attendance.report') }}"><i class='bx bx-radio-circle'></i>Staff Attendance Report</a></li>

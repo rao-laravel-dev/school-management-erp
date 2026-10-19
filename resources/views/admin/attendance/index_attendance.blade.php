@@ -99,9 +99,9 @@
             </td>
             <td>
                 {{-- Ab yahan $section->id sahi tarah se pass hoga --}}
-                <a href="{{ route('attendance.edit', $class->id) . '?section_id=' . $section->id . '&date=' . $date }}" 
+                <a href="{{ route('attendance.class_report', [$class->id, $section->id]) . '?date=' . $date }}" 
    class="btn btn-sm btn-outline-primary">
-    <i class="bx bx-edit"></i> View Details
+    <i class="bx bx-show"></i> View Details
 </a>
             </td>
         </tr>
