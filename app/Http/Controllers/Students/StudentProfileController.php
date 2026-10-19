@@ -17,6 +17,7 @@ use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
 use App\Services\StudentClassSchedule;
 use App\Services\StudentHomework;
+use App\Services\StudentResults;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -229,94 +230,23 @@ class StudentProfileController extends Controller
     // End Method
     public function resultIndex()
 {
-    $studentId = session('active_student_id');
-
-    $enrollment = Enrollment::where('student_id', $studentId)
-        ->where('enroll_status', 1) // Active
-        ->latest()
-        ->first();
-
-    if (!$enrollment) {
-        return view('student.result.index', ['results' => collect()]);
-    }
-
-    $results = Result::with(['exam.examType', 'grade'])
-        ->where('enrollment_id', $enrollment->id)
-        ->whereHas('exam', function ($q) {
-            $q->where('publish_result', 1);
-        })
-        ->orderByDesc('created_at')
-        ->get();
-
-    return view('student.result.index', compact('results'));
+    // Query lives in StudentResults (shared with the parent portal)
+    return view('student.result.index', StudentResults::forStudent(session('active_student_id')) + [
+        'resultsTitle'      => 'My Results',
+        'dashboardUrl'      => route('student.dashboard'),
+        'resultsIndexUrl'   => route('student.results.index'),
+        'detailsRoute'      => 'student.results.details',
+        'detailsParams'     => [], // parent adds the child id first
+    ]);
 }
 // End Method
 
     public function resultDetails($resultId)
     {
-        $studentId = session('active_student_id');
-
-        $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section'])
-            ->where('student_id', $studentId)
-            ->where('enroll_status', 1)
-            ->latest()
-            ->first();
-
-        abort_if(!$enrollment, 404);
-
-        $result = Result::with(['exam.examType', 'grade'])
-            ->where('enrollment_id', $enrollment->id)
-            ->whereHas('exam', function ($q) {
-                $q->where('publish_result', 1);
-            })
-            ->findOrFail($resultId);
-
-        $subjectMarks = MarkSheet::with('subject')
-            ->where('exam_id', $result->exam_id)
-            ->where('enrollment_id', $enrollment->id)
-            ->get();
-
-        $examSchedules = ExamSchedule::where('exam_id', $result->exam_id)
-            ->where('class_id', $result->class_id)
-            ->get()
-            ->keyBy('subject_id');
-
-        // Calculations
-        $percentage = $result->percentage;
-
-        $percentageBadge = match (true) {
-            $percentage >= 80 => 'bg-success-subtle text-success',
-            $percentage >= 60 => 'bg-primary-subtle text-primary',
-            $percentage >= 50 => 'bg-warning-subtle text-warning',
-            default => 'bg-danger-subtle text-danger',
-        };
-
-        $gradeName = $result->grade->grade_name ?? '-';
-        $gradeBadge = match (true) {
-            str_starts_with($gradeName, 'A') => 'bg-success-subtle text-success',
-            str_starts_with($gradeName, 'B') => 'bg-primary-subtle text-primary',
-            str_starts_with($gradeName, 'C') => 'bg-info-subtle text-info',
-            str_starts_with($gradeName, 'D') => 'bg-warning-subtle text-warning',
-            str_starts_with($gradeName, 'F') => 'bg-danger-subtle text-danger',
-            default => 'bg-secondary-subtle text-secondary',
-        };
-
-        $fatherName = $enrollment->student->parent->father_name ?? '-';
-
-        // Admission Number (Agar enrollment table me hai ya student table me, dono handle kar lein)
-        $admissionNo = $enrollment->admission_no ?? ($enrollment->student->admission_no ?? '-');
-
-        return view('student.result.details', compact(
-            'result',
-            'subjectMarks',
-            'examSchedules',
-            'enrollment',
-            'percentageBadge',
-            'gradeBadge',
-            'gradeName',
-            'fatherName',
-            'admissionNo'
-        ));
+        return view('student.result.details', StudentResults::details(session('active_student_id'), $resultId) + [
+            'dashboardUrl'      => route('student.dashboard'),
+            'resultsIndexUrl'   => route('student.results.index'),
+        ]);
     }
     // End Method
 

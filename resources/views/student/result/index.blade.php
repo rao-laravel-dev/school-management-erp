@@ -1,14 +1,18 @@
 @extends($current_layout)
 @section('content')
 <x-breadcrumb :items="[
-    ['label' => 'Dashboard', 'url' => route('student.dashboard')],
+    ['label' => 'Dashboard', 'url' => $dashboardUrl],
     ['label' => 'Academic', 'url' => '#'],
     ['label' => 'Results / Grades', 'url' => '']
 ]" />
 
-<div class="card">
+@isset($activeChild)
+    @include('parent.partials.child_switcher')
+@endisset
+
+<div class="card mt-3">
     <div class="card-header">
-        <h5 class="fw-semi-bold text-primary mb-0">My Results</h5>
+        <h5 class="fw-semi-bold text-primary mb-0">{{ $resultsTitle }}</h5>
     </div>
     <div class="card-body">
         @if($results->isEmpty())
@@ -77,7 +81,7 @@
                                 <span class="badge {{ $statusBadge }} px-3">{{ $statusText }}</span>
                             </td>
                             <td>
-                                <a href="{{ route('student.results.details', $result->id) }}" class="btn btn-outline-warning btn-sm px-3">
+                                <a href="{{ route($detailsRoute, array_merge($detailsParams, [$result->id])) }}" class="btn btn-outline-warning btn-sm px-3">
                                     View Details
                                 </a>
                             </td>

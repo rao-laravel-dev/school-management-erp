@@ -140,6 +140,7 @@ class PermissionSeeder extends Seeder
             'access-student-homework',      // student portal: own class homework (read-only)
             'access-parent-timetable',      // parent portal: selected child's class timetable (read-only)
             'access-parent-homework',       // parent portal: selected child's homework (read-only)
+            'access-parent-results',        // parent portal: selected child's results (read-only)
         ];
 
         foreach ($permissions as $permission) {

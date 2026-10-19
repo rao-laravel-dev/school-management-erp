@@ -7,15 +7,12 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\Attendance;
 use App\Models\ClassSubject;
-use App\Models\Exam;
-use App\Models\ExamSchedule;
-use App\Models\MarksheetTemplate;
-use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
 use App\Services\StudentClassSchedule;
 use App\Services\StudentHomework;
+use App\Services\StudentResults;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -308,66 +305,30 @@ return view('parent.student_details', compact(
     }
     // End Method
 
-    // Step 1: Exam + Template selection form for a specific child
-    public function resultSelectForm($id)
+    // Results list of one child (read-only, same query as the student Results page)
+    public function childResults($id)
     {
-        $parent = auth()->user()->parentProfile;
+        $student = $this->findOwnChild($id);
 
-        $student = $parent->students()
-            ->with('currentEnrollment.schoolClass')
-            ->where('students.id', $id)
-            ->first();
-
-        if (!$student || !$student->currentEnrollment) {
-            return redirect()->route('parent.dashboard')->with('error', 'Unauthorized access! You can only view your own children.');
-        }
-
-        session(['active_student_id' => $student->id]);
-
-        $classId = $student->currentEnrollment->class_id;
-
-        $examIds = ExamSchedule::where('class_id', $classId)->pluck('exam_id')->unique();
-
-        $exams = Exam::where('publish_result', 1)
-            ->whereIn('id', $examIds)
-            ->latest()
-            ->get();
-
-        $templates = MarksheetTemplate::orderBy('template_name')->get();
-
-        return view('parent.result_select', compact('exams', 'templates', 'student'));
+        return view('student.result.index', StudentResults::forStudent($student->id) + [
+            'resultsTitle'    => $student->full_name . "'s Results",
+            'dashboardUrl'    => route('parent.students.dashboard', $student->id),
+            'resultsIndexUrl' => route('parent.students.results.index', $student->id),
+            'detailsRoute'    => 'parent.students.results.details',
+            'detailsParams'   => [$student->id],
+        ] + $this->childHeader($student, 'parent.students.results.index'));
     }
+    // End Method
 
-    // Step 2: Generate + show the actual designed marksheet
-    public function viewMarksheet(Request $request, $id)
+    // One published result of one child (404 if the child or the result is not the parent's)
+    public function childResultDetails($id, $result)
     {
-        $request->validate([
-            'exam_id'     => 'required|exists:exams,id',
-            'template_id' => 'required|exists:marksheet_templates,id',
-        ]);
+        $student = $this->findOwnChild($id);
 
-        $parent = auth()->user()->parentProfile;
-
-        $student = $parent->students()
-            ->with('currentEnrollment')
-            ->where('students.id', $id)
-            ->first();
-
-        if (!$student || !$student->currentEnrollment) {
-            return redirect()->route('parent.dashboard')->with('error', 'Unauthorized access! You can only view your own children.');
-        }
-
-        $exam     = Exam::where('id', $request->exam_id)->where('publish_result', 1)->firstOrFail();
-        $template = MarksheetTemplate::findOrFail($request->template_id);
-        $siteSetting = SiteSetting::current();
-
-        $sheets = $this->buildMarksheetSheets(collect([$student->currentEnrollment->id]), $exam, $template);
-
-        return view('admin.print_marksheet.print', [
-            'exam'        => $exam,
-            'template'    => $template,
-            'sheets'      => $sheets,
-            'siteSetting' => $siteSetting,
-        ]);
+        return view('student.result.details', StudentResults::details($student->id, $result) + [
+            'dashboardUrl'    => route('parent.students.dashboard', $student->id),
+            'resultsIndexUrl' => route('parent.students.results.index', $student->id),
+        ] + $this->childHeader($student, 'parent.students.results.index'));
     }
+    // End Method
 }

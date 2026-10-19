@@ -2,15 +2,19 @@
 
 @section('content')
 <x-breadcrumb :items="[
-    ['label' => 'Dashboard', 'url' => route('student.dashboard')],
+    ['label' => 'Dashboard', 'url' => $dashboardUrl],
     ['label' => 'Academic', 'url' => '#'],
-    ['label' => 'Results / Grades', 'url' => route('student.results.index')],
+    ['label' => 'Results / Grades', 'url' => $resultsIndexUrl],
     ['label' => $result->exam->name, 'url' => '']
 ]" />
 
-<div class="d-flex align-items-center justify-content-between mb-3">
+@isset($activeChild)
+    @include('parent.partials.child_switcher')
+@endisset
+
+<div class="d-flex align-items-center justify-content-between mb-3 mt-3">
     <h5 class="fw-semi-bold text-primary mb-0">{{ $result->exam->name }}</h5>
-    <a href="{{ route('student.results.index') }}" class="btn btn-outline-secondary btn-sm px-3">
+    <a href="{{ $resultsIndexUrl }}" class="btn btn-outline-secondary btn-sm px-3">
         <i class="bx bx-arrow-back"></i> Back to Results
     </a>
 </div>

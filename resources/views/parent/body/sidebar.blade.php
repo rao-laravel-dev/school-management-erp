@@ -32,8 +32,8 @@
             </ul>
         </li>
 
-        @can('access-parent-timetable')
-        @php $open = request()->routeIs('parent.students.class_schedule.*'); @endphp
+        @canany(['access-parent-timetable', 'access-parent-results'])
+        @php $open = request()->routeIs('parent.students.class_schedule.*', 'parent.students.results.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>
@@ -41,11 +41,19 @@
                 <div class="menu-title">Academics</div>
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
-                <li class="{{ $open ? 'mm-active' : '' }}"> <a href="{{ $parentChildId ? route('parent.students.class_schedule.index', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Class Schedule</a>
+                @can('access-parent-timetable')
+                @php $openItem = request()->routeIs('parent.students.class_schedule.*'); @endphp
+                <li class="{{ $openItem ? 'mm-active' : '' }}"> <a href="{{ $parentChildId ? route('parent.students.class_schedule.index', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Class Schedule</a>
                 </li>
+                @endcan
+                @can('access-parent-results')
+                @php $openItem = request()->routeIs('parent.students.results.*'); @endphp
+                <li class="{{ $openItem ? 'mm-active' : '' }}"> <a href="{{ $parentChildId ? route('parent.students.results.index', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Results</a>
+                </li>
+                @endcan
             </ul>
         </li>
-        @endcan
+        @endcanany
 
         <li>
             <a href="javascript:;" class="has-arrow">

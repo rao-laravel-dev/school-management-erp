@@ -243,9 +243,11 @@ Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->g
         Route::post('/password/update', 'ParentPasswordUpdate')->name('password.update');
         Route::get('/profile', 'ParentProfile')->name('profile');
         Route::post('/profile/update', 'ParentProfileUpdate')->name('profile.update');
-        // UPDATED: Results (simple summary, not marksheet template)
-        Route::get('/student/{id}/results', 'resultIndex')->name('students.results.index');
-        Route::get('/student/{id}/results/{result}', 'resultDetails')->name('students.results.details');
+        // Selected child's results (ownership checked in the controller)
+        Route::middleware('can:access-parent-results')->group(function () {
+            Route::get('/student/{id}/results', 'childResults')->whereNumber('id')->name('students.results.index');
+            Route::get('/student/{id}/results/{result}', 'childResultDetails')->whereNumber(['id', 'result'])->name('students.results.details');
+        });
 
         // Selected child's class schedule (ownership checked in the controller)
         Route::middleware('can:access-parent-timetable')->group(function () {
