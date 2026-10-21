@@ -77,7 +77,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Opening Balance ($)</label>
+                        <label class="form-label">Opening Balance (Rs.)</label>
                         <input type="number" step="0.01" class="form-control form-control-sm" id="current_balance" name="current_balance" value="0">
                         <div class="invalid-feedback" id="error-current_balance"></div>
                     </div>

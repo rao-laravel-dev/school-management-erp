@@ -62,7 +62,7 @@
 
 
                     <div class="mb-3">
-                        <label class="form-label">Amount ($) <span class="text-danger">*</span></label>
+                        <label class="form-label">Amount (Rs.) <span class="text-danger">*</span></label>
                         <input type="number" step="0.01" class="form-control form-control-sm" id="amount" name="amount">
                         <div class="invalid-feedback" id="error-amount"></div>
                     </div>
