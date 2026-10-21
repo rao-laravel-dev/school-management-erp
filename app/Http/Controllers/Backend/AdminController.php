@@ -12,6 +12,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -128,12 +129,73 @@ class AdminController extends Controller
     $currentSession = AcademicYear::where('is_current', 1)->first(['name', 'start_date', 'end_date']);
     $sessionCounts = AcademicYear::selectRaw('COUNT(*) AS total, COALESCE(SUM(is_current = 1), 0) AS active')->first();
 
+    // 5a. Revenue vs Expense: current session ke har mahine (start month -> end month), top cards wali rule, ek grouped query
+    $sessionLabels = [];
+    $sessionRevenue = [];
+    $sessionExpense = [];
+    if ($currentSession && $currentSession->start_date && $currentSession->end_date) {
+        $sFrom = Carbon::parse($currentSession->start_date)->toDateString();
+        // end_date mahine ki 1 tareekh ho (01 Jan 2026 -> 01 Jan 2027) to pichla mahina aakhri mahina; start se pehle na jaye
+        $sEnd = Carbon::parse($currentSession->end_date);
+        if ($sEnd->day === 1) {
+            $sEnd = $sEnd->copy()->subDay();
+        }
+        $sTo = max($sEnd->toDateString(), $sFrom); // same $sTo finance query aur month loop dono me
+
+        $sessionFinance = Transaction::whereBetween('transaction_date', [$sFrom, $sTo])
+            ->whereIn('category', ['fee', 'salary', 'expense'])
+            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') AS ym,
+                COALESCE(SUM(CASE WHEN type = 'income' AND category = 'fee' THEN amount ELSE 0 END), 0) AS revenue,
+                COALESCE(SUM(CASE WHEN type = 'expense' AND category IN ('salary', 'expense') THEN amount ELSE 0 END), 0) AS expense")
+            ->groupBy('ym')->get()->keyBy('ym');
+
+        $sLast = Carbon::parse($sTo);
+        for ($m = Carbon::parse($sFrom)->startOfMonth(); $m->lte($sLast); $m->addMonthNoOverflow()) {
+            $ym = $m->format('Y-m');
+            $sessionLabels[]  = $m->format('M y');
+            $sessionRevenue[] = (float) ($sessionFinance[$ym]->revenue ?? 0);
+            $sessionExpense[] = (float) ($sessionFinance[$ym]->expense ?? 0);
+        }
+    }
+    $sessionRevenueTotal = array_sum($sessionRevenue);
+    $sessionExpenseTotal = array_sum($sessionExpense);
+    $sessionNet = $sessionRevenueTotal - $sessionExpenseTotal;
+
+    // 5b. Student Attendance (is mahine): Students card wali filter, status + holiday flag par ek grouped query
+    // Status: 0 Absent, 1 Present, 2 Late, 3 Half Day, 4 Leave (4 + remarks "Holiday" = Holiday, chart me nahi)
+    $attRows = Attendance::whereHas('enrollment.student', function($query) {
+                            $query->whereHas('user', function($q) {
+                                $q->role('student')->where('status', 1);
+                            });
+                        })
+                        ->whereBetween('attendance_date', [$monthStart, now()->endOfMonth()->toDateString()])
+                        ->toBase()
+                        ->selectRaw("attendances.status AS st, (attendances.status = 4 AND LOWER(TRIM(COALESCE(attendances.remarks, ''))) = 'holiday') AS is_holiday, COUNT(*) AS c")
+                        ->groupBy('st', 'is_holiday')->get();
+
+    $attendanceCounts = ['Present' => 0, 'Late' => 0, 'Half Day' => 0, 'Absent' => 0, 'Leave' => 0];
+    foreach ($attRows as $r) {
+        $key = match ((int) $r->st) {
+            1 => 'Present',
+            2 => 'Late',
+            3 => 'Half Day',
+            0 => 'Absent',
+            default => ((int) $r->is_holiday === 1 ? null : 'Leave'),
+        };
+        if ($key !== null) {
+            $attendanceCounts[$key] += (int) $r->c;
+        }
+    }
+
     return view('admin.dashboard', compact(
         'activeUsersCount', 'newUsersThisMonth',
         'finance', 'staffCards',
         'monthLabels', 'revenueSeries', 'expenseSeries', 'usersSeries',
         'totalStudents', 'presentStudents', 'studentPercent',
-        'currentSession', 'sessionCounts'
+        'currentSession', 'sessionCounts',
+        'sessionLabels', 'sessionRevenue', 'sessionExpense',
+        'sessionRevenueTotal', 'sessionExpenseTotal', 'sessionNet',
+        'attendanceCounts'
     ));
 }
 // End Method
