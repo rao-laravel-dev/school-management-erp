@@ -39,7 +39,7 @@
                     </div>
                     <div class="col-lg-8">
                         <div class="card">
-                            <form method="post" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ Auth::user()->isSuperAdmin() ? route('superadmin.profile.update') : route('admin.profile.update') }}" enctype="multipart/form-data">
                                 @csrf
                             <div class="card-body">
                                 <div class="row mb-3">

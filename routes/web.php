@@ -101,8 +101,11 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
 
         Route::get('/dashboard', 'SuperAdminManage')->name('dashboard');
         Route::get('/logout', 'SuperAdminLogout')->name('logout');
-        Route::get('/profile', 'SuperAdminProfile')->name('profile');
-        Route::post('/profile/update', 'SuperAdminProfileUpdate')->name('profile.update');
+        Route::get('/profile', [AdminController::class, 'AdminProfile'])->name('profile');
+        Route::post('/profile/update', [AdminController::class, 'AdminProfileUpdate'])->name('profile.update');
+        // Own Change Password (shared admin method + view, action switch by role)
+        Route::get('/change/password', [AdminController::class, 'AdminChangePassword'])->name('change.password');
+        Route::post('/password/update', [AdminController::class, 'AdminPasswordUpdate'])->name('password.update');
     });
 });
 //SUPER-ADMIN LOGIN 

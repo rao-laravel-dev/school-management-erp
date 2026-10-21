@@ -173,10 +173,10 @@
 					</div>
 				</a>
 				<ul class="dropdown-menu dropdown-menu-end">
-					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('admin.profile') }}"><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ Auth::user()->isSuperAdmin() ? route('superadmin.profile') : route('admin.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
-					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('admin.change.password') }}"><i
+					<li><a class="dropdown-item d-flex align-items-center" href="{{ Auth::user()->isSuperAdmin() ? route('superadmin.change.password') : route('admin.change.password') }}"><i
 								class="bx bx-cog fs-5"></i><span>Change Password</span></a>
 					</li>
 					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('admin.dashboard') }}"><i

@@ -219,7 +219,7 @@ class AdminController extends Controller
     public function AdminChangePassword()
     {
         return view('staff_profile.change_password', [
-            'updateRoute' => route('admin.password.update'),
+            'updateRoute' => route(Auth::user()->isSuperAdmin() ? 'superadmin.password.update' : 'admin.password.update'),
         ]);
     }
     // End Method
