@@ -258,6 +258,10 @@ class HomeWorkController extends Controller
 
     $homework->delete();
 
+    if (request()->expectsJson()) {
+        return response()->json(['message' => 'Homework deleted successfully.']);
+    }
+
     return redirect()->back()->with('success', 'Homework deleted successfully.');
 }
 // End Method

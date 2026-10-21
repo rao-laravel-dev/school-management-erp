@@ -296,6 +296,7 @@
         $(document).on('click', '.delete-homework-btn', function(e) {
             e.preventDefault();
             var url = $(this).attr('href');
+            var deleteBtn = $(this);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "This homework record will be deleted!",
@@ -305,7 +306,23 @@
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
-                if (result.isConfirmed) window.location.href = url;
+                if (!result.isConfirmed) return;
+                // Route is DELETE only, so send an AJAX DELETE instead of opening the url (GET = 405)
+                deleteBtn.addClass('disabled');
+                $.ajax({
+                    url: url,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    data: { _token: "{{ csrf_token() }}" },
+                    success: function(res) {
+                        toastr.success(res.message);
+                        setTimeout(function() { location.reload(); }, 3000);
+                    },
+                    error: function(xhr) {
+                        deleteBtn.removeClass('disabled');
+                        toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error ' + xhr.status + ': Something went wrong');
+                    }
+                });
             });
         });
 
