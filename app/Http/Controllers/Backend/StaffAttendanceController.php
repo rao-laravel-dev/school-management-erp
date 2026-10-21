@@ -44,7 +44,7 @@ class StaffAttendanceController extends Controller
         $records = $query->get();
 
         $summary = [
-            'total'    => User::whereHas('roles', fn($q) => $q->whereNotIn('name', $this->excludedRoles))->count(),
+            'total'    => User::whereHas('roles', fn($q) => $q->whereNotIn('name', $this->excludedRoles))->where('status', 1)->count(), // sirf active staff (dashboard wali rule)
             'present'  => $records->where('status', 'present')->count(),
             'absent'   => $records->where('status', 'absent')->count(),
             'half_day' => $records->where('status', 'half_day')->count(),
@@ -71,9 +71,10 @@ class StaffAttendanceController extends Controller
         $staffMembers = collect();
 
         if ($roleFilter) {
+            // Sirf active staff (status 1) mark hota hai, dashboard staff cards wali rule; purana record report/show mein rehta hai
             $staffMembers = User::whereHas('roles', function ($q) use ($roleFilter) {
                 $q->where('name', $roleFilter);
-            })->with('roles')->orderBy('name')->get();
+            })->where('status', 1)->with('roles')->orderBy('name')->get();
         }
 
         $existing = StaffAttendance::where('date', $date)->get()->keyBy('user_id');
@@ -85,7 +86,7 @@ class StaffAttendanceController extends Controller
 
         $summary = [
             'total'    => $roleFilter
-                ? User::whereHas('roles', fn($q) => $q->where('name', $roleFilter))->count()
+                ? User::whereHas('roles', fn($q) => $q->where('name', $roleFilter))->where('status', 1)->count()
                 : 0,
             'present'  => $staffMembers->pluck('id')->map(fn($id) => $existing[$id]->status ?? null)->filter(fn($s) => $s === 'present')->count(),
             'absent'   => $staffMembers->pluck('id')->map(fn($id) => $existing[$id]->status ?? null)->filter(fn($s) => $s === 'absent')->count(),
