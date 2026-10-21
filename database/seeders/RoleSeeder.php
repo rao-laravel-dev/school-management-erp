@@ -121,6 +121,7 @@ class RoleSeeder extends Seeder
             'access-finance-report',
             'access-staff-attendance',
             'manage-staff-attendance',
+            'mark-staff-attendance',
             'access-discount-policies',
             'manage-discount-policies',
             'access-fine-policies',
@@ -184,12 +185,12 @@ class RoleSeeder extends Seeder
             'access-student-categories',
             'access-student-houses',
             'access-attendance',
-            'mark-attendance',
             'access-scan-attendance',       // web.php attendance.scan* (gate: student + staff)
             'access-leave-application',
             'access-front-office',
             // Fee + finance permissions receptionist se hata di (08-10-2026)
             'access-staff-attendance',
+            'mark-staff-attendance',
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
             'manage-print-report-card',     // web.php print_report_card.generate

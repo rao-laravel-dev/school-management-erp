@@ -99,19 +99,24 @@
         </li>
         @endcan
 
-        {{-- Attendance: sirf Scan Attendance (gate); reports ke links "Reports" menu mein hain --}}
-        @can('access-scan-attendance')
-        @php $open = request()->routeIs('attendance.scan*'); @endphp
+        {{-- Attendance: Scan + Mark Staff Attendance (gate); reports ke links "Reports" menu mein hain --}}
+        @canany(['access-scan-attendance', 'mark-staff-attendance'])
+        @php $open = request()->routeIs('attendance.scan*', 'staff_attendance.create', 'staff_attendance.edit'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-calendar-check"></i></div>
                 <div class="menu-title">Attendance</div>
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
+                @can('access-scan-attendance')
                 <li><a href="{{ route('attendance.scan') }}"><i class='bx bx-radio-circle'></i>Scan Attendance</a></li>
+                @endcan
+                @can('mark-staff-attendance')
+                <li class="{{ request()->routeIs('staff_attendance.create', 'staff_attendance.edit') ? 'mm-active' : '' }}"><a href="{{ route('staff_attendance.create') }}"><i class='bx bx-radio-circle'></i>Mark Staff Attendance</a></li>
+                @endcan
             </ul>
         </li>
-        @endcan
+        @endcanany
 
         @can('access-academics')
         @php $open = request()->routeIs('classes.*', 'sections.*', 'groups.*', 'subjects.*', 'school-class-subjects.*', 'academic_years.*', 'class_timetable.*', 'teacher_timetable.*', 'rooms.*', 'school_timing.*', 'academic_calendar.*', 'event_type.*'); @endphp

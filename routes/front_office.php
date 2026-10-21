@@ -305,10 +305,11 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['can:access-staff-attendance'])->group(function () {
             Route::controller(StaffAttendanceController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'CreateAttendance')->name('create');
-                Route::post('/store', 'StoreAttendance')->name('store');
-                Route::get('/edit', 'EditAttendance')->name('edit');
-                Route::post('/update', 'UpdateAttendance')->name('update');
+                // mark-staff-attendance: likhne wale routes (accountant sirf read, access-staff-attendance se)
+                Route::get('/create', 'CreateAttendance')->name('create')->middleware('can:mark-staff-attendance');
+                Route::post('/store', 'StoreAttendance')->name('store')->middleware('can:mark-staff-attendance');
+                Route::get('/edit', 'EditAttendance')->name('edit')->middleware('can:mark-staff-attendance');
+                Route::post('/update', 'UpdateAttendance')->name('update')->middleware('can:mark-staff-attendance');
                 Route::get('/report', 'ReportAttendnce')->name('report');
                 Route::get('/{user}/show', 'ShowAttendance')->name('show');
             });

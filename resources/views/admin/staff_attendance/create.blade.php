@@ -159,7 +159,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
-                    @can('manage-staff-attendance')
+                    @can('mark-staff-attendance')
                     <button type="submit" class="btn btn-sm btn-primary px-4" id="saveAttendanceBtn">
                         <i class='bx bx-save'></i> {{ $isEditMode ? 'Update Attendance' : 'Save Attendance' }}
                     </button>

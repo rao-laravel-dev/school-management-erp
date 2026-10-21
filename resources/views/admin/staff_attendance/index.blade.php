@@ -24,7 +24,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center att-card-header">
         <h5 class="mb-0">Staff Attendance — {{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}</h5>
-        @can('manage-staff-attendance')
+        @can('mark-staff-attendance')
         <a href="{{ route('staff_attendance.create', ['date' => $date]) }}" class="btn btn-sm btn-primary">
             <i class='bx bx-edit'></i> Mark Attendance
         </a>

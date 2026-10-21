@@ -89,7 +89,7 @@
                         <td>{{ $record->remarks ?? '-' }}</td>
                         <td>{{ $record->markedBy->name_with_role ?? '-' }}</td>
                         <td>
-                            @can('manage-staff-attendance')
+                            @can('mark-staff-attendance')
                             <a href="{{ route('staff_attendance.edit', ['date' => $record->date, 'role' => $record->staff ? $record->staff->roles->pluck('name')->first() : null]) }}" class="btn btn-sm btn-outline-primary">
                                 <i class='bx bx-edit'></i>
                             </a>

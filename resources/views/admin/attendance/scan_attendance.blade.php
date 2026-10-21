@@ -1,12 +1,24 @@
 @extends($current_layout)
 @section('content')
 
-{{-- Breadcrumb --}}
-<x-breadcrumb :items="[
-    ['label' => 'Attendance', 'url' => '#'],
-    ['label' => 'Student Attendance', 'url' => route('attendance.create')],
-    ['label' => 'Scan Attendance', 'url' => '#'],
-]" />
+{{-- Breadcrumb: home = route('dashboard') (x-breadcrumb home is admin-only, 403 for staff roles) --}}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Scan Attendance</div>
+    <div class="ps-3">
+        <nav>
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item">Attendance</li>
+                @can('mark-attendance')
+                <li class="breadcrumb-item"><a href="{{ route('attendance.create') }}">Student Attendance</a></li>
+                @else
+                <li class="breadcrumb-item">Student Attendance</li>
+                @endcan
+                <li class="breadcrumb-item active">Scan Attendance</li>
+            </ol>
+        </nav>
+    </div>
+</div>
 
 @if($noClass)
 <div class="kiosk-wrapper">

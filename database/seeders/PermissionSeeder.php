@@ -114,6 +114,7 @@ class PermissionSeeder extends Seeder
             'access-finance-report',
             'access-staff-attendance',
             'manage-staff-attendance',
+            'mark-staff-attendance',        // front_office.php staff_attendance.create/store/edit/update (admin, receptionist; accountant read only)
             'access-discount-policies',
             'manage-discount-policies',
             'access-fine-policies',
