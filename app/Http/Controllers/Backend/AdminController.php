@@ -7,6 +7,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
 use App\Models\AcademicYear;
 use App\Models\Attendance;
+use App\Models\StaffAttendance;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
@@ -23,9 +25,90 @@ class AdminController extends Controller
     $query->whereIn('name', $targetRoles);
 })->where('status', 1)->withoutSuperadmin()->count();
 
-    // 2. Teacher Attendance (Static as requested)
-    $totalTeachers = 10;
-    $presentTeachers = 8;
+    // 1b. Is mahine naye active users (Active Users card ki chhoti line)
+    $newUsersThisMonth = User::whereHas('roles', function($query) use ($targetRoles) {
+    $query->whereIn('name', $targetRoles);
+})->where('status', 1)->withoutSuperadmin()->where('created_at', '>=', now()->startOfMonth())->count();
+
+    // 1c. Revenue / Expense: month-to-date vs pichle mahine ke same din (Finance Report wali rule)
+    $today = now()->toDateString();
+    $monthStart = now()->startOfMonth()->toDateString();
+    $lastStart = now()->subMonthNoOverflow()->startOfMonth();
+    $lastEnd = $lastStart->copy()->day(min(now()->day, $lastStart->daysInMonth))->toDateString();
+
+    $finance = Transaction::where(function ($q) use ($lastStart, $lastEnd, $monthStart, $today) {
+            $q->whereBetween('transaction_date', [$lastStart->toDateString(), $lastEnd])
+              ->orWhereBetween('transaction_date', [$monthStart, $today]);
+        })
+        ->selectRaw("
+            COALESCE(SUM(CASE WHEN type = 'income' AND category = 'fee' AND transaction_date >= ? THEN amount ELSE 0 END), 0) AS rev_this,
+            COALESCE(SUM(CASE WHEN type = 'income' AND category = 'fee' AND transaction_date <= ? THEN amount ELSE 0 END), 0) AS rev_last,
+            COALESCE(SUM(CASE WHEN type = 'expense' AND category IN ('salary', 'expense') AND transaction_date >= ? THEN amount ELSE 0 END), 0) AS exp_this,
+            COALESCE(SUM(CASE WHEN type = 'expense' AND category IN ('salary', 'expense') AND transaction_date <= ? THEN amount ELSE 0 END), 0) AS exp_last
+        ", [$monthStart, $lastEnd, $monthStart, $lastEnd])
+        ->first();
+
+    // 1d. Sparkline: pichle 12 mahine (current mahina shamil), mahine ke hisab se ek ek grouped query
+    // Data na ho to mahina 0 dikhta hai
+    $sparkStart = now()->startOfMonth()->subMonthsNoOverflow(11);
+    $months = [];
+    $monthLabels = [];
+    for ($i = 0; $i < 12; $i++) {
+        $m = $sparkStart->copy()->addMonthsNoOverflow($i);
+        $months[] = $m->format('Y-m');
+        $monthLabels[] = $m->format('M y');
+    }
+
+    $financeByMonth = Transaction::where('transaction_date', '>=', $sparkStart->toDateString())
+        ->whereIn('category', ['fee', 'salary', 'expense'])
+        ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') AS ym,
+            COALESCE(SUM(CASE WHEN type = 'income' AND category = 'fee' THEN amount ELSE 0 END), 0) AS revenue,
+            COALESCE(SUM(CASE WHEN type = 'expense' AND category IN ('salary', 'expense') THEN amount ELSE 0 END), 0) AS expense")
+        ->groupBy('ym')->get()->keyBy('ym');
+
+    $newUsersByMonth = User::whereHas('roles', function($query) use ($targetRoles) {
+    $query->whereIn('name', $targetRoles);
+})->where('status', 1)->withoutSuperadmin()->where('created_at', '>=', $sparkStart)
+        ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') AS ym, COUNT(*) AS total")
+        ->groupBy('ym')->pluck('total', 'ym');
+
+    $revenueSeries = array_map(fn($m) => (float) ($financeByMonth[$m]->revenue ?? 0), $months);
+    $expenseSeries = array_map(fn($m) => (float) ($financeByMonth[$m]->expense ?? 0), $months);
+    $usersSeries   = array_map(fn($m) => (int) ($newUsersByMonth[$m] ?? 0), $months);
+
+    // 2. Staff cards: role ke active staff + aaj ki attendance (present + half_day = present)
+    // Multi-role user har us role ke card me ginta hai (relation name = role name)
+    $staffMap = [
+        'teacher'      => ['Teachers', 'bx bxs-chalkboard', 'primary'],
+        'receptionist' => ['Receptionists', 'bx bxs-phone-call', 'info'],
+        'accountant'   => ['Accountants', 'bx bxs-calculator', 'warning'],
+        'librarian'    => ['Librarians', 'bx bxs-book-reader', 'danger'],
+    ];
+
+    $staffIds = [];
+    foreach ($staffMap as $role => $meta) {
+        $staffIds[$role] = User::role($role)->where('status', 1)->whereHas($role)->pluck('id')->all();
+    }
+
+    $attendanceToday = StaffAttendance::where('date', $today)
+        ->whereIn('user_id', array_merge(...array_values($staffIds)))
+        ->pluck('status', 'user_id');
+
+    $staffCards = [];
+    foreach ($staffMap as $role => [$label, $icon, $color]) {
+        $total = count($staffIds[$role]);
+        $rows = $attendanceToday->only($staffIds[$role]);
+        $present = $rows->filter(fn($s) => in_array($s, ['present', 'half_day'], true))->count();
+        $staffCards[] = [
+            'label'   => $label,
+            'icon'    => $icon,
+            'color'   => $color,
+            'total'   => $total,
+            'present' => $present,
+            'marked'  => $rows->isNotEmpty(),
+            'percent' => $total > 0 ? round($present / $total * 100) : 0,
+        ];
+    }
 
     // 3. Student Attendance
     // Total Active Students count
@@ -39,16 +122,18 @@ class AdminController extends Controller
                         ->whereDate('attendance_date', today())
                         ->where('status', Attendance::STATUS_PRESENT)
                         ->count();
+    $studentPercent = $totalStudents > 0 ? round($presentStudents / $totalStudents * 100) : 0;
 
     // 4. Session Status
-    $totalSessions = AcademicYear::count();
-    $activeSessions = AcademicYear::where('is_current', 1)->count(); 
+    $currentSession = AcademicYear::where('is_current', 1)->first(['name', 'start_date', 'end_date']);
+    $sessionCounts = AcademicYear::selectRaw('COUNT(*) AS total, COALESCE(SUM(is_current = 1), 0) AS active')->first();
 
     return view('admin.dashboard', compact(
-        'activeUsersCount', 
-        'totalTeachers', 'presentTeachers', 
-        'totalStudents', 'presentStudents', 
-        'totalSessions', 'activeSessions'
+        'activeUsersCount', 'newUsersThisMonth',
+        'finance', 'staffCards',
+        'monthLabels', 'revenueSeries', 'expenseSeries', 'usersSeries',
+        'totalStudents', 'presentStudents', 'studentPercent',
+        'currentSession', 'sessionCounts'
     ));
 }
 // End Method
