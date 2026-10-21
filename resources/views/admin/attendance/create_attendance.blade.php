@@ -337,8 +337,8 @@
         let lCount = $('input[name^="status"][value="2"]:checked').length;
         let hdCount = $('input[name^="status"][value="3"]:checked').length;
 
-        // Logic: Present = Present + Late + Half-Day
-        let totalPresent = pCount + lCount + hdCount;
+        // Logic: Present = sirf status 1 (reports jaisa); Late aur Half-Day ke apne cards hain
+        let totalPresent = pCount;
 
         // Update UI
         $('#present-count').text(totalPresent);

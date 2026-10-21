@@ -72,6 +72,7 @@ class ParentsController extends Controller
     $absentCount = 0;
     $lateCount = 0;
     $leaveCount = 0;
+    $halfDayCount = 0;
 
     // Aapke model ke mutabik currentEnrollment check lagaya hai
     if ($student->currentEnrollment) {
@@ -91,10 +92,12 @@ class ParentsController extends Controller
         }
 
         // Attendance breakdown counts
-        $presentCount = $attendanceRecords->whereIn('status', [1, 2])->count(); // 1=Present, 2=Late
+        $presentCount = $attendanceRecords->where('status', 1)->count(); // 1=Present only (Late ka apna slice hai)
         $absentCount = $attendanceRecords->where('status', 0)->count();
         $lateCount = $attendanceRecords->where('status', 2)->count();
-        $leaveCount = $attendanceRecords->where('status', 3)->count();
+        $halfDayCount = $attendanceRecords->where('status', 3)->count();
+        $leaveCount = $attendanceRecords->where('status', 4)
+            ->filter(fn ($r) => strcasecmp(trim((string) $r->remarks), 'Holiday') !== 0)->count(); // 4 + Holiday = Holiday, Leave nahi
     }
 
     // 4. Exam and Fees
@@ -126,7 +129,8 @@ return view('parent.student_details', compact(
     'presentCount',
     'absentCount',
     'lateCount',
-    'leaveCount'
+    'leaveCount',
+    'halfDayCount'
 ));
 }
     // End Method

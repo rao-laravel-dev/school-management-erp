@@ -302,7 +302,8 @@
                                                 @if($record->status == 1) <span class="badge bg-success">Present</span>
                                                 @elseif($record->status == 0) <span class="badge bg-danger">Absent</span>
                                                 @elseif($record->status == 2) <span class="badge bg-warning text-dark">Late</span> 
-                                                @elseif($record->status == 3) <span class="badge bg-info text-dark">Leave</span>
+                                                @elseif($record->status == 3) <span class="badge bg-info text-dark">Half Day</span>
+                                                @elseif($record->status == 4) <span class="badge bg-secondary">{{ strcasecmp(trim((string) $record->remarks), 'Holiday') === 0 ? 'Holiday' : 'Leave' }}</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -622,10 +623,10 @@
         
         // 📊 1. ATTENDANCE DONUT CHART
         var attendanceOptions = {
-            series: [{{ $presentCount ?? 0 }}, {{ $absentCount ?? 0 }}, {{ $lateCount ?? 0 }}, {{ $leaveCount ?? 0 }}],
+            series: [{{ $presentCount ?? 0 }}, {{ $absentCount ?? 0 }}, {{ $lateCount ?? 0 }}, {{ (int) $halfDayCount }}, {{ $leaveCount ?? 0 }}],
             chart: { type: 'donut', height: 250 },
-            labels: ['Present', 'Absent', 'Late', 'Leave'],
-            colors: ["#17a08e", "#f41127", "#ffc107", "#0dcaf0"],
+            labels: ['Present', 'Absent', 'Late', 'Half Day', 'Leave'],
+            colors: ["#17a08e", "#f41127", "#ffc107", "#0dcaf0", "#6c757d"],
             dataLabels: { enabled: true },
     
     // Labels aur alignment ka best configuration

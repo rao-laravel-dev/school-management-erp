@@ -29,7 +29,8 @@ class Attendance extends Model
     const STATUS_ABSENT = 0;
     const STATUS_PRESENT = 1;
     const STATUS_LATE    = 2;
-    const STATUS_LEAVE   = 3;
+    const STATUS_HALF_DAY = 3;
+    const STATUS_LEAVE   = 4; // 4 + remarks "Holiday" = Holiday
 
     // Relationship
 
@@ -93,7 +94,8 @@ class Attendance extends Model
         return match ($this->status) {
             self::STATUS_PRESENT => 'Present',
             self::STATUS_LATE    => 'Late',
-            self::STATUS_LEAVE   => 'Leave',
+            self::STATUS_HALF_DAY => 'Half Day',
+            self::STATUS_LEAVE   => strcasecmp(trim((string) $this->remarks), 'Holiday') === 0 ? 'Holiday' : 'Leave',
             default              => 'Absent',
         };
     }

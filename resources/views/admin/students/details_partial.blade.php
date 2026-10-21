@@ -119,7 +119,7 @@
                     </div>
                     <div class="col-4">
                         <div class="small">Other</div>
-                        <strong class="text-warning">{{ $enrollment->attendance->whereIn('status', [\App\Models\Attendance::STATUS_LATE, \App\Models\Attendance::STATUS_LEAVE])->count() }}</strong>
+                        <strong class="text-warning">{{ $enrollment->attendance->whereIn('status', [\App\Models\Attendance::STATUS_LATE, \App\Models\Attendance::STATUS_HALF_DAY])->count() }}</strong>
                     </div>
                 </div>
             </div>
