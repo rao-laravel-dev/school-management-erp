@@ -541,3 +541,10 @@
         @endcanany
     </ul>
 </div>
+        {{-- Logout (hamesha last) --}}
+        <li>
+            <a href="{{ route('admin.logout') }}">
+                <div class="parent-icon"><i class="bx bx-log-out-circle"></i></div>
+                <div class="menu-title">Logout</div>
+            </a>
+        </li>
