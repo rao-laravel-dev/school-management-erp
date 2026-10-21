@@ -11,6 +11,11 @@ class FeeType extends Model
         'description',
         'frequency',
         'is_discountable',
+        'is_per_student',
+    ];
+
+    protected $casts = [
+        'is_per_student' => 'boolean',
     ];
 
     // Relationship (destroy() method mein already use ho raha hai)

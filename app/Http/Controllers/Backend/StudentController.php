@@ -1126,7 +1126,7 @@ class StudentController extends Controller
                 foreach ($feeStructures as $fs) {
                     $frequency = $fs->feeType->frequency ?? 'monthly';
 
-                    if ($frequency === 'one_time' || in_array($fs->fee_type_id, $alreadyAssignedTypeIds)) {
+                    if ($frequency === 'one_time' || ($fs->feeType && $fs->feeType->is_per_student) || in_array($fs->fee_type_id, $alreadyAssignedTypeIds)) {
                         continue;
                     }
 

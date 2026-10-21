@@ -122,13 +122,13 @@ class FeeCollectionController extends Controller
             $classTeacher = $assignment->teacher ?? null;
         }
 
-        $fees = StudentFees::with('feeType', 'transactions')
+        $fees = StudentFees::with('feeType', 'transactions', 'feeAssignment')
             ->where('student_id', $student->id)
             ->where('status', '!=', 'excluded')
             ->orderByDesc('due_date')
             ->get();
 
-        $excludedFees = StudentFees::with('feeType')
+        $excludedFees = StudentFees::with('feeType', 'feeAssignment')
             ->where('student_id', $student->id)
             ->where('status', 'excluded')
             ->orderByDesc('due_date')
@@ -364,12 +364,13 @@ class FeeCollectionController extends Controller
             'studentFee.student.currentEnrollment.schoolClass',
             'studentFee.student.currentEnrollment.section',
             'studentFee.feeType',
+            'studentFee.feeAssignment',
             'bankAccount',
             'user',
         ])->findOrFail($transactionId);
 
         $transactions = $transaction->payment_group_id
-            ? Transaction::with(['studentFee.feeType', 'bankAccount', 'user'])
+            ? Transaction::with(['studentFee.feeType', 'studentFee.feeAssignment', 'bankAccount', 'user'])
             ->where('payment_group_id', $transaction->payment_group_id)
             ->orderBy('id')
             ->get()

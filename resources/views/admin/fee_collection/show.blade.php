@@ -144,7 +144,7 @@
                             @endif
                         </td>
                         <td>{{ $loop->iteration }}</td>
-                        <td>{{ $fee->feeType->name ?? '-' }}</td>
+                        <td>{{ $fee->feeType->name ?? '-' }}@if($fee->feeAssignment)<small class="fee-assignment-title d-block">{{ $fee->feeAssignment->title }}</small>@endif</td>
                         <td>{{ \Carbon\Carbon::parse($fee->due_date)->format('d-m-Y') }}</td>
                         <td>{{ number_format($fee->amount, 2) }}</td>
                         <td>
@@ -200,7 +200,7 @@
                     <tr class="text-muted" style="background:#f8f9fa;">
                         <td></td>
                         <td>—</td>
-                        <td>{{ $fee->feeType->name ?? '-' }}</td>
+                        <td>{{ $fee->feeType->name ?? '-' }}@if($fee->feeAssignment)<small class="fee-assignment-title d-block">{{ $fee->feeAssignment->title }}</small>@endif</td>
                         <td>{{ \Carbon\Carbon::parse($fee->due_date)->format('d-m-Y') }}</td>
                         <td>{{ number_format($fee->amount, 2) }}</td>
                         <td>—</td>
@@ -230,7 +230,7 @@
                 <input type="hidden" id="pay_fee_ids" name="fee_ids">
                 <input type="hidden" id="pay_action" name="action" value="collect">
                 <div class="modal-header bg-success">
-                    <h5 class="modal-title" id="payModalTitle">Collect Payment</h5>
+                    <h5 class="modal-title text-white" id="payModalTitle">Collect Payment</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -299,10 +299,10 @@
                     </div>
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <div>
-                        <button type="submit" class="btn btn-primary btn-sm" id="btnCollectFees">Collect Fees</button>
-                        <button type="submit" class="btn btn-info btn-sm text-white" id="btnCollectPrint">Collect &amp; Print</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <div class="d-flex flex-nowrap gap-1">
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnCollectFees"><span class="d-none d-sm-inline">Collect Fees</span><span class="d-sm-none">Collect</span></button>
+                        <button type="submit" class="btn btn-info btn-sm text-white" id="btnCollectPrint"><span class="d-none d-sm-inline">Collect &amp; Print</span><span class="d-sm-none">Print</span></button>
                     </div>
                 </div>
             </form>

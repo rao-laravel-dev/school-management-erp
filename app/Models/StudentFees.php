@@ -8,12 +8,14 @@ class StudentFees extends Model
 {
     protected $fillable = [
         'fee_structure_id',
+        'fee_assignment_id',
         'student_id',
         'fee_type_id',
         'amount',
         'discount',      // 🔥 add
         'paid_amount',
         'due_date',
+        'period',
         'status',
     ];
 
@@ -38,6 +40,11 @@ class StudentFees extends Model
     public function feeStructure()
     {
         return $this->belongsTo(FeeStructure::class);
+    }
+
+    public function feeAssignment()
+    {
+        return $this->belongsTo(FeeAssignment::class, 'fee_assignment_id');
     }
 
     public function fines()

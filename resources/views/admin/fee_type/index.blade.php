@@ -39,6 +39,7 @@
                                 <th>Name</th>
                                 <th>Frequency</th> {{-- 🔥 Naya column --}}
                                 <th>Discountable</th>
+                                <th>Per Student</th>
                                 <th>Description</th>
                                 @can('manage-fee-types')
                                 <th width="120">Action</th>
@@ -68,6 +69,11 @@
                                         {{ $feeType->is_discountable ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
+                                <td>
+                                    <span class="badge {{ $feeType->is_per_student ? 'bg-success' : 'bg-secondary' }}">
+                                        {{ $feeType->is_per_student ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
                                 <td>{{ $feeType->description ?? '-' }}</td>
 
                                 @can('manage-fee-types')
@@ -77,7 +83,8 @@
                                         data-name="{{ $feeType->name }}"
                                         data-frequency="{{ $feeType->frequency }}"
                                         data-description="{{ $feeType->description }}"
-                                        date-discountable="{{ $feeType->is_discountable }}"
+                                        data-discountable="{{ $feeType->is_discountable ? 1 : 0 }}"
+                                        data-per-student="{{ $feeType->is_per_student ? 1 : 0 }}"
                                         data-status="{{ $feeType->status }}"
                                         data-bs-toggle="modal" data-bs-target="#feeTypeModal">
                                         <i class="bx bx-edit"></i>
@@ -142,6 +149,14 @@
                         </label>
                         <div class="invalid-feedback" id="error-is_discountable"></div>
                     </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_per_student" name="is_per_student" value="1">
+                        <label class="form-check-label" for="is_per_student">
+                            Per-student only (Assign Fee), never generated class-wide
+                        </label>
+                        <div class="invalid-feedback" id="error-is_per_student"></div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -176,6 +191,7 @@
             $('#feeTypeForm')[0].reset();
             $('#feeTypeId').val('');
             $('#is_discountable').prop('checked', false);   // new checkbox
+            $('#is_per_student').prop('checked', false);
             $('#feeTypeForm').find('.is-invalid').removeClass('is-invalid');
             $('#feeTypeForm').find('.invalid-feedback').text('');
             $('#feeTypeModalLabel').text('Add Fee Type');
@@ -195,6 +211,7 @@
             $('#frequency').val($(this).data('frequency'));
             $('#description').val($(this).data('description'));
             $('#is_discountable').prop('checked', $(this).data('discountable') == 1);  // new
+            $('#is_per_student').prop('checked', $(this).data('per-student') == 1);
         });
 
         // Submit form (Add or Update)

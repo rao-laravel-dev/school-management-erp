@@ -2879,3 +2879,49 @@ html.dark-theme .att-stat-card .att-stat-value.text-dark { color: #e4e5e6 !impor
 .att-mass-row .input-group { flex: 1 1 200px; min-width: 200px; }
 /* Clickable student name in attendance tables */
 .att-name-link:hover { text-decoration: underline; }
+/* Billing Settings: help text (same look as Bootstrap form-text in light mode), readable in dark mode; Academic Year select full width on phones */
+.billing-setting-help { margin-top: .25rem; font-size: .875em; color: var(--bs-secondary-color); }
+html.dark-theme .billing-setting-help { color: #aab0b6 !important; }
+@media (min-width: 768px) { .billing-setting-year { width: auto; } }
+/* Assign Fee: title under the fee type in Collect Fees, readable in dark mode */
+.fee-assignment-title { color: #6c757d; font-size: .8em; }
+html.dark-theme .fee-assignment-title { color: #aab0b6 !important; }
+/* Assign Fee modals: Select2 same small height/font as form-select-sm; Cancel + Save stay on one row at 320px */
+#feeAssignmentAdd .select2-container .select2-selection--single { height: calc(1.5em + .5rem + 2px); }
+#feeAssignmentAdd .select2-container .select2-selection--multiple { min-height: calc(1.5em + .5rem + 2px); }
+#feeAssignmentAdd .select2-container,
+#feeAssignmentAdd .select2-dropdown { font-size: .875rem; }
+#feeAssignmentAdd .select2-container--default .select2-selection--multiple .select2-selection__choice { margin-top: .2rem; font-size: .8125rem; }
+#feeAssignmentAdd .modal-footer,
+#feeAssignmentEdit .modal-footer,
+#payModal .modal-footer { flex-wrap: nowrap; }
+/* Collect Payment footer: the mobile global .btn-primary (full width, block, 8px padding) must not stack/enlarge Collect Fees */
+#payModal .modal-footer .btn-primary { width: auto; display: inline-block; font-size: .875rem; padding: .25rem .5rem !important; }
+#payModal .modal-footer .btn { white-space: nowrap; }
+/* Collect Fees search page: keep btn-sm size on mobile (full width is fine) */
+.fee-collect-search .btn-primary { display: inline-block; font-size: .875rem; padding: .25rem .5rem !important; }
+/* Assign Fee: note under Fee Type + read-only details in the Edit modal, readable in dark mode */
+.fee-assignment-note { font-size: .875em; color: #212529; }
+html.dark-theme .fee-assignment-note { color: #e4e5e6 !important; }
+html.dark-theme #feeAssignmentAdd .form-text,
+html.dark-theme #feeAssignmentEdit .form-text { color: #e4e5e6 !important; }
+/* Assign Fee Add modal: Select2 in dark mode (selection box, tags, search field, dropdown) */
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-selection--single,
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-selection--multiple,
+html.dark-theme #feeAssignmentAdd .select2-container--default.select2-container--disabled .select2-selection--multiple { background-color: #12181a; border: 1px solid rgb(255 255 255 / 34%); }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-selection--multiple .select2-selection__choice { background-color: rgb(255 255 255 / 12%); border: 1px solid rgb(255 255 255 / 20%); color: #e4e5e6; }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: #c0c8d1; }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-search--inline .select2-search__field { background: transparent; color: #c0c8d1; }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-selection__placeholder { color: #8b949e; }
+html.dark-theme #feeAssignmentAdd .select2-dropdown { background-color: #12181a; border: 1px solid rgb(255 255 255 / 34%); }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-search--dropdown .select2-search__field { background-color: #12181a; color: #c0c8d1; border: 1px solid rgb(255 255 255 / 34%); }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-results__option { color: #c0c8d1; background-color: transparent; }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-results__option[aria-selected=true],
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-results__option--selected { background-color: rgb(255 255 255 / 10%); }
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-results__option--highlighted,
+html.dark-theme #feeAssignmentAdd .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #0d6efd; color: #fff; }
+/* Assign Fee: SweetAlert2 popups (delete / create confirm) follow dark mode */
+html.dark-theme .fee-assignment-swal { background: #12181a; color: #e4e5e6; border: 1px solid rgb(255 255 255 / 16%); }
+html.dark-theme .fee-assignment-swal .swal2-title,
+html.dark-theme .fee-assignment-swal .swal2-html-container { color: #e4e5e6; }
+.fee-assignment-swal .swal2-actions { gap: .5rem; }

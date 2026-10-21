@@ -40,6 +40,7 @@ class FeeTypeController extends Controller
             'frequency'   => 'required|in:one_time,monthly,quarterly,half_yearly,annual',
             'description' => 'nullable|string',
             'is_discountable' => 'nullable|boolean',
+            'is_per_student'  => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -51,6 +52,7 @@ class FeeTypeController extends Controller
             'frequency'   => $request->frequency,
             'description' => $request->description,
             'is_discountable' => $request->boolean('is_discountable'), // new
+            'is_per_student'  => $request->boolean('is_per_student'),
         ]);
 
         return response()->json(['message' => 'Fee type added successfully.']);
@@ -77,6 +79,7 @@ class FeeTypeController extends Controller
             'frequency'   => 'required|in:one_time,monthly,quarterly,half_yearly,annual',
             'description' => 'nullable|string',
             'is_discountable' => 'nullable|boolean',
+            'is_per_student'  => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -88,6 +91,7 @@ class FeeTypeController extends Controller
             'frequency'   => $request->frequency,
             'description' => $request->description,
             'is_discountable' => $request->boolean('is_discountable'), // new
+            'is_per_student'  => $request->boolean('is_per_student'),
         ]);
 
         return response()->json(['message' => 'Fee type updated successfully.']);

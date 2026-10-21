@@ -94,6 +94,13 @@ class FeeStructureController extends Controller
                 ], 422);
             }
 
+            // Per-student fee type (Tuition) class-wide generate nahi hota, Assign Fee se lagti hai
+            if ($feeStructure->feeType && $feeStructure->feeType->is_per_student) {
+                return response()->json([
+                    'message' => $feeStructure->feeType->name . ' is a per-student fee type. Use Assign Fee instead.'
+                ], 422);
+            }
+
             $studentIdsQuery = DB::table('enrollments')
                 ->join('students', 'enrollments.student_id', '=', 'students.id')
                 ->where('enrollments.class_id', $feeStructure->school_class_id);

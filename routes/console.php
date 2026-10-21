@@ -14,3 +14,6 @@ Schedule::call(function () {
         ->whereNull('time_out')
         ->update(['time_out' => '14:00:00']);
 })->dailyAt('14:00');
+
+// Auto monthly fees + salary slips (billing_settings ke auto switches); dobara chalane se kuch double nahi banta
+Schedule::command('billing:generate-monthly')->dailyAt('01:00')->withoutOverlapping();

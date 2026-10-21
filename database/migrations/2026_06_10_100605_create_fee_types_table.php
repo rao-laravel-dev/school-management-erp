@@ -18,6 +18,8 @@ return new class extends Migration
             // 'after' method yahan hata dein, yeh automatically last mein add ho jayega
             $table->string('frequency')->default('monthly');
             $table->boolean('is_discountable')->default(false);
+            // 1 = sirf Assign Fee se lagti hai (jaise Tuition), class-wide generate nahi hoti
+            $table->boolean('is_per_student')->default(false);
             $table->timestamps();
         });
     }

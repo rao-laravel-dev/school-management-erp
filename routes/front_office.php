@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Backend\BankAccountController;
+use App\Http\Controllers\Backend\BillingSettingController;
 use App\Http\Controllers\Backend\BookCategoryController;
 use App\Http\Controllers\Backend\BookController;
 use App\Http\Controllers\Backend\BookIssueController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Backend\ExamScheduleController;
 use App\Http\Controllers\Backend\ExamTypeController;
 use App\Http\Controllers\Backend\ExpenseCategoryController;
 use App\Http\Controllers\Backend\ExpenseController;
+use App\Http\Controllers\Backend\FeeAssignmentController;
 use App\Http\Controllers\Backend\FeeCollectionController;
 use App\Http\Controllers\Backend\FeeStructureController;
 use App\Http\Controllers\Backend\FeeTypeController;
@@ -272,10 +274,10 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(SalarySlipController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
-                Route::get('/{id}', 'show')->name('show');
-            });
                 // /{id} se pehle: warna "unmarked-days" show() ka id ban jata
                 Route::get('/unmarked-days', 'unmarkedDays')->name('unmarked_days')->middleware('can:manage-salary-slips');
+                Route::get('/{id}', 'show')->name('show');
+            });
         });
 
         Route::middleware(['can:manage-salary-slips'])->group(function () {
@@ -362,6 +364,50 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/update/{id}', 'update')->name('update');
                 Route::delete('/delete/{id}', 'destroy')->name('delete');
                 Route::patch('/toggle-status/{id}', 'toggleStatus')->name('toggle_status');
+            });
+        });
+    });
+
+    // ==========================================
+    // BILLING SETTINGS (Fee Settings): auto monthly fees + salary slips
+    // ==========================================
+    Route::prefix('billing-settings')->name('billing_settings.')->group(function () {
+
+        Route::middleware(['can:access-billing-settings'])->group(function () {
+            Route::controller(BillingSettingController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+            });
+        });
+
+        Route::middleware(['can:manage-billing-settings'])->group(function () {
+            Route::controller(BillingSettingController::class)->group(function () {
+                Route::post('/update', 'update')->name('update');
+                Route::post('/generate-now', 'generateNow')->name('generate_now');
+                Route::post('/catch-up', 'catchUp')->name('catch_up');
+                Route::get('/unmarked-days', 'unmarkedDays')->name('unmarked_days');
+            });
+        });
+    });
+
+    // ==========================================
+    // FEE ASSIGNMENTS (Assign Fee): one-time fees for selected students // NEW 23-10-26
+    // ==========================================
+    Route::prefix('fee-assignments')->name('fee_assignments.')->group(function () {
+
+        Route::middleware(['can:access-fee-assignments'])->group(function () {
+            Route::controller(FeeAssignmentController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+            });
+        });
+
+        Route::middleware(['can:manage-fee-assignments'])->group(function () {
+            Route::controller(FeeAssignmentController::class)->group(function () {
+                Route::post('/', 'store')->name('store');
+                Route::post('/preview', 'preview')->name('preview');
+                Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
+                Route::get('/students', 'searchStudents')->name('students');
+                Route::put('/{feeAssignment}', 'update')->name('update');
+                Route::delete('/{feeAssignment}', 'destroy')->name('delete');
             });
         });
     });

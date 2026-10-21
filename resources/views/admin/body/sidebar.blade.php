@@ -413,8 +413,8 @@
         </li>
         @endif
 
-        @if(auth()->user()->can('access-fee-types') || auth()->user()->can('access-fee-structures') || auth()->user()->can('access-discount-policies') || auth()->user()->can('access-fine-policies') || auth()->user()->can('access-expense-categories') || auth()->user()->can('access-expenses'))
-        @php $open = request()->routeIs('fee_types.*', 'fee_structure.*', 'fees.*', 'bank_accounts.*', 'discount_policies.*', 'fine_policies.*', 'expense_categories.*', 'expenses.*'); @endphp
+        @if(auth()->user()->can('access-fee-types') || auth()->user()->can('access-fee-structures') || auth()->user()->can('access-discount-policies') || auth()->user()->can('access-fine-policies') || auth()->user()->can('access-billing-settings') || auth()->user()->can('access-fee-assignments') || auth()->user()->can('access-expense-categories') || auth()->user()->can('access-expenses'))
+        @php $open = request()->routeIs('fee_types.*', 'fee_structure.*', 'fee_assignments.*', 'fees.*', 'bank_accounts.*', 'discount_policies.*', 'fine_policies.*', 'billing_settings.*', 'expense_categories.*', 'expenses.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-money"></i></div>
@@ -428,17 +428,23 @@
                 @can('access-fee-structures')
                 <li class="{{ request()->routeIs('fee_structure.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_structure.index') }}"><i class='bx bx-radio-circle'></i>Fee Structure</a></li>
                 <li class="{{ request()->routeIs('fees.collect.index', 'fees.collect.show', 'fees.collect.receipt') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.index') }}"><i class='bx bx-radio-circle'></i>Collect Fees</a></li>
+                @can('access-fee-assignments')
+                <li class="{{ request()->routeIs('fee_assignments.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_assignments.index') }}"><i class='bx bx-radio-circle'></i>Assign Fee</a></li>
+                @endcan
                 <li class="{{ request()->routeIs('fees.collect.report') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.report') }}"><i class='bx bx-radio-circle'></i>Fee Reports</a></li>
                 <li class="{{ request()->routeIs('bank_accounts.*') ? 'mm-active' : '' }}"><a href="{{ route('bank_accounts.index') }}"><i class='bx bx-radio-circle'></i>Bank Accounts</a></li>
                 @endcan
 
-                @if(auth()->user()->can('access-discount-policies') || auth()->user()->can('access-fine-policies'))
-                @php $subOpen = request()->routeIs('discount_policies.*', 'fine_policies.*'); @endphp
+                @if(auth()->user()->can('access-discount-policies') || auth()->user()->can('access-fine-policies') || auth()->user()->can('access-billing-settings'))
+                @php $subOpen = request()->routeIs('discount_policies.*', 'fine_policies.*', 'billing_settings.*'); @endphp
                 <li class="{{ $subOpen ? 'mm-active' : '' }}">
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Fee Settings</a>
                     <ul class="{{ $subOpen ? 'mm-show' : '' }}">
                         @can('access-discount-policies')
                         <li class="{{ request()->routeIs('discount_policies.*') ? 'mm-active' : '' }}"><a href="{{ route('discount_policies.index') }}"><i class='bx bx-radio-circle'></i>Discount Policies</a></li>
+                        @endcan
+                        @can('access-billing-settings')
+                        <li class="{{ request()->routeIs('billing_settings.*') ? 'mm-active' : '' }}"><a href="{{ route('billing_settings.index') }}"><i class='bx bx-radio-circle'></i>Billing Settings</a></li>
                         @endcan
                         {{-- Fine Policies CRUD is not built yet (FinePolicyController is empty) - link hidden
                         @can('access-fine-policies')
@@ -541,8 +547,7 @@
             </ul>
         </li>
         @endcanany
-    </ul>
-</div>
+
         {{-- Logout (hamesha last) --}}
         <li>
             <a href="{{ route('admin.logout') }}">
@@ -550,3 +555,5 @@
                 <div class="menu-title">Logout</div>
             </a>
         </li>
+    </ul>
+</div>

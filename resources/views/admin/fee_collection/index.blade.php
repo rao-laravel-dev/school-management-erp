@@ -15,7 +15,7 @@
 
 <div class="card radius-10 mb-3">
     <div class="card-body">
-        <div class="row g-3">
+        <div class="row g-3 fee-collect-search">
 
             {{-- FORM 1: Class + Section filter --}}
             <div class="col-12 col-lg-7">

@@ -208,7 +208,7 @@
                             @endphp
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($txn->transaction_date)->format('d/m') }}</td>
-                                <td>{{ $txn->studentFee->feeType->name ?? '-' }}</td>
+                                <td>{{ $txn->studentFee->feeType->name ?? '-' }}@if($txn->studentFee->feeAssignment) - {{ $txn->studentFee->feeAssignment->title }}@endif</td>
                                 <td>{{ ucfirst(str_replace('_', ' ', $txn->payment_method)) }}</td>
                                 <td>{{ number_format($feeTotal, 0) }}</td>
                                 <td>{{ number_format($txn->amount, 0) }}</td>
