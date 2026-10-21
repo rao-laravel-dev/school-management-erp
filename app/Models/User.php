@@ -210,6 +210,8 @@ class User extends Authenticatable
             $folders = [
                 'accountant'   => ['uploads/accountant_images', 'uploads/accountants'],
                 'receptionist' => ['uploads/receptionist_images', 'uploads/reception_images', 'uploads/receptionists'],
+                // Superadmin shared admin profile page use karta hai, jo uploads/admin_images mein save karta hai
+                'superadmin'   => ['uploads/superadmin_images', 'uploads/admin_images'],
             ][$role] ?? ['uploads/' . $role . '_images'];
 
             foreach ($folders as $folder) {
