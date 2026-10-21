@@ -50,7 +50,7 @@
                                 <td>{{ optional($hw->homework_date)->format('d-M-Y') ?? '-' }}</td>
                                 <td>
                                     {{ optional($hw->due_date)->format('d-M-Y') ?? '-' }}
-                                    @if($hw->due_date && !$hw->due_date->isPast())
+                                    @if($hw->due_date && !$hw->due_date->copy()->startOfDay()->lt(today()))
                                     <span class="badge bg-info">Pending</span>
                                     @else
                                     <span class="badge bg-danger">Overdue</span>
