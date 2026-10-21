@@ -31,7 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Blocked (status 0/2) user ko har web request par logout karo
-        $middleware->web(append: [\App\Http\Middleware\EnsureUserIsActive::class]);
+        // Logout ke baad Back button par cached dashboard na dikhe (T221)
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureUserIsActive::class,
+            \App\Http\Middleware\PreventBackHistory::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
