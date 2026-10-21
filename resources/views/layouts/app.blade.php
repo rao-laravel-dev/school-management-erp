@@ -34,7 +34,7 @@
 	<!-- Bootstrap CSS -->
 	<link href="{{ asset('backend/assets/css/bootstrap.min.css') }}" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/bootstrap-extended.css') }}" rel="stylesheet">
-	<link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
+	<link href="{{ asset('backend/assets/css/app.css') }}?v={{ filemtime(public_path('backend/assets/css/app.css')) }}" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
 
 	<!-- Theme -->
