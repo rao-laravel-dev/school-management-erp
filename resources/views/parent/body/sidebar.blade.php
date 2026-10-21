@@ -81,5 +81,13 @@
             </ul>
         </li>
         @endcan
+
+        {{-- Logout (hamesha last) --}}
+        <li>
+            <a href="{{ route('parent.logout') }}">
+                <div class="parent-icon"><i class="bx bx-log-out-circle"></i></div>
+                <div class="menu-title">Logout</div>
+            </a>
+        </li>
     </ul>
     </div>
