@@ -345,7 +345,9 @@
                 <li class="{{ $subOpen ? 'mm-active' : '' }}">
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Staff Attendance</a>
                     <ul class="{{ $subOpen ? 'mm-show' : '' }}">
+                        @can('mark-staff-attendance')
                         <li class="{{ request()->routeIs('staff_attendance.create', 'staff_attendance.edit') ? 'mm-active' : '' }}"><a href="{{ route('staff_attendance.create') }}"><i class='bx bx-right-arrow-alt'></i>Mark Attendance</a></li>
+                        @endcan
                         <li class="{{ request()->routeIs('staff_attendance.report', 'staff_attendance.show', 'staff_attendance.index') ? 'mm-active' : '' }}"><a href="{{ route('staff_attendance.report') }}"><i class='bx bx-right-arrow-alt'></i>Attendance Report</a></li>
                     </ul>
                 </li>
