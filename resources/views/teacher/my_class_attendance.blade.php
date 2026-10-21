@@ -61,9 +61,12 @@
                             <td>{{ $item->enrollment->student->first_name ?? '' }} {{ $item->enrollment->student->last_name ?? '' }}</td>
                             <td>{{ $item->enrollment->schoolClass->name ?? '' }} - {{ $item->enrollment->section->name ?? '' }}</td>
                             <td>
-                                @if($item->status == 1) <span class="badge bg-success">Present</span>
-                                @elseif($item->status == 0) <span class="badge bg-danger">Absent</span>
-                                @else <span class="badge bg-warning">Late/Leave</span> @endif
+                                @if($item->status == \App\Models\Attendance::STATUS_PRESENT) <span class="badge bg-success">Present</span>
+                                @elseif($item->status == \App\Models\Attendance::STATUS_ABSENT) <span class="badge bg-danger">Absent</span>
+                                @elseif($item->status == \App\Models\Attendance::STATUS_LATE) <span class="badge bg-warning text-dark">Late</span>
+                                @elseif($item->status == \App\Models\Attendance::STATUS_HALF_DAY) <span class="badge bg-info text-dark">Half Day</span>
+                                @elseif($item->status == \App\Models\Attendance::STATUS_LEAVE) <span class="badge bg-secondary">{{ strcasecmp(trim((string) $item->remarks), 'Holiday') === 0 ? 'Holiday' : 'Leave' }}</span>
+                                @endif
                             </td>
                             <td>{{ $item->created_at ? $item->created_at->format('h:i A') : 'N/A' }}</td>
                             <td>{{ $item->time_out ?? 'N/A' }}</td>
