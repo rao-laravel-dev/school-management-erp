@@ -415,6 +415,8 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     // FINE POLICIES CRUD (Fee Settings)
     // ==========================================
+    // FinePolicyController methods are not built yet (empty class), routes disabled until BACKLOG T173
+    /*
     Route::prefix('fine-policies')->name('fine_policies.')->group(function () {
 
         Route::middleware(['can:access-fine-policies'])->group(function () {
@@ -434,6 +436,7 @@ Route::middleware(['auth'])->group(function () {
             });
         });
     });
+    */
 
 
     // ==========================================
@@ -596,7 +599,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('can:access-home-works')->group(function () {
             Route::controller(HomeWorkController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/list', 'list')->name('list');
+                // Route::get('/list', 'list')->name('list'); // list() method not built
                 Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
                 Route::get('/get-groups/{classId}', 'getGroupsByClass')->name('get_groups');
                 Route::get('/get-subjects', 'getSubjects')->name('get_subjects');
@@ -605,7 +608,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::middleware('can:manage-home-works')->group(function () {
             Route::controller(HomeWorkController::class)->group(function () {
-                Route::get('/create', 'create')->name('create');
+                // Route::get('/create', 'create')->name('create'); // create() method not built (add is a modal on index)
                 Route::post('/store', 'store')->name('store');
                 Route::get('/edit/{id}', 'edit')->name('edit');
                 Route::post('/update/{id}', 'update')->name('update');
