@@ -274,6 +274,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::get('/{id}', 'show')->name('show');
             });
+                // /{id} se pehle: warna "unmarked-days" show() ka id ban jata
+                Route::get('/unmarked-days', 'unmarkedDays')->name('unmarked_days')->middleware('can:manage-salary-slips');
         });
 
         Route::middleware(['can:manage-salary-slips'])->group(function () {

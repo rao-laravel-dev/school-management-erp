@@ -128,6 +128,11 @@
         toggleMode();
         $('#mode').on('change', toggleMode);
 
+        // Field edit hote hi uski validation state hata do
+        $('#generateForm').on('input change', '.is-invalid', function() {
+            $(this).removeClass('is-invalid').siblings('.invalid-feedback').hide();
+        });
+
         $('#selectAll').on('change', function() {
             $('.staff-checkbox:not(:disabled)').prop('checked', $(this).is(':checked'));
         });
@@ -153,9 +158,27 @@
                 return;
             }
 
+            // Month khali ya max se aage ho to server errors dikhaye: unmarked_days / Swal skip
+            const monthVal = $('input[name="month"]').val();
+            const monthMax = $('input[name="month"]').attr('max');
+            if (!monthVal || monthVal > monthMax) {
+                form.submit();
+                return;
+            }
+
+            // Confirm se pehle us month ke un-marked attendance din (kam se kam ek staff ki entry nahi)
+            $.get("{{ route('salary_slips.unmarked_days') }}", { month: $('input[name="month"]').val() }, function(res) {
+                let warning;
+                if (res.days.length > 0) {
+                    warning = '<p>This will generate salary slips for the selected staff for this month.</p>' +
+                        '<p class="text-danger mb-1">' + res.headline + '</p>' +
+                        '<p class="text-danger mb-0">' + res.dates + '</p>';
+                }
+
             Swal.fire({
                 title: 'Generate Salary Slips?',
                 text: 'This will generate salary slips for the selected staff for this month.',
+                html: warning,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, Generate',
@@ -166,6 +189,9 @@
                 if (result.isConfirmed) {
                     form.submit();
                 }
+            });
+            }).fail(function() {
+                toastr.error('Could not check unmarked attendance days. Please try again.');
             });
         });
     });

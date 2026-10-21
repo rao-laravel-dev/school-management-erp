@@ -177,6 +177,88 @@ class SalarySlipService
     }
 
     /**
+     * Working days of the month where at least one active staff member has no attendance row.
+     * Returns ['Y-m-d' => number of staff not marked]. Same working-day rule as getWorkingDays().
+     */
+    public function unmarkedWorkingDays(string $month): array
+    {
+        $start = Carbon::parse($month . '-01')->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $excludedRoles = ['superadmin', 'admin', 'parent', 'student', 'user'];
+
+        $staffIds = User::where('status', 1)
+            ->whereHas('roles', fn($q) => $q->whereNotIn('name', $excludedRoles))
+            ->pluck('id');
+
+        if ($staffIds->isEmpty()) {
+            return [];
+        }
+
+        // Query builder: model cast 'date' key ko Carbon bana deta
+        $markedPerDate = DB::table('staff_attendances')
+            ->whereIn('user_id', $staffIds)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->selectRaw('date, COUNT(DISTINCT user_id) as marked')
+            ->groupBy('date')
+            ->pluck('marked', 'date');
+
+        $holidayDates = OffDays::dates($start, $end);
+        $weeklyOff    = OffDays::weeklyOffDays($start);
+
+        $unmarked = [];
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            if (in_array($date->englishDayOfWeek, $weeklyOff, true) || isset($holidayDates[$date->toDateString()])) {
+                continue;
+            }
+            $missing = $staffIds->count() - (int) ($markedPerDate[$date->toDateString()] ?? 0);
+            if ($missing > 0) {
+                $unmarked[$date->toDateString()] = $missing;
+            }
+        }
+
+        return $unmarked;
+    }
+
+    /**
+     * Short text for the unmarked-days warning (Generate Salary Slips + Billing Settings), built from unmarkedWorkingDays().
+     * Returns ['days' => [['day' => 7, 'staff' => 3], ...], 'headline' => '...', 'dates' => '...']; headline/dates are '' when nothing is unmarked.
+     */
+    public function unmarkedSummary(string $month): array
+    {
+        $unmarked = $this->unmarkedWorkingDays($month);
+
+        $days = [];
+        foreach ($unmarked as $date => $staff) {
+            $days[] = ['day' => (int) substr($date, 8, 2), 'staff' => $staff];
+        }
+
+        if (!$days) {
+            return ['days' => [], 'headline' => '', 'dates' => ''];
+        }
+
+        $count   = count($days);
+        $sameAll = count(array_unique(array_column($days, 'staff'))) === 1;
+        $label   = Carbon::parse($month . '-01')->format('F Y');
+
+        $headline = $label . ': staff attendance not marked on ' . $count . ' working ' . ($count === 1 ? 'day' : 'days');
+        if ($sameAll) {
+            $headline .= ' (' . $days[0]['staff'] . ' staff each)';
+        }
+        $headline .= '.';
+
+        // Max 10 dates dikhao, baqi "and N more"
+        $parts = [];
+        foreach (array_slice($days, 0, 10) as $d) {
+            $parts[] = $sameAll ? (string) $d['day'] : $d['day'] . ' (' . $d['staff'] . ' staff)';
+        }
+        $more  = $count - count($parts);
+        $dates = 'Dates: ' . implode(', ', $parts) . ($more > 0 ? ' and ' . $more . ' more.' : '.');
+
+        return ['days' => $days, 'headline' => $headline, 'dates' => $dates];
+    }
+
+    /**
      * Calculate attendance summary for a staff member for a given month.
      */
     private function getAttendanceSummary(User $user, string $month): array

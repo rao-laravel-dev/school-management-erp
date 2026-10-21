@@ -141,6 +141,32 @@ class SalarySlipController extends Controller
     }
  
     /**
+     * Unmarked staff attendance days of a month (generate confirm warning, JSON)
+     */
+    public function unmarkedDays(Request $request)
+    {
+        $request->validate(['month' => 'required|date_format:Y-m'], [
+            'month.required'    => 'The Month field is required.',
+            'month.date_format' => 'The Month field must be a valid month.',
+        ]);
+
+        if ($request->month >= now()->format('Y-m')) {
+            return response()->json([
+                'message' => 'Salary slips can only be generated for a completed month (before ' . now()->format('M Y') . ').',
+            ], 422);
+        }
+
+        $summary = $this->service->unmarkedSummary($request->month);
+
+        return response()->json([
+            'label'    => \Carbon\Carbon::parse($request->month . '-01')->format('F'),
+            'days'     => $summary['days'],
+            'headline' => $summary['headline'],
+            'dates'    => $summary['dates'],
+        ]);
+    }
+
+    /**
      * Single slip detail / payslip view
      */
     public function show($id)
