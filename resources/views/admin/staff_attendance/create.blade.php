@@ -148,7 +148,7 @@
                 </table>
             </div>
             {{-- Mass Time Out aur Submit button ek hi row mein, table ke neeche --}}
-            <div class="row mt-4 pt-3 border-top align-items-center">
+            <div class="row gy-3 mt-4 pt-3 border-top align-items-center">
                 <div class="col-md-6">
                     <div class="d-flex align-items-center att-mass-row">
                         <label class="form-label fw-bold mb-0 me-2" style="white-space: nowrap;">Mass Time Out:</label>

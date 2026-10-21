@@ -22,8 +22,8 @@
     @include('admin.attendance.partials.stat_card', ['label' => 'Half-Day', 'value' => '0', 'color' => 'info', 'id' => 'hd-count'])
 </div>
 
-<div class="card radius-10 border-top border-0 border-4 border-primary">
-    <div class="card-header bg-transparent d-flex justify-content-between align-items-center att-card-header">
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center att-card-header">
         <h5 class="mb-0">Mark Attendance</h5>
         <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="holidayToggle" name="is_holiday" value="on" form="attendanceForm">
@@ -95,7 +95,7 @@
             </div>
 
             {{-- Mass Departure aur Submit button ek hi line mein --}}
-            <div class="row mt-4 pt-3 border-top align-items-center">
+            <div class="row gy-3 mt-4 pt-3 border-top align-items-center">
                 <div class="col-md-6">
                     <div class="d-flex align-items-center">
                         <label class="form-label fw-bold mb-0 me-2" style="white-space: nowrap;">Mass Time:</label>
