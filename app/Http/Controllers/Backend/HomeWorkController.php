@@ -44,6 +44,15 @@ class HomeWorkController extends Controller
         return 'uploads/' . $folder . '/' . $filename;
     }
 
+    // Teacher user ka teachers row; na ho to 500 ki jagah saaf 403
+    private function teacherOrAbort($user)
+    {
+        if (!$user->teacher) {
+            abort(403, 'Teacher profile not found. Please contact admin.');
+        }
+        return $user->teacher;
+    }
+
     public function index()
 {
     $user = Auth::user();
@@ -53,13 +62,22 @@ class HomeWorkController extends Controller
     $classes = SchoolClass::where('status', 1)->get();
 
     if ($user->hasRole('teacher')) {
-        $teacher = $user->teacher;
+        $teacher = $this->teacherOrAbort($user);
 
-        $classIds   = $teacher->assignments->pluck('class_id')->unique();
-        $sectionIds = $teacher->assignments->pluck('section_id')->unique();
+        $assignments = $teacher->assignments;
+        $classIds    = $assignments->pluck('class_id')->unique();
 
-        $query->whereIn('class_id', $classIds)
-              ->whereIn('section_id', $sectionIds);
+        // exact class+section pairs (1-A + 2-B wala teacher 1-B / 2-A na dekhe)
+        $query->where(function ($q) use ($assignments) {
+            foreach ($assignments as $a) {
+                $q->orWhere(function ($q2) use ($a) {
+                    $q2->where('class_id', $a->class_id)->where('section_id', $a->section_id);
+                });
+            }
+        });
+        if ($assignments->isEmpty()) {
+            $query->whereRaw('1 = 0'); // koi assignment nahi = koi row nahi (empty where sab dikha deta)
+        }
 
         $classes = $classes->whereIn('id', $classIds);
     }
@@ -74,12 +92,29 @@ class HomeWorkController extends Controller
     public function getSectionsByClass($classId)
     {
         $sections = SchoolClass::findOrFail($classId)->sections; // mappedSections() alias
+        $user = Auth::user();
+
+        // Teacher ko us class ke sirf apne assigned sections
+        if ($user->hasRole('teacher')) {
+            $teacher = $this->teacherOrAbort($user);
+            $sectionIds = $teacher->assignments()->where('class_id', $classId)->pluck('section_id');
+            $sections = $sections->whereIn('id', $sectionIds)->values(); // values() = JSON array, object nahi
+        }
+
         return response()->json($sections);
     }
 
     public function getGroupsByClass($classId)
     {
         $class = SchoolClass::findOrFail($classId);
+        $user = Auth::user();
+
+        if ($user->hasRole('teacher')) {
+            $teacher = $this->teacherOrAbort($user);
+            if (!$teacher->assignments()->where('class_id', $classId)->exists()) {
+                abort(403, 'Aap is class ke teacher nahi hain.');
+            }
+        }
 
         $groupIds = $class->subjects()
             ->wherePivotNotNull('group_id')
@@ -96,6 +131,14 @@ class HomeWorkController extends Controller
     public function getSubjects(Request $request)
     {
         $class = SchoolClass::findOrFail($request->class_id);
+        $user = Auth::user();
+
+        if ($user->hasRole('teacher')) {
+            $teacher = $this->teacherOrAbort($user);
+            if (!$teacher->assignments()->where('class_id', $request->class_id)->exists()) {
+                abort(403, 'Aap is class ke teacher nahi hain.');
+            }
+        }
 
         $query = $class->subjects();
 
@@ -134,16 +177,14 @@ class HomeWorkController extends Controller
     $user = Auth::user();
 
     if ($user->hasRole('teacher')) {
-        $teacher = $user->teacher;
+        $teacher = $this->teacherOrAbort($user);
         $allowed = $teacher->assignments()
             ->where('class_id', $data['class_id'])
             ->where('section_id', $data['section_id'])
             ->exists();
 
         if (!$allowed) {
-            return redirect()->back()
-                ->with('toastr-error', 'Aap sirf apni assigned class ke liye homework bana sakte hain.')
-                ->withInput();
+            abort(403, 'Aap sirf apni assigned class ke liye homework bana sakte hain.');
         }
     }
 
@@ -161,7 +202,20 @@ class HomeWorkController extends Controller
 
     public function edit($id)
     {
-        $homework = Homework::findOrFail($id);
+        $homework = HomeWork::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->hasRole('teacher')) {
+            $teacher = $this->teacherOrAbort($user);
+            $allowed = $teacher->assignments()
+                ->where('class_id', $homework->class_id)
+                ->where('section_id', $homework->section_id)
+                ->exists();
+
+            if (!$allowed) {
+                abort(403, 'Aap ye homework edit nahi kar sakte.');
+            }
+        }
 
         $groupId = $homework->class
             ->subjects()
@@ -191,7 +245,7 @@ class HomeWorkController extends Controller
 
     // Teacher sirf apni assigned class ka homework edit kar sake
     if ($user->hasRole('teacher')) {
-        $teacher = $user->teacher;
+        $teacher = $this->teacherOrAbort($user);
         $allowed = $teacher->assignments()
             ->where('class_id', $homework->class_id)
             ->where('section_id', $homework->section_id)
@@ -241,7 +295,7 @@ class HomeWorkController extends Controller
     $user = Auth::user();
 
     if ($user->hasRole('teacher')) {
-        $teacher = $user->teacher;
+        $teacher = $this->teacherOrAbort($user);
         $allowed = $teacher->assignments()
             ->where('class_id', $homework->class_id)
             ->where('section_id', $homework->section_id)
@@ -269,6 +323,20 @@ class HomeWorkController extends Controller
     public function statusUpdate($id)
     {
         $homework = HomeWork::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->hasRole('teacher')) {
+            $teacher = $this->teacherOrAbort($user);
+            $allowed = $teacher->assignments()
+                ->where('class_id', $homework->class_id)
+                ->where('section_id', $homework->section_id)
+                ->exists();
+
+            if (!$allowed) {
+                abort(403, 'Aap is homework ka status change nahi kar sakte.');
+            }
+        }
+
         $homework->status = $homework->status ? 0 : 1;
         $homework->save();
 

@@ -287,8 +287,8 @@
             }, function(res) {
                 toastr.success(res.message);
                 setTimeout(() => location.reload(), 800);
-            }).fail(function() {
-                toastr.error('Something went wrong.');
+            }).fail(function(xhr) {
+                toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong.');
             });
         });
 
@@ -341,8 +341,8 @@
                 loadGroups('edit', data.class_id, data.group_id, function(hasGroups) {
                     loadSubjects('edit', data.class_id, data.group_id, data.subject_id);
                 });
-            }).fail(function() {
-                toastr.error('Unable to load homework details.');
+            }).fail(function(xhr) {
+                toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Unable to load homework details.');
             });
         }
 
