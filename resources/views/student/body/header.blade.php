@@ -53,20 +53,6 @@
             </li>
         @endif
 
-					<li class="nav-item dropdown dropdown-app">
-    <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown" href="javascript:;"><i class='bx bx-grid-alt'></i></a>
-    <div class="dropdown-menu dropdown-menu-end p-0">
-        <div class="app-container p-2 my-2">
-            <div class="row gx-0 gy-2 row-cols-3 justify-content-center p-2">
-                <div class="col"><a href="javascript:;"><div class="app-box text-center"><div class="app-icon"><img src="{{ asset('backend/assets/images/app/canvas-lms-logo.png') }}" width="30" alt=""></div><div class="app-name"><p class="mb-0 mt-1">Canvas</p></div></div></a></div>
-                <div class="col"><a href="javascript:;"><div class="app-box text-center"><div class="app-icon"><img src="{{ asset('backend/assets/images/app/google-drive.png') }}" width="30" alt=""></div><div class="app-name"><p class="mb-0 mt-1">Drive</p></div></div></a></div>
-                <div class="col"><a href="javascript:;"><div class="app-box text-center"><div class="app-icon"><img src="{{ asset('backend/assets/images/app/outlook.png') }}" width="30" alt=""></div><div class="app-name"><p class="mb-0 mt-1">Mail</p></div></div></a></div>
-                <div class="col"><a href="javascript:;"><div class="app-box text-center"><div class="app-icon"><img src="{{ asset('backend/assets/images/app/google-calendar.png') }}" width="30" alt=""></div><div class="app-name"><p class="mb-0 mt-1">Schedule</p></div></div></a></div>
-                <div class="col"><a href="javascript:;"><div class="app-box text-center"><div class="app-icon"><img src="{{ asset('backend/assets/images/app/library-lms.png') }}" width="30" alt=""></div><div class="app-name"><p class="mb-0 mt-1">Library</p></div></div></a></div>
-                <div class="col"><a href="javascript:;"><div class="app-box text-center"><div class="app-icon"><img src="{{ asset('backend/assets/images/app/notepad with pen.png') }}" width="30" alt=""></div><div class="app-name"><p class="mb-0 mt-1">Notes</p></div></div></a></div>
-            </div></div>
-    </div>
-</li>
 
 					<li class="nav-item dropdown dropdown-large">
 						<a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
