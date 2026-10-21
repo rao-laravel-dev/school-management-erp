@@ -56,7 +56,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Account Number <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-control-sm" id="account_number" name="account_number">
+                        <input type="text" class="form-control form-control-sm" id="account_number" name="account_number" placeholder="e.g. 0123456789012">
                         <div class="invalid-feedback" id="error-account_number"></div>
                     </div>
 
@@ -68,12 +68,12 @@
 
                     <div class="mb-3">
                         <label class="form-label">Branch Name</label>
-                        <input type="text" class="form-control form-control-sm" id="branch_name" name="branch_name">
+                        <input type="text" class="form-control form-control-sm" id="branch_name" name="branch_name" placeholder="e.g. Main Branch, Karachi">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Branch Code</label>
-                        <input type="text" class="form-control form-control-sm" id="branch_code" name="branch_code">
+                        <input type="text" class="form-control form-control-sm" id="branch_code" name="branch_code" placeholder="e.g. 0123">
                     </div>
 
                     <div class="mb-3">
