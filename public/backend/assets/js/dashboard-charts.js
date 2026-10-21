@@ -4,6 +4,7 @@ $(function() {
 	
 // chart 1
 
+  if (document.getElementById("chart1")) {
   var ctx = document.getElementById("chart1").getContext('2d');
    
   var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -57,10 +58,12 @@ $(function() {
 				  }
 			  }
       });
+  }
 	  
 	 
 // chart 2
 
+ if (document.getElementById("chart2")) {
  var ctx = document.getElementById("chart2").getContext('2d');
 
   var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -112,11 +115,13 @@ $(function() {
           
        }
       });
+ }
 
    
 
 // worl map
 
+if (jQuery('#geographic-map-2').length) {
 jQuery('#geographic-map-2').vectorMap(
 {
     map: 'world_mill_en',
@@ -155,10 +160,12 @@ jQuery('#geographic-map-2').vectorMap(
     selectedRegions: [],
     showTooltip: true,
 });
+}
 
 
 // chart 3
 
+ if (document.getElementById('chart3')) {
  var ctx = document.getElementById('chart3').getContext('2d');
 
   var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -201,11 +208,13 @@ jQuery('#geographic-map-2').vectorMap(
 				  }
 			  }
       });
+ }
 
 
 
 // chart 4
 
+if (document.getElementById("chart4")) {
 var ctx = document.getElementById("chart4").getContext('2d');
 
   var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -252,6 +261,7 @@ var ctx = document.getElementById("chart4").getContext('2d');
           
        }
       });
+}
 
 	  
 
@@ -259,6 +269,7 @@ var ctx = document.getElementById("chart4").getContext('2d');
 
   // chart 5
 
+    if (document.getElementById("chart5")) {
     var ctx = document.getElementById("chart5").getContext('2d');
    
       var gradientStroke1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -309,6 +320,7 @@ var ctx = document.getElementById("chart4").getContext('2d');
 				  }
 			  }
       });
+    }
 
 
 
