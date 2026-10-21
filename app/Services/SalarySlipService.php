@@ -108,7 +108,7 @@ class SalarySlipService
     {
         $excludedRoles = ['superadmin', 'admin', 'parent', 'student', 'user'];
 
-        $staff = User::whereHas('roles', function ($q) use ($excludedRoles, $role) {
+        $staff = User::where('status', 1)->whereHas('roles', function ($q) use ($excludedRoles, $role) {
             $q->whereNotIn('name', $excludedRoles);
             if ($role) {
                 $q->where('name', $role);

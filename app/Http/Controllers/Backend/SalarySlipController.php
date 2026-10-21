@@ -75,6 +75,10 @@ class SalarySlipController extends Controller
         // Prefill from the Salary Slips index page's current filters (role/month),
         // if the admin arrived here via that page's "Generate" button.
         $prefillMonth = $request->query('month');
+        // Month missing / invalid / current ya future ho to pichla month (sirf poora hua month generate hota hai)
+        if (!is_string($prefillMonth) || !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $prefillMonth) || $prefillMonth >= now()->format('Y-m')) {
+            $prefillMonth = now()->subMonthNoOverflow()->format('Y-m');
+        }
         $prefillRole  = $request->query('role');
  
         return view('admin.salary_slips.create', compact('roles', 'staff', 'prefillMonth', 'prefillRole'));
@@ -91,10 +95,23 @@ class SalarySlipController extends Controller
             'role'  => 'nullable|required_if:mode,role|string',
             'staff_ids'   => 'nullable|required_if:mode,selected|array',
             'staff_ids.*' => 'exists:users,id',
+        ], [
+            'month.required'         => 'The Month field is required.',
+            'month.date_format'      => 'The Month field must be a valid month.',
+            'mode.required'          => 'The Generate For field is required.',
+            'mode.in'                => 'The Generate For field is invalid.',
+            'role.required_if'       => 'The Select Role field is required.',
+            'staff_ids.required_if'  => 'The Select Staff field is required.',
         ]);
- 
+
         $month = $request->month;
- 
+
+        // Month poora hone ke baad hi slip: current/future month ki attendance abhi adhoori hoti hai
+        if ($month >= now()->format('Y-m')) {
+            return back()->withErrors(['month' => 'Salary slips can only be generated for a completed month (before ' . now()->format('M Y') . ').'])
+                ->withInput();
+        }
+
         if ($request->mode === 'selected') {
             $generated = [];
             $skipped = [];

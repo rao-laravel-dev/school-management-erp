@@ -24,7 +24,7 @@
     </div>
     <div class="card-body">
 
-        <form action="{{ route('salary_slips.generate') }}" method="POST" id="generateForm">
+        <form action="{{ route('salary_slips.generate') }}" method="POST" id="generateForm" novalidate>
             @csrf
 
             <div class="row mb-3">
@@ -33,7 +33,8 @@
                     <input type="month"
                         name="month"
                         class="form-control form-control-sm @error('month') is-invalid @enderror"
-                        value="{{ old('month', $prefillMonth ?? now()->format('Y-m')) }}" required>
+                        max="{{ now()->subMonthNoOverflow()->format('Y-m') }}"
+                        value="{{ old('month', $prefillMonth ?? now()->subMonthNoOverflow()->format('Y-m')) }}" required>
                     @error('month')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
