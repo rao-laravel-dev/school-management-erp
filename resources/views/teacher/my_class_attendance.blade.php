@@ -16,20 +16,20 @@
 
    <div class="card radius-10">
     <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
             <h5 class="mb-0">Attendance Report</h5>
             
             {{-- Filter Form (Right Side) --}}
             <form method="GET" action="{{ route('attendance.report') }}" class="row g-2 align-items-end">
-                <div class="col-auto">
+                <div class="col-6 col-md-auto">
                     <label class="small text-muted">Start</label>
                     <input type="date" name="start_date" class="form-control form-control-sm" value="{{ $startDate }}" max="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-auto">
+                <div class="col-6 col-md-auto">
                     <label class="small text-muted">End</label>
                     <input type="date" name="end_date" class="form-control form-control-sm" value="{{ $endDate }}" max="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-auto">
+                <div class="col-12 col-md-auto">
                     <button type="submit" class="btn btn-sm btn-warning px-3">Filter</button>
                 </div>
             </form>
