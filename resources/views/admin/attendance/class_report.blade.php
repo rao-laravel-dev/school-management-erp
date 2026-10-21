@@ -1,12 +1,17 @@
 @extends($current_layout)
 
 @section('content')
-<div class="d-flex align-items-center mb-3">
-    <a href="{{ route('dashboard') }}"><i class='bx bx-home-alt'></i></a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span>Attendance</span>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span class="fw-semibold">Class Report</span>
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Attendance</div>
+    <div class="ps-3">
+        <nav>
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item">Attendance</li>
+                <li class="breadcrumb-item active">Class Report</li>
+            </ol>
+        </nav>
+    </div>
 </div>
 
 @if($noClass)
@@ -77,7 +82,7 @@
     </div>
 
     {{-- Summary cards (grouped count, poori filtered range; page ke rows se nahi) --}}
-    <div class="row g-3 mb-3">
+    <div class="att-stats">
         @foreach([
             ['Students', $studentCount, 'primary'],
             ['Present', $summary['P'], 'success'],
@@ -86,24 +91,10 @@
             ['Half Day', $summary['H'], 'info'],
             ['Leave', $summary['F'], 'secondary'],
         ] as $card)
-            <div class="col-6 col-md-2">
-                <div class="card radius-10 border-start border-3 border-0 border-{{ $card[2] }} mb-0">
-                    <div class="card-body py-2">
-                        <small class="text-muted">{{ $card[0] }}</small>
-                        <h4 class="mb-0 text-{{ $card[2] }}">{{ $card[1] }}</h4>
-                    </div>
-                </div>
-            </div>
+            @include('admin.attendance.partials.stat_card', ['label' => $card[0], 'value' => $card[1], 'color' => $card[2]])
         @endforeach
         @if($summary['HOL'] > 0)
-            <div class="col-6 col-md-2">
-                <div class="card radius-10 border-start border-3 border-0 border-dark mb-0">
-                    <div class="card-body py-2">
-                        <small class="text-muted">Holiday</small>
-                        <h4 class="mb-0">{{ $summary['HOL'] }}</h4>
-                    </div>
-                </div>
-            </div>
+            @include('admin.attendance.partials.stat_card', ['label' => 'Holiday', 'value' => $summary['HOL'], 'color' => 'dark'])
         @endif
     </div>
 
@@ -135,7 +126,7 @@
                                 <td>{{ \Carbon\Carbon::parse($r->attendance_date)->format('d-m-Y') }}</td>
                                 <td>{{ optional($r->enrollment)->roll_no ?: '-' }}</td>
                                 <td>
-                                    <a href="{{ route('attendance.student_report', $r->enrollment_id) }}">
+                                    <a href="{{ route('attendance.student_report', $r->enrollment_id) }}" class="text-success fw-bold att-name-link">
                                         {{ $student ? trim($student->first_name . ' ' . $student->last_name) : '-' }}
                                     </a>
                                 </td>

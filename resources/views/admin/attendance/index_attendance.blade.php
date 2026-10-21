@@ -6,7 +6,7 @@
     <div class="ps-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
                 <li class="breadcrumb-item active" aria-current="page">Daily Attendance Report</li>
             </ol>
         </nav>
@@ -14,30 +14,16 @@
 </div>
 
 <!-- Cards Section Wapas Add Kar Diya -->
-<div class="row g-3 mb-4">
-    <div class="col-12 col-md-3">
-        <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm">
-            <div class="card-body">
-                <p class="text-secondary mb-0">Total Class Sections</p>
-                <h4 class="text-primary">{{ $totalClasses }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-3">
-        <div class="card radius-10 border-start border-0 border-3 border-success shadow-sm">
-            <div class="card-body">
-                <p class="text-secondary mb-0">Today's Attendance Done</p>
-                <h4 class="text-success">{{ $attendanceDone }} / {{ $totalClasses }}</h4>
-            </div>
-        </div>
-    </div>
+<div class="att-stats">
+    @include('admin.attendance.partials.stat_card', ['label' => 'Total Class Sections', 'value' => $totalClasses, 'color' => 'primary'])
+    @include('admin.attendance.partials.stat_card', ['label' => "Today's Attendance Done", 'value' => $attendanceDone . ' / ' . $totalClasses, 'color' => 'success'])
 </div>
 
 <div class="card radius-10">
-    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-        <h5>Full Attendance Report - <span id="report-header-date">{{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}</span></h5>
+    <div class="card-header d-flex justify-content-between align-items-center bg-transparent att-card-header">
+        <h5 class="mb-0">Full Attendance Report - <span id="report-header-date">{{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}</span></h5>
 
-        <form method="GET" action="{{ route('attendance.index') }}" style="width: 250px;">
+        <form method="GET" action="{{ route('attendance.index') }}" style="width: 100%; max-width: 250px;">
             <div class="input-group">
                 <span class="input-group-text bg-light">Date:</span>
                 <input type="date" name="date" class="form-control" value="{{ $date }}" onchange="this.form.submit()">

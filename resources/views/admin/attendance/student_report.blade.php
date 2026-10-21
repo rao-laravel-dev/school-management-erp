@@ -5,14 +5,18 @@
     $studentName = $student ? trim($student->first_name . ' ' . $student->last_name) : '-';
     $classUrl = route('attendance.class_report', [$enrollment->class_id, $enrollment->section_id]);
 @endphp
-<div class="d-flex align-items-center mb-3">
-    <a href="{{ route('dashboard') }}"><i class='bx bx-home-alt'></i></a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span>Attendance</span>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <a href="{{ $classUrl }}">Class Report</a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span class="fw-semibold">{{ $studentName }}</span>
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Attendance</div>
+    <div class="ps-3">
+        <nav>
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item">Attendance</li>
+                <li class="breadcrumb-item"><a href="{{ $classUrl }}">Class Report</a></li>
+                <li class="breadcrumb-item active">{{ $studentName }}</li>
+            </ol>
+        </nav>
+    </div>
 </div>
 
 {{-- Student info header --}}
@@ -34,7 +38,7 @@
 </div>
 
 {{-- Summary cards --}}
-<div class="row g-3 mb-3">
+<div class="att-stats">
     @foreach([
         ['Present', $summary['P'], 'success'],
         ['Absent', $summary['A'], 'danger'],
@@ -42,33 +46,12 @@
         ['Half Day', $summary['H'], 'info'],
         ['Leave', $summary['F'], 'secondary'],
     ] as $card)
-        <div class="col-6 col-md">
-            <div class="card radius-10 border-start border-3 border-0 border-{{ $card[2] }} mb-0">
-                <div class="card-body py-2">
-                    <small class="text-muted">{{ $card[0] }}</small>
-                    <h4 class="mb-0 text-{{ $card[2] }}">{{ $card[1] }}</h4>
-                </div>
-            </div>
-        </div>
+        @include('admin.attendance.partials.stat_card', ['label' => $card[0], 'value' => $card[1], 'color' => $card[2]])
     @endforeach
     @if($summary['HOL'] > 0)
-        <div class="col-6 col-md">
-            <div class="card radius-10 border-start border-3 border-0 border-dark mb-0">
-                <div class="card-body py-2">
-                    <small class="text-muted">Holiday</small>
-                    <h4 class="mb-0">{{ $summary['HOL'] }}</h4>
-                </div>
-            </div>
-        </div>
+        @include('admin.attendance.partials.stat_card', ['label' => 'Holiday', 'value' => $summary['HOL'], 'color' => 'dark'])
     @endif
-    <div class="col-6 col-md">
-        <div class="card radius-10 border-start border-3 border-0 border-primary mb-0">
-            <div class="card-body py-2">
-                <small class="text-muted">Attendance %</small>
-                <h4 class="mb-0 text-primary">{{ $percent === null ? '-' : $percent . '%' }}</h4>
-            </div>
-        </div>
-    </div>
+    @include('admin.attendance.partials.stat_card', ['label' => 'Attendance %', 'value' => $percent === null ? '-' : $percent . '%', 'color' => 'primary'])
 </div>
 
 {{-- Charts --}}

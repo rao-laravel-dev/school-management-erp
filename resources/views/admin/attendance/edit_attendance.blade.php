@@ -7,58 +7,23 @@
     <div class="ps-3">
         <nav>
             <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
                 <li class="breadcrumb-item active">Mark Daily Attendance</li>
             </ol>
         </nav>
     </div>
 </div>
 
-<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 mb-4">
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm bg-white">
-            <div class="card-body p-3">
-                <p class="mb-0 text-secondary small">Total</p>
-                <h4 class="my-0 text-primary fw-bold" id="total-count">0</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-success shadow-sm bg-white">
-            <div class="card-body p-3">
-                <p class="mb-0 text-secondary small">Present</p>
-                <h4 class="my-0 text-success fw-bold" id="present-count">0</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-danger shadow-sm bg-white">
-            <div class="card-body p-3">
-                <p class="mb-0 text-secondary small">Absent</p>
-                <h4 class="my-0 text-danger fw-bold" id="absent-count">0</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-warning shadow-sm bg-white">
-            <div class="card-body p-3">
-                <p class="mb-0 text-secondary small">Late</p>
-                <h4 class="my-0 text-warning fw-bold" id="late-count">0</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-info shadow-sm bg-white">
-            <div class="card-body p-3">
-                <p class="mb-0 text-secondary small">Half-Day</p>
-                <h4 class="my-0 text-info fw-bold" id="hd-count">0</h4>
-            </div>
-        </div>
-    </div>
+<div class="att-stats">
+    @include('admin.attendance.partials.stat_card', ['label' => 'Total', 'value' => '0', 'color' => 'primary', 'id' => 'total-count'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => '0', 'color' => 'success', 'id' => 'present-count'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => '0', 'color' => 'danger', 'id' => 'absent-count'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Late', 'value' => '0', 'color' => 'warning', 'id' => 'late-count'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Half-Day', 'value' => '0', 'color' => 'info', 'id' => 'hd-count'])
 </div>
 
 <div class="card radius-10 border-top border-0 border-4 border-primary">
-    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center att-card-header">
         <h5 class="mb-0">Mark Attendance</h5>
         <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="holidayToggle" name="is_holiday" value="on">
@@ -108,6 +73,7 @@
                 </div>
             </div>
 
+            <div class="table-responsive">
             <table class="table table-bordered align-middle">
                 <thead class="table-light">
                     <tr>
@@ -123,6 +89,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
 
             {{-- Mass Departure aur Submit button ek hi line mein --}}
             <div class="row mt-4 pt-3 border-top align-items-center">

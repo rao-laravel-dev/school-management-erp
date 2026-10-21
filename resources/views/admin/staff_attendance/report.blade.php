@@ -1,47 +1,24 @@
 @extends($current_layout)
 
 @section('content')
-<div class="d-flex align-items-center mb-3">
-    <a href="{{ route('admin.dashboard') }}"><i class='bx bx-home-alt'></i></a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <a href="{{ route('staff_attendance.index') }}">Attendance</a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span class="fw-semibold">Staff Attendance Report</span>
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Staff Attendance</div>
+    <div class="ps-3">
+        <nav>
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{{ route('staff_attendance.index') }}">Attendance</a></li>
+                <li class="breadcrumb-item active">Staff Attendance Report</li>
+            </ol>
+        </nav>
+    </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-success">
-            <div class="card-body py-2">
-                <small class="text-muted">Present</small>
-                <h4 class="mb-0 text-success">{{ $summary['present'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-danger">
-            <div class="card-body py-2">
-                <small class="text-muted">Absent</small>
-                <h4 class="mb-0 text-danger">{{ $summary['absent'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-info">
-            <div class="card-body py-2">
-                <small class="text-muted">Half Day</small>
-                <h4 class="mb-0 text-info">{{ $summary['half_day'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-warning">
-            <div class="card-body py-2">
-                <small class="text-muted">Leave</small>
-                <h4 class="mb-0 text-warning">{{ $summary['leave'] }}</h4>
-            </div>
-        </div>
-    </div>
+<div class="att-stats">
+    @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => $summary['present'], 'color' => 'success'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => $summary['absent'], 'color' => 'danger'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Half Day', 'value' => $summary['half_day'], 'color' => 'info'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'warning'])
 </div>
 
 <div class="card">

@@ -2860,3 +2860,22 @@ html.dark-theme .child-switcher .child-switcher-name { color: #e4e5e6; }
 html.dark-theme .hw-card .hw-desc,
 html.dark-theme .hw-card .hw-meta,
 html.dark-theme .child-switcher .child-switcher-class { color: #aab0b6 !important; }
+
+/* Attendance stat cards (student + staff attendance pages): 2 per row phone, 3 tablet, one row desktop */
+.att-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+@media (min-width: 768px) { .att-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .att-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.att-stat-card { margin-bottom: 0; }
+.att-stat-card .card-body { padding: .6rem .85rem; }
+.att-stat-card .att-stat-label { display: block; font-size: .8rem; color: #6c757d; overflow-wrap: anywhere; }
+.att-stat-card .att-stat-value { margin: 0; font-size: 1.35rem; font-weight: 700; }
+html.dark-theme .att-stat-card .att-stat-label { color: #aab0b6; }
+html.dark-theme .att-stat-card .att-stat-value.text-dark { color: #e4e5e6 !important; }
+/* Attendance card headers: title + actions wrap at 320px */
+.att-card-header { flex-wrap: wrap; gap: .5rem; }
+.att-card-header .att-header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+/* Mass time row: label wraps above the input on phones, input never squeezed */
+.att-mass-row { flex-wrap: wrap; gap: .5rem; }
+.att-mass-row .input-group { flex: 1 1 200px; min-width: 200px; }
+/* Clickable student name in attendance tables */
+.att-name-link:hover { text-decoration: underline; }

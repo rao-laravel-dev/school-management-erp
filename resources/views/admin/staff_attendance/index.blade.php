@@ -1,59 +1,28 @@
 @extends($current_layout)
 
 @section('content')
-<div class="d-flex align-items-center mb-3">
-    <a href="{{ route('admin.dashboard') }}"><i class='bx bx-home-alt'></i></a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span>Attendance</span>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span class="fw-semibold">Staff Attendance</span>
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Staff Attendance</div>
+    <div class="ps-3">
+        <nav>
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item active">Daily Staff Attendance</li>
+            </ol>
+        </nav>
+    </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-primary">
-            <div class="card-body py-2">
-                <small class="text-muted">Total</small>
-                <h4 class="mb-0 text-primary">{{ $summary['total'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-success">
-            <div class="card-body py-2">
-                <small class="text-muted">Present</small>
-                <h4 class="mb-0 text-success">{{ $summary['present'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-danger">
-            <div class="card-body py-2">
-                <small class="text-muted">Absent</small>
-                <h4 class="mb-0 text-danger">{{ $summary['absent'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-info">
-            <div class="card-body py-2">
-                <small class="text-muted">Half Day</small>
-                <h4 class="mb-0 text-info">{{ $summary['half_day'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-3 border-0 border-warning">
-            <div class="card-body py-2">
-                <small class="text-muted">Leave</small>
-                <h4 class="mb-0 text-warning">{{ $summary['leave'] }}</h4>
-            </div>
-        </div>
-    </div>
+<div class="att-stats">
+    @include('admin.attendance.partials.stat_card', ['label' => 'Total', 'value' => $summary['total'], 'color' => 'primary'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => $summary['present'], 'color' => 'success'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => $summary['absent'], 'color' => 'danger'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Half Day', 'value' => $summary['half_day'], 'color' => 'info'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'warning'])
 </div>
 
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center att-card-header">
         <h5 class="mb-0">Staff Attendance — {{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}</h5>
         @can('manage-staff-attendance')
         <a href="{{ route('staff_attendance.create', ['date' => $date]) }}" class="btn btn-sm btn-primary">

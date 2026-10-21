@@ -1,61 +1,31 @@
 @extends($current_layout)
 
 @section('content')
-<div class="d-flex align-items-center mb-3">
-    <a href="{{ route('admin.dashboard') }}"><i class='bx bx-home-alt'></i></a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <a href="{{ route('staff_attendance.index') }}">Attendance</a>
-    <i class='bx bx-chevron-right mx-1'></i>
-    <span class="fw-semibold">{{ $isEditMode ? 'Edit' : 'Mark' }} Staff Attendance</span>
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Staff Attendance</div>
+    <div class="ps-3">
+        <nav>
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{{ route('staff_attendance.index') }}">Attendance</a></li>
+                <li class="breadcrumb-item active">{{ $isEditMode ? 'Edit' : 'Mark' }} Staff Attendance</li>
+            </ol>
+        </nav>
+    </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm">
-            <div class="card-body py-2">
-                <small class="text-muted">Total</small>
-                <h4 class="mb-0 text-primary">{{ $summary['total'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-success shadow-sm">
-            <div class="card-body py-2">
-                <small class="text-muted">Present</small>
-                <h4 class="mb-0 text-success" id="card-present">{{ $summary['present'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-danger shadow-sm">
-            <div class="card-body py-2">
-                <small class="text-muted">Absent</small>
-                <h4 class="mb-0 text-danger" id="card-absent">{{ $summary['absent'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-info shadow-sm">
-            <div class="card-body py-2">
-                <small class="text-muted">Half Day</small>
-                <h4 class="mb-0 text-info" id="card-half-day">{{ $summary['half_day'] }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-warning shadow-sm">
-            <div class="card-body py-2">
-                <small class="text-muted">Leave</small>
-                <h4 class="mb-0 text-warning" id="card-leave">{{ $summary['leave'] }}</h4>
-            </div>
-        </div>
-    </div>
+<div class="att-stats">
+    @include('admin.attendance.partials.stat_card', ['label' => 'Total', 'value' => $summary['total'], 'color' => 'primary'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => $summary['present'], 'color' => 'success', 'id' => 'card-present'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => $summary['absent'], 'color' => 'danger', 'id' => 'card-absent'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Half Day', 'value' => $summary['half_day'], 'color' => 'info', 'id' => 'card-half-day'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'warning', 'id' => 'card-leave'])
 </div>
 
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center att-card-header">
         <h5 class="mb-0">{{ $isEditMode ? 'Edit' : 'Mark' }} Attendance</h5>
-        <div class="d-flex align-items-center gap-3">
+        <div class="att-header-actions">
             <a href="{{ route('staff_attendance.index', ['date' => $date]) }}" class="btn btn-sm btn-outline-secondary">
                 <i class='bx bx-list-ul'></i> View List
             </a>
@@ -180,7 +150,7 @@
             {{-- Mass Time Out aur Submit button ek hi row mein, table ke neeche --}}
             <div class="row mt-4 pt-3 border-top align-items-center">
                 <div class="col-md-6">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center att-mass-row">
                         <label class="form-label fw-bold mb-0 me-2" style="white-space: nowrap;">Mass Time Out:</label>
                         <div class="input-group input-group-sm" style="max-width: 250px;">
                             <input type="time" id="massTimeOut" class="form-control form-control-sm">
