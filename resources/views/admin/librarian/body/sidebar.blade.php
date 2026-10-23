@@ -29,16 +29,16 @@
 			</a>
 			<ul class="{{ $open ? 'mm-show' : '' }}">
 				@can('access-book-categories')
-				<li><a href="{{ route('book_category.index') }}"><i class='bx bx-radio-circle'></i>Book Categories</a></li>
+				<li class="{{ request()->routeIs('book_category.*') ? 'mm-active' : '' }}"><a href="{{ route('book_category.index') }}"><i class='bx bx-radio-circle'></i>Book Categories</a></li>
 				@endcan
 				@can('access-books')
-				<li><a href="{{ route('books.index') }}"><i class='bx bx-radio-circle'></i>Books</a></li>
+				<li class="{{ request()->routeIs('books.*') ? 'mm-active' : '' }}"><a href="{{ route('books.index') }}"><i class='bx bx-radio-circle'></i>Books</a></li>
 				@endcan
 				@can('access-book-issues')
-				<li><a href="{{ route('book_issue.index') }}"><i class='bx bx-radio-circle'></i>Issue / Return Book</a></li>
+				<li class="{{ request()->routeIs('book_issue.index', 'book_issue.show') ? 'mm-active' : '' }}"><a href="{{ route('book_issue.index') }}"><i class='bx bx-radio-circle'></i>Issue / Return Book</a></li>
 				@endcan
 				@can('access-library-settings')
-				<li><a href="{{ route('library_settings.index') }}"><i class='bx bx-radio-circle'></i>Library Settings</a></li>
+				<li class="{{ request()->routeIs('library_settings.index', 'library_settings.update') ? 'mm-active' : '' }}"><a href="{{ route('library_settings.index') }}"><i class='bx bx-radio-circle'></i>Library Settings</a></li>
 				@endcan
 			</ul>
 		</li>
@@ -53,8 +53,8 @@
 				<div class="menu-title">Members</div>
 			</a>
 			<ul class="{{ $open ? 'mm-show' : '' }}">
-				<li><a href="{{ route('library_settings.members.student') }}"><i class='bx bx-radio-circle'></i>Student Members</a></li>
-				<li><a href="{{ route('library_settings.members.staff') }}"><i class='bx bx-radio-circle'></i>Staff Members</a></li>
+				<li class="{{ request()->routeIs('library_settings.members.student*') ? 'mm-active' : '' }}"><a href="{{ route('library_settings.members.student') }}"><i class='bx bx-radio-circle'></i>Student Members</a></li>
+				<li class="{{ request()->routeIs('library_settings.members.staff*') ? 'mm-active' : '' }}"><a href="{{ route('library_settings.members.staff') }}"><i class='bx bx-radio-circle'></i>Staff Members</a></li>
 			</ul>
 		</li>
 		@endcan
@@ -69,7 +69,7 @@
 			</a>
 			<ul class="{{ $open ? 'mm-show' : '' }}">
 				{{-- create route index page par redirect karta hai (apply modal wahin hai) --}}
-				<li><a href="{{ route('staffleaveapp.create') }}"><i class='bx bx-radio-circle'></i>Apply Leave</a></li>
+				<li class="{{ request()->routeIs('staffleaveapp.create') ? 'mm-active' : '' }}"><a href="{{ route('staffleaveapp.create') }}"><i class='bx bx-radio-circle'></i>Apply Leave</a></li>
 			</ul>
 		</li>
 		@endcan
@@ -84,16 +84,16 @@
 			</a>
 			<ul class="{{ $open ? 'mm-show' : '' }}">
 				@can('access-book-issues')
-				<li><a href="{{ route('book_issue.reports') }}"><i class='bx bx-radio-circle'></i>Library Reports</a></li>
+				<li class="{{ request()->routeIs('book_issue.reports*') ? 'mm-active' : '' }}"><a href="{{ route('book_issue.reports') }}"><i class='bx bx-radio-circle'></i>Library Reports</a></li>
 				@endcan
 				@can('access-my-attendance')
-				<li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>
+				<li class="{{ request()->routeIs('my.attendance.*') ? 'mm-active' : '' }}"><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>
 				@endcan
 				@can('access-leave-application')
-				<li><a href="{{ route('staffleaveapp.index') }}"><i class='bx bx-radio-circle'></i>My Leave Report</a></li>
+				<li class="{{ request()->routeIs('staffleaveapp.*') && ! request()->routeIs('staffleaveapp.create') ? 'mm-active' : '' }}"><a href="{{ route('staffleaveapp.index') }}"><i class='bx bx-radio-circle'></i>My Leave Report</a></li>
 				@endcan
 				@can('access-my-salary-slips')
-				<li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slip</a></li>
+				<li class="{{ request()->routeIs('my.salary_slips.*') ? 'mm-active' : '' }}"><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slip</a></li>
 				@endcan
 			</ul>
 		</li>

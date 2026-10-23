@@ -25,19 +25,19 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-fee-collections')
-                <li><a href="{{ route('fees.collect.index') }}"><i class='bx bx-radio-circle'></i>Collect Fees</a></li>
+                <li class="{{ request()->routeIs('fees.collect.index', 'fees.collect.show', 'fees.collect.receipt') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.index') }}"><i class='bx bx-radio-circle'></i>Collect Fees</a></li>
                 @endcan
                 @can('manage-fee-collections')
-                <li><a href="{{ route('fees.collect.report') }}"><i class='bx bx-radio-circle'></i>Fee Collection Report</a></li>
+                <li class="{{ request()->routeIs('fees.collect.report') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.report') }}"><i class='bx bx-radio-circle'></i>Fee Collection Report</a></li>
                 @endcan
                 @can('access-fee-structures')
-                <li><a href="{{ route('fee_structure.index') }}"><i class='bx bx-radio-circle'></i>Fee Structure</a></li>
+                <li class="{{ request()->routeIs('fee_structure.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_structure.index') }}"><i class='bx bx-radio-circle'></i>Fee Structure</a></li>
                 @endcan
                 @can('access-fee-types')
-                <li><a href="{{ route('fee_types.index') }}"><i class='bx bx-radio-circle'></i>Fee Types</a></li>
+                <li class="{{ request()->routeIs('fee_types.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_types.index') }}"><i class='bx bx-radio-circle'></i>Fee Types</a></li>
                 @endcan
                 @can('access-discount-policies')
-                <li><a href="{{ route('discount_policies.index') }}"><i class='bx bx-radio-circle'></i>Discount Policies</a></li>
+                <li class="{{ request()->routeIs('discount_policies.*') ? 'mm-active' : '' }}"><a href="{{ route('discount_policies.index') }}"><i class='bx bx-radio-circle'></i>Discount Policies</a></li>
                 @endcan
                 {{-- Fine Policies CRUD is not built yet (FinePolicyController is empty) - link hidden
                 @can('access-fine-policies')
@@ -58,13 +58,13 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-bank-accounts')
-                <li><a href="{{ route('bank_accounts.index') }}"><i class='bx bx-radio-circle'></i>Bank Accounts</a></li>
+                <li class="{{ request()->routeIs('bank_accounts.*') ? 'mm-active' : '' }}"><a href="{{ route('bank_accounts.index') }}"><i class='bx bx-radio-circle'></i>Bank Accounts</a></li>
                 @endcan
                 @can('access-expense-categories')
-                <li><a href="{{ route('expense_categories.index') }}"><i class='bx bx-radio-circle'></i>Expense Categories</a></li>
+                <li class="{{ request()->routeIs('expense_categories.*') ? 'mm-active' : '' }}"><a href="{{ route('expense_categories.index') }}"><i class='bx bx-radio-circle'></i>Expense Categories</a></li>
                 @endcan
                 @can('access-expenses')
-                <li><a href="{{ route('expenses.index') }}"><i class='bx bx-radio-circle'></i>Expenses</a></li>
+                <li class="{{ request()->routeIs('expenses.*') ? 'mm-active' : '' }}"><a href="{{ route('expenses.index') }}"><i class='bx bx-radio-circle'></i>Expenses</a></li>
                 @endcan
             </ul>
         </li>
@@ -80,13 +80,13 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-salary-slips')
-                <li><a href="{{ route('salary_slips.index') }}"><i class='bx bx-radio-circle'></i>Salary Slips</a></li>
+                <li class="{{ request()->routeIs('salary_slips.index', 'salary_slips.show', 'salary_slips.edit') ? 'mm-active' : '' }}"><a href="{{ route('salary_slips.index') }}"><i class='bx bx-radio-circle'></i>Salary Slips</a></li>
                 @endcan
                 @can('manage-salary-slips')
-                <li><a href="{{ route('salary_slips.create') }}"><i class='bx bx-radio-circle'></i>Generate Salary</a></li>
+                <li class="{{ request()->routeIs('salary_slips.create') ? 'mm-active' : '' }}"><a href="{{ route('salary_slips.create') }}"><i class='bx bx-radio-circle'></i>Generate Salary</a></li>
                 @endcan
                 @can('access-staff-attendance')
-                <li><a href="{{ route('staff_attendance.report') }}"><i class='bx bx-radio-circle'></i>Staff Attendance Report</a></li>
+                <li class="{{ request()->routeIs('staff_attendance.report', 'staff_attendance.show') ? 'mm-active' : '' }}"><a href="{{ route('staff_attendance.report') }}"><i class='bx bx-radio-circle'></i>Staff Attendance Report</a></li>
                 @endcan
             </ul>
         </li>
@@ -102,13 +102,13 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-receptionist')
-                <li><a href="{{ route('receptionist.index') }}"><i class='bx bx-radio-circle'></i>Receptionist List</a></li>
+                <li class="{{ request()->routeIs('receptionist.*') ? 'mm-active' : '' }}"><a href="{{ route('receptionist.index') }}"><i class='bx bx-radio-circle'></i>Receptionist List</a></li>
                 @endcan
                 @can('access-teacher')
-                <li><a href="{{ route('teacher.index') }}"><i class='bx bx-radio-circle'></i>Teachers List</a></li>
+                <li class="{{ request()->routeIs('teacher.*') ? 'mm-active' : '' }}"><a href="{{ route('teacher.index') }}"><i class='bx bx-radio-circle'></i>Teachers List</a></li>
                 @endcan
                 @can('access-students')
-                <li><a href="{{ route('students.index') }}"><i class='bx bx-radio-circle'></i>Students List</a></li>
+                <li class="{{ request()->routeIs('students.*') ? 'mm-active' : '' }}"><a href="{{ route('students.index') }}"><i class='bx bx-radio-circle'></i>Students List</a></li>
                 @endcan
             </ul>
         </li>
@@ -123,7 +123,7 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 {{-- create route index page par redirect karta hai (apply modal wahin hai) --}}
-                <li><a href="{{ route('staffleaveapp.create') }}"><i class='bx bx-radio-circle'></i>Apply Leave</a></li>
+                <li class="{{ request()->routeIs('staffleaveapp.create') ? 'mm-active' : '' }}"><a href="{{ route('staffleaveapp.create') }}"><i class='bx bx-radio-circle'></i>Apply Leave</a></li>
             </ul>
         </li>
         @endcan
@@ -138,19 +138,19 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-finance-report')
-                <li><a href="{{ route('finance_report.index') }}"><i class='bx bx-radio-circle'></i>Finance Report</a></li>
+                <li class="{{ request()->routeIs('finance_report.*') ? 'mm-active' : '' }}"><a href="{{ route('finance_report.index') }}"><i class='bx bx-radio-circle'></i>Finance Report</a></li>
                 @endcan
                 @can('access-attendance')
                 <li class="{{ request()->routeIs('attendance.index', 'attendance.class_report', 'attendance.student_report') ? 'mm-active' : '' }}"><a href="{{ route('attendance.index') }}"><i class='bx bx-radio-circle'></i>Class Attendance Report</a></li>
                 @endcan
                 @can('access-my-attendance')
-                <li><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>
+                <li class="{{ request()->routeIs('my.attendance.*') ? 'mm-active' : '' }}"><a href="{{ route('my.attendance.index') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>
                 @endcan
                 @can('access-leave-application')
-                <li><a href="{{ route('staffleaveapp.index') }}"><i class='bx bx-radio-circle'></i>My Leave Report</a></li>
+                <li class="{{ request()->routeIs('staffleaveapp.*') && ! request()->routeIs('staffleaveapp.create') ? 'mm-active' : '' }}"><a href="{{ route('staffleaveapp.index') }}"><i class='bx bx-radio-circle'></i>My Leave Report</a></li>
                 @endcan
                 @can('access-my-salary-slips')
-                <li><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slip</a></li>
+                <li class="{{ request()->routeIs('my.salary_slips.*') ? 'mm-active' : '' }}"><a href="{{ route('my.salary_slips.index') }}"><i class='bx bx-radio-circle'></i>My Salary Slip</a></li>
                 @endcan
             </ul>
         </li>
