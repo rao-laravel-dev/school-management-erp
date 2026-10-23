@@ -328,6 +328,7 @@ class User extends Authenticatable
                 'owner_id'   => $this->id,
                 'code'       => 'STF-' . $this->id . '-' . Str::random(10),
             ]);
+            $this->setRelation('qrCode', $qr); // same instance par dobara call (QR + barcode) naya row na banaye
         }
 
         return $qr->code;

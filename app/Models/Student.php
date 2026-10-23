@@ -160,6 +160,12 @@ class Student extends Model
         return $this->belongsTo(StudentHouse::class, 'house_id');
     }
 
+    // User::qrCode() jaisi relation — bina iske har card print par naya random code ban jata tha
+    public function qrCode()
+    {
+        return $this->morphOne(\App\Models\QrCode::class, 'owner')->oldestOfMany();
+    }
+
     // Student.php mein add karein
     // Agar QR record nahi bana to bana ke return karo, warna existing wapas karo
     public function getOrCreateQrCode(): string
@@ -172,6 +178,7 @@ class Student extends Model
                 'owner_id'   => $this->id,
                 'code'       => 'STU-' . $this->id . '-' . Str::random(10),
             ]);
+            $this->setRelation('qrCode', $qr); // same instance par dobara call (QR + barcode) naya row na banaye
         }
 
         return $qr->code;

@@ -217,6 +217,15 @@
         font-size: 12px;
     }
 
+    /* Dark mode: input ka background dark ho jata hai, text/placeholder light karo */
+    html.dark-theme .kiosk-scan-input {
+        color: #e4e5e6 !important;
+    }
+
+    html.dark-theme .kiosk-scan-input::placeholder {
+        color: #aab0b6;
+    }
+
     .kiosk-camera-btn {
         background: #ffffff !important;
         color: #1e0fb0 !important;

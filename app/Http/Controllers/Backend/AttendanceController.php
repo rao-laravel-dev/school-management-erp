@@ -659,11 +659,21 @@ class AttendanceController extends Controller
             }
         }
 
+        // STEP 1b: printed card ka code (STU-{id}-xxxx / STF-{id}-xxxx) jiska qr_codes row DB import mein mit gaya: id se owner
+        $cardStudentId = $cardStaffId = null;
+        if (!$qrRecord && preg_match('/^(STU|STF)-(\d+)-[A-Za-z0-9]{10}$/i', $code, $m)) {
+            if (strtoupper($m[1]) === 'STU') {
+                $cardStudentId = (int) $m[2];
+            } else {
+                $cardStaffId = (int) $m[2];
+            }
+        }
+
         // STEP 2: Staff ka Employee ID (jaisa TEACH001 / KHAWAR004) — manual type ke liye, saare staff roles
         // users.username = staff ID hota hai (unique). Sirf active user (status 1), non-trashed profile wala staff
         // (profile na ho ya trashed ho to whereHas fail = seeder/trashed users scan nahi honge; librarian profile abhi nahi, T123)
         $staffUser = User::role(['teacher', 'receptionist', 'accountant', 'librarian'])
-            ->where('username', $code)
+            ->when($cardStaffId, fn($q) => $q->whereKey($cardStaffId), fn($q) => $q->where('username', $code))
             ->where('status', 1)
             ->where(function ($q) {
                 $q->whereHas('teacher')->orWhereHas('receptionist')->orWhereHas('accountant')->orWhereHas('librarian');
@@ -701,7 +711,7 @@ class AttendanceController extends Controller
         }
 
         // STEP 4: Admission No
-        $student = Student::where('admission_no', $code)->first();
+        $student = $cardStudentId ? Student::find($cardStudentId) : Student::where('admission_no', $code)->first();
         if ($student) {
             return $this->handleStudentScan($student, $request->device_id, $scope);
         }
