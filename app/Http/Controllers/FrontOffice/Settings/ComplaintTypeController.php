@@ -15,12 +15,21 @@ class ComplaintTypeController extends Controller
         return view('admin.front-office.settings.complaint-type.index', compact('complaintTypes'));
     }
 
+    // Validation messages mein column ki jagah form label dikhao
+    private function attributeNames(): array
+    {
+        return [
+            'name'        => 'Complaint Type',
+            'description' => 'Description',
+        ];
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         ComplaintType::create([
             'name' => $request->name,
@@ -35,7 +44,7 @@ class ComplaintTypeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         $type = ComplaintType::findOrFail($id);
         $type->update([
@@ -54,17 +63,18 @@ class ComplaintTypeController extends Controller
 
         // 2. Check karein ki kya is type se koi complaints attached hain?
         if ($type->complaints_count > 0) {
-            return redirect()->back()->with('error', 'Cannot delete! This complaint type is already in use.');
+            return response()->json(['message' => 'Cannot delete! This complaint type is already in use.'], 422);
         }
 
         // 3. Agar koi complaint attached nahi hai, toh delete karein
         $type->delete();
 
-        return redirect()->back()->with('success', 'Complaint Type deleted successfully!');
+        // AJAX DELETE: JSON reply, page JS toastr + reload karta hai
+        return response()->json(['message' => 'Complaint Type deleted successfully!']);
 
     } catch (Exception $e) {
         // Agar database level par koi error aata hai
-        return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+        return response()->json(['message' => 'Delete failed: ' . $e->getMessage()], 500);
     }
 }
 }

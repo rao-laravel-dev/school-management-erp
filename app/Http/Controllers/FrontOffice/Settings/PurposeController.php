@@ -17,13 +17,23 @@ class PurposeController extends Controller
     }
 
 
+    // Validation messages mein column ki jagah form label dikhao
+    private function attributeNames(): array
+    {
+        return [
+            'purpose'     => 'Purpose',
+            'description' => 'Description',
+        ];
+    }
+
+
     public function store(Request $request)
     {
         // Validation fail hone par ye automatically back redirect karega aur errors session mein daal dega
         $validated = $request->validate([
             'purpose'     => 'required|string|max:255|unique:purposes,name',
             'description' => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
             Purpose::create([
@@ -53,7 +63,7 @@ class PurposeController extends Controller
         $request->validate([
             'purpose' => 'required|string|max:255|unique:purposes,name,' . $id,
             'description'   => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
 
         try {
@@ -81,17 +91,20 @@ class PurposeController extends Controller
     {
         try {
 
-            $purpose = Purpose::findOrFail($id);
+            $purpose = Purpose::withCount(['enquiries', 'visitors'])->findOrFail($id);
+
+            // DB FK cascade hai: in-use purpose delete hua to uske enquiries/visitors bhi chale jate, isliye block
+            if ($purpose->enquiries_count > 0 || $purpose->visitors_count > 0) {
+                return response()->json(['message' => 'Cannot delete! This purpose is already in use.'], 422);
+            }
+
             $purpose->delete();
 
-            return redirect()
-                ->back()
-                ->with('success', 'Purpose deleted successfully!');
+            // AJAX DELETE: JSON reply, page JS toastr + reload karta hai
+            return response()->json(['message' => 'Purpose deleted successfully!']);
         } catch (Exception $e) {
 
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage());
+            return response()->json(['message' => 'Delete failed: ' . $e->getMessage()], 500);
         }
     }
 }

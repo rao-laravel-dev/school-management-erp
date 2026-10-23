@@ -47,9 +47,11 @@
                                     <button type="button" class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#purposeEdit-{{ $purpose->id }}">
                                         <i class="bx bx-edit"></i>
                                     </button>
+                                    @can('manage-front-office')
                                     <a href="{{ route('settings.purpose.delete', $purpose->id) }}" class="btn btn-outline-danger btn-sm px-3 delete-btn">
                                         <i class="bx bx-trash"></i>
                                     </a>
+                                    @endcan
                                 </td>
                             </tr>
                             @endforeach
@@ -77,36 +79,72 @@
             "ordering": true
         });
 
-        // Delete Confirmation
+        // Delete Confirmation (route DELETE only, is liye AJAX DELETE)
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
             let link = $(this).attr("href");
+            let deleteBtn = $(this);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                },
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = link;
-                }
+                if (!result.isConfirmed) return;
+                // Double click se bachao: reply aane tak button disabled
+                deleteBtn.addClass('disabled');
+                $.ajax({
+                    url: link,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function(res) {
+                        toastr.success(res.message);
+                        setTimeout(function() { location.reload(); }, 3000);
+                    },
+                    error: function(xhr) {
+                        deleteBtn.removeClass('disabled');
+                        toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error ' + xhr.status + ': Something went wrong');
+                    }
+                });
             });
+        });
+
+        // Modal ke errors saaf: typing/change par us field ka, modal band hone par sab
+        $(document).on('input change', '.modal .is-invalid', function() {
+            $(this).removeClass('is-invalid').siblings('.invalid-feedback').text('');
+        });
+        $(document).on('hidden.bs.modal', '.modal', function() {
+            $(this).find('.is-invalid').removeClass('is-invalid');
+            $(this).find('.invalid-feedback').text('');
+        });
+
+        // Add modal band hone par form poora khali (old() values bhi). Edit modals ko haath nahi lagaya
+        $(document).on('hidden.bs.modal', '#purposeAdd', function() {
+            $(this).find('input:not([type=hidden]), textarea').val('');
         });
 
         // Toastr & Modal Validation
         @if($errors->any())
-        var myModal = new bootstrap.Modal(document.getElementById('purposeAdd'));
-        myModal.show();
-        @foreach($errors->all() as $error)
-        toastr.error("{{ $error }}");
-        @endforeach
+        // Jo modal fail hua wahi dobara khulta hai (Add ya us row ka Edit)
+        var errModal = document.getElementById(@json(old('_modal', 'purposeAdd')));
+        if (errModal) { new bootstrap.Modal(errModal).show(); }
+        toastr.error(@json($errors->first()));
         @endif
 
         @if(Session::has('success'))
-        toastr.success("{{ Session::get('success') }}");
+        toastr.success(@json(Session::get('success')));
+        @endif
+
+        @if(Session::has('error'))
+        toastr.error(@json(Session::get('error')));
         @endif
     });
 </script>

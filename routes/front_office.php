@@ -99,21 +99,21 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(ComplaintTypeController::class)->group(function () {
                 Route::get('/complaint-type', 'index')->name('complaint-type.index');
                 Route::post('/complaint-type/store', 'store')->name('complaint-type.store');
-                Route::get('/complaint-type/edit/{id}', 'edit')->name('complaint-type.edit');
+                // Route::get('/complaint-type/edit/{id}', 'edit')->name('complaint-type.edit'); // edit() method not built (edit is a modal on index)
                 Route::post('/complaint-type/update/{id}', 'update')->name('complaint-type.update');
             });
 
             Route::controller(PurposeController::class)->group(function () {
                 Route::get('/purpose', 'index')->name('purpose.index');
                 Route::post('/purpose/store', 'store')->name('purpose.store');
-                Route::get('/purpose/edit/{id}', 'edit')->name('purpose.edit');
+                // Route::get('/purpose/edit/{id}', 'edit')->name('purpose.edit'); // edit is a modal on index, JSON edit() is not used by any view
                 Route::post('/purpose/update/{id}', 'update')->name('purpose.update');
             });
 
             Route::controller(SourceController::class)->group(function () {
                 Route::get('/source', 'index')->name('source.index');
                 Route::post('/source/store', 'store')->name('source.store');
-                Route::get('/source/edit/{id}', 'edit')->name('source.edit');
+                // Route::get('/source/edit/{id}', 'edit')->name('source.edit'); // edit is a modal on index, JSON edit() is not used by any view
                 Route::post('/source/update/{id}', 'update')->name('source.update');
             });
         });
@@ -140,9 +140,9 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('settings')->name('settings.')->group(function () {
-            Route::get('/complaint-type/delete/{id}', [ComplaintTypeController::class, 'ComplaintTypeDestroy'])->name('complaint-type.delete');
-            Route::get('/purpose/delete/{id}', [PurposeController::class, 'PurposeDestroy'])->name('purpose.delete');
-            Route::get('/source/delete/{id}', [SourceController::class, 'SourceDestroy'])->name('source.delete');
+            Route::delete('/complaint-type/delete/{id}', [ComplaintTypeController::class, 'ComplaintTypeDestroy'])->name('complaint-type.delete'); // CHANGED 23-10-26
+            Route::delete('/purpose/delete/{id}', [PurposeController::class, 'PurposeDestroy'])->name('purpose.delete'); // CHANGED 23-10-26
+            Route::delete('/source/delete/{id}', [SourceController::class, 'SourceDestroy'])->name('source.delete'); // CHANGED 23-10-26
         });
     });
 

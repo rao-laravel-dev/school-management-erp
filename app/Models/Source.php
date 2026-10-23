@@ -13,4 +13,9 @@ class Source extends Model
     {
         return $this->hasMany(AdmissionEnquiry::class, 'source_id');
     }
+
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class, 'source_id');
+    }
 }

@@ -15,13 +15,22 @@ class SourceController extends Controller
         return view('admin.front-office.settings.source.index', compact('sources'));
     }
 
+    // Validation messages mein column ki jagah form label dikhao
+    private function attributeNames(): array
+    {
+        return [
+            'source'      => 'Source Name',
+            'description' => 'Description',
+        ];
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             // unique validation add ki hai taake duplicate entries na hon
             'source'      => 'required|string|max:255|unique:sources,name',
             'description' => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
             Source::create([
@@ -51,7 +60,7 @@ class SourceController extends Controller
             // unique validation mein id ko ignore kiya hai
             'source'      => 'required|string|max:255|unique:sources,name,' . $id,
             'description' => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
             $source->update([
@@ -68,10 +77,19 @@ class SourceController extends Controller
     public function SourceDestroy($id)
     {
         try {
-            Source::findOrFail($id)->delete();
-            return redirect()->back()->with('success', 'Source deleted successfully!');
+            $source = Source::withCount(['enquiries', 'complaints'])->findOrFail($id);
+
+            // Enquiries ya complaints is source se juray hon to delete block
+            if ($source->enquiries_count > 0 || $source->complaints_count > 0) {
+                return response()->json(['message' => 'Cannot delete! This source is already in use.'], 422);
+            }
+
+            $source->delete();
+
+            // AJAX DELETE: JSON reply, page JS toastr + reload karta hai
+            return response()->json(['message' => 'Source deleted successfully!']);
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Delete failed: ' . $e->getMessage()], 500);
         }
     }
 }
