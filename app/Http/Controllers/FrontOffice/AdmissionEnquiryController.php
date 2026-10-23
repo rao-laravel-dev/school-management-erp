@@ -7,8 +7,10 @@ use App\Models\AdmissionEnquiry;
 use App\Models\Purpose;
 use App\Models\Receptionist;
 use App\Models\Source;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdmissionEnquiryController extends Controller
 {
@@ -19,10 +21,14 @@ class AdmissionEnquiryController extends Controller
     {
         $sources = Source::all();
         $purposes = Purpose::all();
-        // Yahan seedha Receptionist table se data uthayein
-        $staffs = Receptionist::all();
+        // Saare active staff (teacher, receptionist, accountant, librarian), pehle role phir naam (value = users.id, assigned_to isi ko store karta hai)
+        $staffs = User::activeStaff(['teacher', 'receptionist', 'accountant', 'librarian'])->get()
+            ->sortBy(fn ($u) => strtolower($u->roles->first()->name . ' ' . $u->name))->values();
 
-        $enquiries = AdmissionEnquiry::all();
+        // Naya record pehle (# 1 = latest), Created/Updated By ke liye roles eager load
+        $enquiries = AdmissionEnquiry::with(['source', 'purpose', 'staff.roles', 'createdBy.roles', 'updatedBy.roles'])
+            ->orderByDesc('id')
+            ->get();
 
         return view(
             'admin.front-office.admission-enquiry.index',
@@ -47,6 +53,23 @@ class AdmissionEnquiryController extends Controller
         );
     }
 
+    // Validation messages mein column ki jagah form label dikhao
+    private function attributeNames(): array
+    {
+        return [
+            'name'                => 'Name',
+            'phone'               => 'Phone',
+            'email'               => 'Email',
+            'address'             => 'Address',
+            'description'         => 'Description',
+            'source_id'           => 'Source',
+            'purpose_id'          => 'Purpose',
+            'date'                => 'Enquiry Date',
+            'next_follow_up_date' => 'Next Follow Up',
+            'assigned_to'         => 'Assign To Staff',
+        ];
+    }
+
     /**
      * Store a newly created enquiry in storage.
      */
@@ -58,11 +81,12 @@ class AdmissionEnquiryController extends Controller
             'email'               => 'nullable|email|max:255',
             'date'                => 'required|date',
             'next_follow_up_date' => 'nullable|date',
-            'source_id'           => 'nullable|exists:sources,id',
-            'purpose_id'          => 'nullable|exists:purposes,id',
+            'source_id'           => 'required|exists:sources,id',
+            'purpose_id'          => 'required|exists:purposes,id',
+            'assigned_to'         => 'nullable|exists:users,id',
             'description'         => 'nullable|string',
             'address'             => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
             AdmissionEnquiry::create([
@@ -77,6 +101,7 @@ class AdmissionEnquiryController extends Controller
                 'description'         => $request->description,
                 'address'             => $request->address,
                 'status'              => 'pending', // Default status
+                'created_by'          => Auth::id(),
             ]);
 
             return redirect()->route('admission-enquiry.index')->with('success', 'Enquiry added successfully!');
@@ -115,12 +140,12 @@ class AdmissionEnquiryController extends Controller
             'email'               => 'nullable|email|max:255',
             'date'                => 'required|date',
             'next_follow_up_date' => 'nullable|date',
-            'source_id'           => 'nullable|exists:sources,id', // 'required' hata diya
-            'purpose_id'          => 'nullable|exists:purposes,id', // 'required' hata diya
-            'assigned_to'         => 'nullable', // Ye zaroori hai
+            'source_id'           => 'required|exists:sources,id',
+            'purpose_id'          => 'required|exists:purposes,id',
+            'assigned_to'         => 'nullable|exists:users,id', // Ye zaroori hai
             'description'         => 'nullable|string',
             'address'             => 'nullable|string',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
             $enquiry->update([
@@ -134,6 +159,7 @@ class AdmissionEnquiryController extends Controller
                 'assigned_to'         => $request->assigned_to, // Update ho raha hai
                 'description'         => $request->description,
                 'address'             => $request->address,
+                'updated_by'          => Auth::id(), // created_by kabhi change nahi hota
             ]);
 
             return redirect()->route('admission-enquiry.index')->with('success', 'Enquiry updated successfully!');
@@ -180,10 +206,12 @@ class AdmissionEnquiryController extends Controller
         }
     }
 
+    $enquiry->updated_by = Auth::id();
     $enquiry->save();
 
     return response()->json([
         'status' => $enquiry->status,
+        'updated_by' => Auth::user()->name_with_role,
         'message' => 'Status updated to ' . ucfirst($enquiry->status)
     ]);
 }
@@ -197,9 +225,10 @@ class AdmissionEnquiryController extends Controller
             $enquiry = AdmissionEnquiry::findOrFail($id);
             $enquiry->delete();
 
-            return redirect()->route('admission-enquiry.index')->with('success', 'Enquiry deleted successfully!');
+            // AJAX DELETE: JSON reply, page JS toastr + reload karta hai
+            return response()->json(['message' => 'Enquiry deleted successfully!']);
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Delete failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Delete failed: ' . $e->getMessage()], 500);
         }
     }
 }

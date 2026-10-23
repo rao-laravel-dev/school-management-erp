@@ -39,6 +39,8 @@
                                 <th>Enquiry Date</th>
                                 <th>Next Follow Up</th>
                                 <th>Status</th>
+                                <th>Created By</th>
+                                <th>Updated By</th>
                                 <th width="120">Action</th>
                             </tr>
                         </thead>
@@ -55,8 +57,9 @@
                                 <td>{{ $enquiry->phone }}</td>
                                 <td>{{ ucwords($enquiry->source->name ?? 'N/A') }}</td>
                                 <td>{{ ucwords($enquiry->purpose->name ?? 'N/A') }}</td>
-                                <td>{{ $enquiry->date }}</td>
-                                <td>{{ $enquiry->next_follow_up_date ? \Carbon\Carbon::parse($enquiry->next_follow_up_date)->format('d-M-Y') : '-' }}</td>
+                                {{-- data-order: DataTables date ko real date order mein sort kare --}}
+                                <td data-order="{{ \Carbon\Carbon::parse($enquiry->date)->format('Y-m-d') }}">{{ \Carbon\Carbon::parse($enquiry->date)->format('d-m-Y') }}</td>
+                                <td data-order="{{ $enquiry->next_follow_up_date ? \Carbon\Carbon::parse($enquiry->next_follow_up_date)->format('Y-m-d') : '' }}">{{ $enquiry->next_follow_up_date ? \Carbon\Carbon::parse($enquiry->next_follow_up_date)->format('d-m-Y') : '-' }}</td>
 
                                 <td class="text-center align-middle">
                                     @can('manage-front-office')
@@ -90,13 +93,17 @@
                                     </span>
                                     @endcan
                                 </td>
+                                <td>{{ optional($enquiry->createdBy)->name_with_role ?: '-' }}</td>
+                                <td class="updated-by-cell">{{ optional($enquiry->updatedBy)->name_with_role ?: '-' }}</td>
                                 <td>
                                     <button type="button" class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="{{'#admissionEnquiryEdit-'.$enquiry->id}}">
                                         <i class="bx bx-edit"></i>
                                     </button>
+                                    @can('manage-front-office')
                                     <a href="{{ route('admission-enquiry.delete', $enquiry->id) }}" class="btn btn-outline-danger btn-sm px-3 delete-btn">
                                         <i class="bx bx-trash"></i>
                                     </a>
+                                    @endcan
                                 </td>
                             </tr>
                             @endforeach
@@ -120,28 +127,68 @@
         var table = $('#viewDataTable').DataTable({
             "pageLength": 10,
             "ordering": true,
+            // Server order (newest first) aur table order same: # 1 = latest
+            "order": [[0, 'asc']],
             "language": {
                 "search": "Search Enquiry:"
             }
         });
 
-        // 2. Delete Confirmation
+        // 2. Delete Confirmation (route DELETE only, is liye AJAX DELETE)
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
             let link = $(this).attr("href");
+            let deleteBtn = $(this);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                },
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = link;
-                }
+                if (!result.isConfirmed) return;
+                // Double click se bachao: reply aane tak button disabled
+                deleteBtn.addClass('disabled');
+                $.ajax({
+                    url: link,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function(res) {
+                        toastr.success(res.message);
+                        setTimeout(function() { location.reload(); }, 3000);
+                    },
+                    error: function(xhr) {
+                        deleteBtn.removeClass('disabled');
+                        toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error ' + xhr.status + ': Something went wrong');
+                    }
+                });
             });
+        });
+
+        // Modal ke errors saaf: typing/change par us field ka, modal khulne/band hone par sab
+        function clearEnquiryErrors(scope) {
+            scope.find('.is-invalid').removeClass('is-invalid');
+            scope.find('.invalid-feedback').text('');
+        }
+        $(document).on('input change', '.modal .is-invalid', function() {
+            $(this).removeClass('is-invalid').siblings('.invalid-feedback').text('');
+        });
+        $(document).on('hidden.bs.modal', '.modal', function() {
+            clearEnquiryErrors($(this));
+        });
+
+        // Add modal band hone par form poora khali (old() values bhi), phir default date wapas. Edit modals ko haath nahi lagaya
+        $(document).on('hidden.bs.modal', '#admissionEnquiryAdd', function() {
+            $(this).find('input:not([type=hidden]), textarea').val('');
+            $(this).find('select').prop('selectedIndex', 0);
+            $(this).find('[data-default]').each(function() { $(this).val($(this).data('default')); });
         });
 
         // 3. Status Toggle Event (Delegated for DataTable)
@@ -159,7 +206,15 @@
                     showCancelButton: true,
                     showDenyButton: true,
                     confirmButtonText: 'Approve',
-                    denyButtonText: 'Reject'
+                    denyButtonText: 'Reject',
+                    // fee-assignment-swal = app.css dark mode popup + buttons gap
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'fee-assignment-swal',
+                        confirmButton: 'btn btn-success btn-sm',
+                        denyButton: 'btn btn-danger btn-sm',
+                        cancelButton: 'btn btn-secondary btn-sm'
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) sendEnquiryAjax(btn, enquiryId, 'approve');
                     else if (result.isDenied) sendEnquiryAjax(btn, enquiryId, 'reject');
@@ -171,18 +226,25 @@
 
         // Toastr & Modal Validation Error Handling
         @if($errors->any())
-        var myModal = new bootstrap.Modal(document.getElementById('admissionEnquiryAdd'));
-        myModal.show();
-        toastr.error("{{ $errors->first() }}");
+        // Jo modal fail hua wahi dobara khulta hai (Add ya us row ka Edit)
+        var errModal = document.getElementById(@json(old('_modal', 'admissionEnquiryAdd')));
+        if (errModal) { new bootstrap.Modal(errModal).show(); }
+        toastr.error(@json($errors->first()));
         @endif
 
         @if(Session::has('success'))
-        toastr.success("{{ Session::get('success') }}");
+        toastr.success(@json(Session::get('success')));
+        @endif
+
+        @if(Session::has('error'))
+        toastr.error(@json(Session::get('error')));
         @endif
     });
 
     // 4. Global AJAX Function
     function sendEnquiryAjax(btn, id, action) {
+        // Double click se bachao: reply aane tak button disabled
+        btn.prop('disabled', true);
         $.ajax({
             url: "{{ route('admission-enquiry.status.update', ':id') }}".replace(':id', id),
             type: 'POST',
@@ -204,10 +266,16 @@
                 else if (status === 'inactive') btn.addClass('btn-outline-danger');
                 else btn.addClass('btn-outline-warning'); // Pending
 
+                // Updated By cell reload ke bagair naya naam dikhaye
+                btn.closest('tr').find('.updated-by-cell').text(res.updated_by);
+
                 toastr.success(res.message);
             },
             error: function() {
                 toastr.error("Status update failed!");
+            },
+            complete: function() {
+                btn.prop('disabled', false);
             }
         });
     }

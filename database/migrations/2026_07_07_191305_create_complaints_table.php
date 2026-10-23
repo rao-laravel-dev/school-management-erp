@@ -27,6 +27,10 @@ return new class extends Migration
 
             $table->string('document')->nullable(); // For file attachment proof
             $table->string('status')->default('pending'); // pending, in_progress, resolved, rejected
+
+            // Kis user ne record banaya / aakhri edit kiya (user delete ho to NULL)
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

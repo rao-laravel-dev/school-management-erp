@@ -62,30 +62,30 @@ Route::middleware(['auth'])->group(function () {
         // Admission Enquiry
         Route::controller(AdmissionEnquiryController::class)->group(function () {
             Route::get('/admission-enquiry', 'index')->name('admission-enquiry.index');
-            Route::get('/admission-enquiry/create', 'create')->name('admission-enquiry.create');
+            // Route::get('/admission-enquiry/create', 'create')->name('admission-enquiry.create'); // create view not built (add is a modal on index)
             Route::post('/admission-enquiry/store', 'store')->name('admission-enquiry.store');
-            Route::get('/admission-enquiry/edit/{id}', 'edit')->name('admission-enquiry.edit');
+            // Route::get('/admission-enquiry/edit/{id}', 'edit')->name('admission-enquiry.edit'); // edit view not built (edit is a modal on index)
             Route::post('/admission-enquiry/update/{id}', 'update')->name('admission-enquiry.update');
 
             // Naya Route add krna ho to yahan direct kr skte hein, jaise Search:
-            Route::get('/admission-enquiry/search', 'search')->name('admission-enquiry.search');
+            // Route::get('/admission-enquiry/search', 'search')->name('admission-enquiry.search'); // search() does not pass sources/purposes/staffs to the index view
         });
 
         // Complaint
         Route::controller(ComplaintController::class)->group(function () {
             Route::get('/complain', 'index')->name('complain.index');
-            Route::get('/complain/create', 'create')->name('complain.create');
+            // Route::get('/complain/create', 'create')->name('complain.create'); // create view not built (add is a modal on index)
             Route::post('/complain/store', 'store')->name('complain.store');
-            Route::get('/complain/edit/{id}', 'edit')->name('complain.edit');
+            // Route::get('/complain/edit/{id}', 'edit')->name('complain.edit'); // edit view not built (edit is a modal on index)
             Route::post('/complain/update/{id}', 'update')->name('complain.update');
         });
 
         // Visitor Book
         Route::controller(VisitorController::class)->group(function () {
             Route::get('/visitor-book', 'index')->name('visitor-book.index');
-            Route::get('/visitor-book/create', 'create')->name('visitor-book.create');
+            // Route::get('/visitor-book/create', 'create')->name('visitor-book.create'); // create() method not built (add is a modal on index)
             Route::post('/visitor-book/store', 'store')->name('visitor-book.store');
-            Route::get('/visitor-book/edit/{id}', 'edit')->name('visitor-book.edit');
+            // Route::get('/visitor-book/edit/{id}', 'edit')->name('visitor-book.edit'); // edit() method not built (edit is a modal on index)
             Route::post('/visitor-book/update/{id}', 'update')->name('visitor-book.update');
             // AJAX ROUTE
             Route::get('/get-categories/{type}', 'getCategories')->name('visitor.get-categories');
@@ -127,16 +127,16 @@ Route::middleware(['auth'])->group(function () {
 
         Route::controller(AdmissionEnquiryController::class)->group(function () {
             Route::post('/admission-enquiry/status/{id}', 'UpdateEnquiryStatus')->name('admission-enquiry.status.update');
-            Route::get('/admission-enquiry/delete/{id}', 'EnquiryDestroy')->name('admission-enquiry.delete');
+            Route::delete('/admission-enquiry/delete/{id}', 'EnquiryDestroy')->name('admission-enquiry.delete'); // CHANGED 22-10-26
         });
 
         Route::controller(ComplaintController::class)->group(function () {
-            Route::get('/complain/status/{id}', 'UpdateComplaintStatus')->name('complain.status');
-            Route::get('/complain/delete/{id}', 'ComplaintDestroy')->name('complain.delete');
+            Route::post('/complain/status/{id}', 'UpdateComplaintStatus')->name('complain.status'); // CHANGED 22-10-26
+            Route::delete('/complain/delete/{id}', 'ComplaintDestroy')->name('complain.delete'); // CHANGED 22-10-26
         });
 
         Route::controller(VisitorController::class)->group(function () {
-            Route::get('/visitor-book/delete/{id}', 'VisitorDestroy')->name('visitor-book.delete');
+            Route::delete('/visitor-book/delete/{id}', 'VisitorDestroy')->name('visitor-book.delete'); // CHANGED 22-10-26
         });
 
         Route::prefix('settings')->name('settings.')->group(function () {

@@ -20,7 +20,9 @@ class Complaint extends Model
         'source_id',
         'assigned_to',
         'document',
-        'status'
+        'status',
+        'created_by',
+        'updated_by'
     ];
 
     public function complaintType()
@@ -35,6 +37,17 @@ class Complaint extends Model
 
     public function staff()
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        // withTrashed: Edit mein saved staff (ab delete ho gaya ho) bhi dikhe
+        return $this->belongsTo(User::class, 'assigned_to')->withTrashed();
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 }

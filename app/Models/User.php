@@ -133,6 +133,22 @@ class User extends Authenticatable
         });
     }
 
+    // Dropdown ke liye active staff: status 1, user + staff profile trashed nahi, role label ke liye roles eager load
+    public function scopeActiveStaff($query, array $roles)
+    {
+        return $query->withoutSuperadmin()
+            ->role($roles)
+            ->where('status', 1)
+            ->where(function ($q) {
+                $q->whereHas('teacher')
+                    ->orWhereHas('receptionist')
+                    ->orWhereHas('accountant')
+                    ->orWhereHas('librarian');
+            })
+            ->with('roles')
+            ->orderBy('name');
+    }
+
     // Superadmin guard: koi aur usay edit/block/delete nahi kar sakta, aur wo khud ko lockout nahi kar sakta.
     // Console/tinker (no logged-in user) allowed rakha hai taake DB recovery ho sake.
     protected static function booted(): void

@@ -9,6 +9,8 @@ use App\Models\Source;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ComplaintController extends Controller
 {
@@ -19,9 +21,14 @@ class ComplaintController extends Controller
     {
         $allComplaints = ComplaintType::all();
         $allSources = Source::all();
-        $staffs = User::role(['Teacher', 'Receptionist'])->get();
+        // Saare active staff (user + profile trashed nahi), pehle role phir naam, label "Name (Role)"
+        $staffs = User::activeStaff(['teacher', 'receptionist', 'accountant', 'librarian'])->get()
+            ->sortBy(fn ($u) => strtolower($u->roles->first()->name . ' ' . $u->name))->values();
 
-        $complains = Complaint::latest()->get(); // Fix: naya record pehle
+        // Naya record pehle (# 1 = latest), Created/Updated By ke liye roles eager load
+        $complains = Complaint::with(['complaintType', 'source', 'staff.roles', 'createdBy.roles', 'updatedBy.roles'])
+            ->orderByDesc('id')
+            ->get();
 
         return view(
             'admin.front-office.complain.index',
@@ -45,6 +52,24 @@ class ComplaintController extends Controller
         );
     }
 
+    // Validation messages mein column ki jagah form label dikhao
+    private function attributeNames(): array
+    {
+        return [
+            'date'              => 'Date',
+            'phone'             => 'Phone',
+            'email'             => 'Email',
+            'description'       => 'Description',
+            'action_taken'      => 'Action Taken',
+            'status'            => 'Status',
+            'complaint_type_id' => 'Complaint Type',
+            'source_id'         => 'Source',
+            'complaint_by'      => 'Complain By',
+            'assigned_to'       => 'Assign To Staff',
+            'document'          => 'Attachment',
+        ];
+    }
+
     /**
      * Store a newly created complaint in storage.
      */
@@ -53,14 +78,14 @@ class ComplaintController extends Controller
         $request->validate([
             'complaint_type_id' => 'required|exists:complaint_types,id',
             'source_id'         => 'required|exists:sources,id',
-            'date'              => 'required',
+            'date'              => 'required|date_format:d-m-Y',
             'complaint_by'      => 'required|string|max:255',
             'phone'             => 'required|string|max:255',
             'email'             => 'nullable|email|max:255',
-            'description'       => 'nullable|string',
+            'description'       => 'required|string',
             'assigned_to'       => 'nullable|exists:users,id',
             'document'          => 'nullable|file|max:5120',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
             $documentPath = null;
@@ -71,7 +96,7 @@ class ComplaintController extends Controller
             Complaint::create([
                 'complaint_type_id' => $request->complaint_type_id,
                 'source_id'         => $request->source_id,
-                'date'              => \Carbon\Carbon::parse($request->date)->format('Y-m-d'), // Fix: proper DB format
+                'date'              => \Carbon\Carbon::createFromFormat('d-m-Y', $request->date)->format('Y-m-d'), // Fix: proper DB format
                 'complaint_by'      => $request->complaint_by,
                 'phone'             => $request->phone,
                 'email'             => $request->email,
@@ -79,6 +104,7 @@ class ComplaintController extends Controller
                 'assigned_to'       => $request->assigned_to,
                 'document'          => $documentPath,
                 'status'            => 'pending',
+                'created_by'        => Auth::id(),
             ]);
 
             return redirect()->route('complain.index')->with('success', 'Complaint added successfully!');
@@ -113,18 +139,20 @@ class ComplaintController extends Controller
         $request->validate([
             'complaint_type_id' => 'required|exists:complaint_types,id',
             'source_id'         => 'required|exists:sources,id',
-            'date'              => 'required',
+            'date'              => 'required|date_format:d-m-Y',
             'complaint_by'      => 'required|string|max:255',
             'phone'             => 'required|string|max:255',
             'email'             => 'nullable|email|max:255',
-            'description'       => 'nullable|string',
+            'description'       => 'required|string',
             'action_taken'      => 'nullable|string',
+            'status'            => 'required|in:pending,in_progress,resolved',
             'assigned_to'       => 'nullable|exists:users,id',
             'document'          => 'nullable|file|max:5120',
-        ]);
+        ], [], $this->attributeNames());
 
         try {
-            $documentPath = $complain->document;
+            $oldDocument = $complain->document;
+            $documentPath = $oldDocument;
             if ($request->hasFile('document')) {
                 $documentPath = $request->file('document')->store('complaints', 'public');
             }
@@ -132,7 +160,7 @@ class ComplaintController extends Controller
             $complain->update([
                 'complaint_type_id' => $request->complaint_type_id,
                 'source_id'         => $request->source_id,
-                'date'              => \Carbon\Carbon::parse($request->date)->format('Y-m-d'),
+                'date'              => \Carbon\Carbon::createFromFormat('d-m-Y', $request->date)->format('Y-m-d'),
                 'complaint_by'      => $request->complaint_by,
                 'phone'             => $request->phone,
                 'email'             => $request->email,
@@ -140,7 +168,14 @@ class ComplaintController extends Controller
                 'action_taken'      => $request->action_taken,
                 'assigned_to'       => $request->assigned_to,
                 'document'          => $documentPath,
+                'status'            => $request->status,
+                'updated_by'        => Auth::id(), // created_by kabhi change nahi hota
             ]);
+
+            // Naya file save hone ke BAAD purani file storage se hatao
+            if ($oldDocument && $documentPath !== $oldDocument) {
+                Storage::disk('public')->delete($oldDocument);
+            }
 
             return redirect()->route('complain.index')->with('success', 'Complaint updated successfully!');
         } catch (Exception $e) {
@@ -149,26 +184,23 @@ class ComplaintController extends Controller
     }
 
     /**
-     * Update Complaint Status (Pending -> Active -> Inactive cycle)
+     * Update Complaint Status (popup se chuna hua target status)
      */
     public function UpdateComplaintStatus(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|in:pending,in_progress,resolved',
+        ]);
+
         $complain = Complaint::findOrFail($id);
-        $currentStatus = strtolower($complain->status);
+        $complain->status = $request->status;
 
-        // Cycle: Pending -> In Progress -> Resolved -> Pending (reopen)
-        if ($currentStatus == 'pending') {
-            $complain->status = 'in_progress';
-        } elseif ($currentStatus == 'in_progress') {
-            $complain->status = 'resolved';
-        } else {
-            $complain->status = 'pending';
-        }
-
+        $complain->updated_by = Auth::id();
         $complain->save();
 
         return response()->json([
             'status'  => $complain->status,
+            'updated_by' => Auth::user()->name_with_role,
             'message' => 'Status updated to ' . ucfirst(str_replace('_', ' ', $complain->status))
         ]);
     }
@@ -180,11 +212,18 @@ class ComplaintController extends Controller
     {
         try {
             $complain = Complaint::findOrFail($id);
+            $document = $complain->document;
             $complain->delete();
 
-            return redirect()->route('complain.index')->with('success', 'Complaint deleted successfully!');
+            // Row delete hone ke baad attachment file bhi hatao (orphan na rahe)
+            if ($document) {
+                Storage::disk('public')->delete($document);
+            }
+
+            // AJAX DELETE: JSON reply, page JS toastr + reload karta hai
+            return response()->json(['message' => 'Complaint deleted successfully!']);
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Delete failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Delete failed: ' . $e->getMessage()], 500);
         }
     }
 }

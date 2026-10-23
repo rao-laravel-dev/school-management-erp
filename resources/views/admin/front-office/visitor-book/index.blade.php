@@ -41,6 +41,8 @@
                                 <th>Date</th>
                                 <th>Time In</th>
                                 <th>Time Out</th>
+                                <th>Created By</th>
+                                <th>Updated By</th>
                                 <th width="120">Action</th>
                             </tr>
                         </thead>
@@ -48,15 +50,22 @@
                             @foreach($visitors as $visitor)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td class="text-success fw-bold">{{ ucwords($visitor->name) }}</td>
+                                {{-- Name Column Modal ke liye --}}
+                                <td>
+                                    <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#viewVisitorModal{{ $visitor->id }}" class="text-success fw-bold">
+                                        {{ ucwords($visitor->name) }}
+                                    </a>
+                                </td>
                                 <td>{{ $visitor->phone }}</td>
                                 <td>{{ $visitor->id_card }}</td>
                                 <td>{{ ucwords($visitor->purpose->name ?? '-') }}</td>
                                 <td>{{ ucwords($visitor->meeting_with_type) }}</td>
-                                <td>{{ $visitor->meeting_person_name }}</td>
+                                {{-- Naam controller ne har type ki ek query se nikale (accessor per-row queries karta tha) --}}
+                                <td>{{ isset($meetingNames[$visitor->id]) ? $meetingNames[$visitor->id] : '-' }}</td>
                                 <td>{{ $visitor->no_of_person }}</td>
-                                <td>
-                                    {{ $visitor->date ? \Carbon\Carbon::parse($visitor->date)->format('d/m/Y') : '--' }}
+                                {{-- data-order: DataTables date ko real date order mein sort kare --}}
+                                <td data-order="{{ $visitor->date ? \Carbon\Carbon::parse($visitor->date)->format('Y-m-d') : '' }}">
+                                    {{ $visitor->date ? \Carbon\Carbon::parse($visitor->date)->format('d-m-Y') : '--' }}
                                 </td>
                                 <td>{{ \Carbon\Carbon::parse($visitor->in_time)->format('h:i a') }}</td>
                                 <td>
@@ -66,14 +75,18 @@
                                     --
                                     @endif
                                 </td>
+                                <td>{{ optional($visitor->createdBy)->name_with_role ?: '-' }}</td>
+                                <td>{{ optional($visitor->updatedBy)->name_with_role ?: '-' }}</td>
                                 <td>
                                     <button type="button" class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="{{'#visitorEdit-'.$visitor->id}}">
                                         <i class="bx bx-edit"></i>
                                     </button>
+                                    @can('manage-front-office')
                                     <a href="{{ route('visitor-book.delete', $visitor->id) }}"
                                         class="btn btn-outline-danger btn-sm px-3 delete-btn">
                                         <i class="bx bx-trash"></i>
                                     </a>
+                                    @endcan
                                 </td>
                             </tr>
                             @endforeach
@@ -97,39 +110,65 @@
         var table = $('#viewDataTable').DataTable({
             "pageLength": 10,
             "ordering": true,
+            // Server order (newest first) aur table order same: # 1 = latest
+            "order": [[0, 'asc']],
             "language": {
-                "search": "Search Enquiry:"
+                "search": "Search Visitor:"
             }
         });
 
-        // 2. Delete Confirmation
+        // 2. Delete Confirmation (route DELETE only, is liye AJAX DELETE)
         $(document).on('click', '.delete-btn', function(e) {
             e.preventDefault();
             let link = $(this).attr("href");
+            let deleteBtn = $(this);
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                },
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = link;
-                }
+                if (!result.isConfirmed) return;
+                // Double click se bachao: reply aane tak button disabled
+                deleteBtn.addClass('disabled');
+                $.ajax({
+                    url: link,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function(res) {
+                        toastr.success(res.message);
+                        setTimeout(function() { location.reload(); }, 3000);
+                    },
+                    error: function(xhr) {
+                        deleteBtn.removeClass('disabled');
+                        toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error ' + xhr.status + ': Something went wrong');
+                    }
+                });
             });
         });
 
         // Toastr & Modal Validation Error Handling
         @if($errors->any())
-        var myModal = new bootstrap.Modal(document.getElementById('admissionEnquiryAdd'));
+        // Visitor forms AJAX hain, phir bhi kabhi redirect error aaye to Visitor ka Add modal khule
+        var myModal = new bootstrap.Modal(document.getElementById('visitorAdd'));
         myModal.show();
-        toastr.error("{{ $errors->first() }}");
+        toastr.error(@json($errors->first()));
         @endif
 
         @if(Session::has('success'))
-        toastr.success("{{ Session::get('success') }}");
+        toastr.success(@json(Session::get('success')));
+        @endif
+
+        @if(Session::has('error'))
+        toastr.error(@json(Session::get('error')));
         @endif
     });
 </script>

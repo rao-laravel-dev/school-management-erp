@@ -27,7 +27,10 @@ return new class extends Migration
             // New Meeting With Fields
             $table->string('meeting_with_type')->nullable(); // 'student' or 'staff'
             $table->unsignedBigInteger('meeting_with_id')->nullable(); // ID of the person
-            
+
+            // Kis user ne record banaya / aakhri edit kiya (user delete ho to NULL)
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

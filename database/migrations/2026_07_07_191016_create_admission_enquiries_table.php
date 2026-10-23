@@ -29,6 +29,10 @@ return new class extends Migration
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
 
             $table->string('status')->default('active'); // active, passive, resolved
+
+            // Kis user ne record banaya / aakhri edit kiya (user delete ho to NULL)
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }
