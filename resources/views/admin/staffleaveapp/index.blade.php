@@ -14,7 +14,7 @@
 </div>
 
 <div class="card shadow-none border">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0 text-primary">Leave History</h5>
         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leaveModal">
             <i class="bx bx-plus"></i> Apply New Leave
@@ -23,7 +23,7 @@
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
-                <thead class="table-primary">
+                <thead class="table-light">
                     <tr>
                         <th>#</th>
                         <th>Name Staff</th>
@@ -37,7 +37,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($applications as $key => $app)
+                    @forelse($applications as $key => $app)
                     <tr>
                         <td>{{ $key + 1 }}</td>
                         <td>{{ optional($app->user)->name ?? 'User not found' }}</td>
@@ -93,7 +93,11 @@
                             @endif
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">No leave requests found.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

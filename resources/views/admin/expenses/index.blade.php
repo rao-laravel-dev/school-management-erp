@@ -11,7 +11,7 @@
     <div class="col-xl-12 mx-auto">
 
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bx bx-receipt me-2"></i>Expenses</h5>
                 @can('manage-expenses')
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
