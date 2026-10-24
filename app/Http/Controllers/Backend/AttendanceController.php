@@ -158,6 +158,8 @@ class AttendanceController extends Controller
         }])
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
+            ->where('academic_year_id', $this->getActiveSessionId()) // purane saal ki enrollment kabhi na dikhe
+            ->where('enroll_status', 1) // sirf Active enrollment (scan attendance ki tarah)
             ->get();
 
         // 2. Check karein kya is class, section aur date ki attendance DB mein majood hai?
@@ -289,6 +291,7 @@ class AttendanceController extends Controller
                 $enrollments = Enrollment::where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('academic_year_id', $activeSessionId)
+                    ->where('enroll_status', 1) // Holiday rows bhi sirf Active students ki
                     ->get();
 
                 foreach ($enrollments as $e) {
@@ -383,6 +386,7 @@ class AttendanceController extends Controller
         $students = Enrollment::where('class_id', $id)
             ->where('section_id', $section_id)
             ->where('academic_year_id', $activeSessionId) // FILTER ADDED
+            ->where('enroll_status', 1) // sirf Active enrollment
             ->with(['student', 'attendance' => function ($q) use ($date) {
                 $q->where('attendance_date', $date);
             }])->get();
@@ -1193,11 +1197,8 @@ class AttendanceController extends Controller
             ->withQueryString();
 
         $summary = $this->reportCounts($base);
-        $studentCount = Enrollment::where('class_id', $class->id)
-            ->where('section_id', $section->id)
-            ->where('academic_year_id', $this->getActiveSessionId())
-            ->where('enroll_status', 1)
-            ->count();
+        // Card = table ke filtered rows ke DISTINCT students (card aur table hamesha match, purane inactive students ki history bhi)
+        $studentCount = (clone $base)->distinct()->count('e.student_id');
 
         return view('admin.attendance.class_report', [
             'class' => $class, 'section' => $section, 'scope' => $scope, 'noClass' => false,
