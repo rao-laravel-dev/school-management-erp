@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\Validator;
 
 class ExpenseCategoryController extends Controller
 {
+    // Validation messages mein form labels ("The Category Name field is required.")
+    private function categoryAttributes(): array
+    {
+        return ['name' => 'Category Name'];
+    }
+
     public function index()
     {
-        $categories = ExpenseCategory::orderBy('name')->get();
+        $categories = ExpenseCategory::orderBy('id', 'desc')->get();
         return view('admin.expense_categories.index', compact('categories'));
     }
 
@@ -19,7 +25,7 @@ class ExpenseCategoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:expense_categories,name',
-        ]);
+        ], [], $this->categoryAttributes());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -36,7 +42,7 @@ class ExpenseCategoryController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:expense_categories,name,' . $id,
-        ]);
+        ], [], $this->categoryAttributes());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);

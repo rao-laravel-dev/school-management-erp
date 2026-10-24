@@ -110,6 +110,7 @@ $(document).ready(function () {
         paging: true,
         searching: true,
         ordering: true,
+        order: [],
         columnDefs: [{ orderable: false, targets: -1 }]
     });
 
@@ -119,32 +120,54 @@ $(document).ready(function () {
         $(formSelector).find('.invalid-feedback').text('');
     }
 
-    // Helper: show validation errors under fields
+    // Helper: show validation errors under fields; toastr sirf pehla error
     function showErrors(formSelector, errors) {
+        let firstMsg = '';
         Object.keys(errors).forEach(function (field) {
             const input = $(formSelector).find(`[name="${field}"]`);
             input.addClass('is-invalid');
             input.siblings('.invalid-feedback').text(errors[field][0]);
+            if (!firstMsg) firstMsg = errors[field][0];
         });
+        toastr.clear();
+        if (firstMsg) toastr.error($('<div>').text(firstMsg).html());
     }
+
+    // Typing/change par us field ka error saaf
+    $(document).on('input change', '.modal form .is-invalid', function () {
+        $(this).removeClass('is-invalid').siblings('.invalid-feedback').text('');
+    });
+
+    // Modal band: fields + errors poore reset (Add date wapas aaj ki)
+    $('#addExpenseModal, #editExpenseModal, #payExpenseModal').on('hidden.bs.modal', function () {
+        const form = $(this).find('form');
+        form[0].reset();
+        clearErrors('#' + form.attr('id'));
+        if (form.attr('id') === 'addExpenseForm') {
+            $('#add_expense_date').val("{{ date('Y-m-d') }}");
+        }
+        form.find('button[type="submit"]').prop('disabled', false);
+    });
 
     // Add Expense
     $('#addExpenseForm').on('submit', function (e) {
         e.preventDefault();
         clearErrors('#addExpenseForm');
+        const btn = $(this).find('button[type="submit"]').prop('disabled', true);
         $.ajax({
             url: "{{ route('expenses.store') }}",
             method: 'POST',
             data: $(this).serialize(),
             success: function (res) {
-                toastr.success(res.message ?? 'Expense added.');
+                toastr.success(res.message || 'Expense added.');
                 setTimeout(() => location.reload(), 800);
             },
             error: function (xhr) {
+                btn.prop('disabled', false);
                 if (xhr.status === 422) {
                     showErrors('#addExpenseForm', xhr.responseJSON.errors);
                 } else {
-                    toastr.error(xhr.responseJSON?.message || 'Something went wrong.');
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Something went wrong.');
                 }
             }
         });
@@ -167,19 +190,21 @@ $(document).ready(function () {
         e.preventDefault();
         clearErrors('#editExpenseForm');
         const id = $('#edit_expense_id').val();
+        const btn = $(this).find('button[type="submit"]').prop('disabled', true);
         $.ajax({
             url: `/expenses/update/${id}`,
             method: 'PUT',
             data: $(this).serialize(),
             success: function (res) {
-                toastr.success(res.message ?? 'Expense updated.');
+                toastr.success(res.message || 'Expense updated.');
                 setTimeout(() => location.reload(), 800);
             },
             error: function (xhr) {
-                if (xhr.status === 422) {
+                btn.prop('disabled', false);
+                if (xhr.status === 422 && xhr.responseJSON.errors) {
                     showErrors('#editExpenseForm', xhr.responseJSON.errors);
                 } else {
-                    toastr.error(xhr.responseJSON?.message || 'Something went wrong.');
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Something went wrong.');
                 }
             }
         });
@@ -198,19 +223,21 @@ $(document).ready(function () {
         e.preventDefault();
         clearErrors('#payExpenseForm');
         const id = $('#pay_expense_id').val();
+        const btn = $(this).find('button[type="submit"]').prop('disabled', true);
         $.ajax({
             url: `/expenses/${id}/pay`,
             method: 'POST',
             data: $(this).serialize(),
             success: function (res) {
-                toastr.success(res.message ?? 'Expense marked as paid.');
+                toastr.success(res.message || 'Expense marked as paid.');
                 setTimeout(() => location.reload(), 800);
             },
             error: function (xhr) {
+                btn.prop('disabled', false);
                 if (xhr.status === 422 && xhr.responseJSON.errors) {
                     showErrors('#payExpenseForm', xhr.responseJSON.errors);
                 } else {
-                    toastr.error(xhr.responseJSON?.message || 'Error occurred');
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Error occurred');
                 }
             }
         });
@@ -225,8 +252,13 @@ $(document).ready(function () {
             text: "This expense will be permanently deleted.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
+            // fee-assignment-swal = app.css dark mode popup + buttons gap
+            buttonsStyling: false,
+            customClass: {
+                popup: 'fee-assignment-swal',
+                confirmButton: 'btn btn-danger btn-sm',
+                cancelButton: 'btn btn-secondary btn-sm'
+            },
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -235,11 +267,11 @@ $(document).ready(function () {
                     method: 'DELETE',
                     data: { _token: '{{ csrf_token() }}' },
                     success: function (res) {
-                        toastr.success(res.message ?? 'Expense deleted.');
+                        toastr.success(res.message || 'Expense deleted.');
                         $(`#expense-row-${id}`).fadeOut(300, function () { $(this).remove(); });
                     },
                     error: function (xhr) {
-                        toastr.error(xhr.responseJSON?.message || 'Error occurred');
+                        toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Error occurred');
                     }
                 });
             }

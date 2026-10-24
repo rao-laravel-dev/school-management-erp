@@ -13,9 +13,23 @@ use Illuminate\Support\Facades\Validator;
 
 class ExpenseController extends Controller
 {
+    // Validation messages mein form labels ("The Category field is required.")
+    private function expenseAttributes(): array
+    {
+        return [
+            'expense_category_id' => 'Category',
+            'title'               => 'Title',
+            'description'         => 'Description',
+            'amount'              => 'Amount',
+            'expense_date'        => 'Expense Date',
+            'bank_account_id'     => 'Bank Account',
+            'payment_method'      => 'Payment Method',
+        ];
+    }
+
     public function index()
     {
-        $expenses = Expense::with(['category', 'bankAccount'])->latest()->get();
+        $expenses = Expense::with(['category', 'bankAccount'])->orderBy('id', 'desc')->get();
         $categories = ExpenseCategory::orderBy('name')->get();
         $bankAccounts = BankAccount::orderBy('bank_name')->get();
 
@@ -30,7 +44,7 @@ class ExpenseController extends Controller
             'description'          => 'nullable|string',
             'amount'               => 'required|numeric|min:0.01',
             'expense_date'         => 'required|date',
-        ]);
+        ], [], $this->expenseAttributes());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -54,7 +68,7 @@ class ExpenseController extends Controller
         $expense = Expense::findOrFail($id);
 
         if ($expense->status === 'paid') {
-            return response()->json(['message' => 'Paid expense edit nahi ho sakta.'], 422);
+            return response()->json(['message' => 'A paid expense cannot be edited.'], 422);
         }
 
         $validator = Validator::make($request->all(), [
@@ -63,7 +77,7 @@ class ExpenseController extends Controller
             'description'          => 'nullable|string',
             'amount'               => 'required|numeric|min:0.01',
             'expense_date'         => 'required|date',
-        ]);
+        ], [], $this->expenseAttributes());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -86,13 +100,13 @@ class ExpenseController extends Controller
         $expense = Expense::findOrFail($id);
 
         if ($expense->status === 'paid') {
-            return response()->json(['message' => 'Ye expense pehle hi paid hai.'], 422);
+            return response()->json(['message' => 'This expense is already paid.'], 422);
         }
 
         $validator = Validator::make($request->all(), [
             'bank_account_id' => 'required|exists:bank_accounts,id',
             'payment_method'  => 'required|string',
-        ]);
+        ], [], $this->expenseAttributes());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -101,7 +115,7 @@ class ExpenseController extends Controller
         $bankAccount = BankAccount::findOrFail($request->bank_account_id);
 
         if ($bankAccount->current_balance < $expense->amount) {
-            return response()->json(['message' => 'Is account me itni balance nahi hai.'], 422);
+            return response()->json(['message' => 'Insufficient balance in this bank account.'], 422);
         }
 
         DB::transaction(function () use ($expense, $bankAccount, $request) {
@@ -137,7 +151,7 @@ class ExpenseController extends Controller
         $expense = Expense::findOrFail($id);
 
         if ($expense->status === 'paid') {
-            return response()->json(['message' => 'Paid expense delete nahi ho sakta.'], 422);
+            return response()->json(['message' => 'A paid expense cannot be deleted.'], 422);
         }
 
         $expense->delete();

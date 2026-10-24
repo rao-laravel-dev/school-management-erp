@@ -79,6 +79,7 @@ $(document).ready(function () {
         paging: true,
         searching: true,
         ordering: true,
+        order: [],
         columnDefs: [{ orderable: false, targets: -1 }]
     });
 
@@ -88,32 +89,51 @@ $(document).ready(function () {
         $(formSelector).find('.invalid-feedback').text('');
     }
 
-    // Helper: show validation errors under fields
+    // Helper: show validation errors under fields; toastr sirf pehla error
     function showErrors(formSelector, errors) {
+        let firstMsg = '';
         Object.keys(errors).forEach(function (field) {
             const input = $(formSelector).find(`[name="${field}"]`);
             input.addClass('is-invalid');
             input.siblings('.invalid-feedback').text(errors[field][0]);
+            if (!firstMsg) firstMsg = errors[field][0];
         });
+        toastr.clear();
+        if (firstMsg) toastr.error($('<div>').text(firstMsg).html());
     }
+
+    // Typing/change par us field ka error saaf
+    $(document).on('input change', '.modal form .is-invalid', function () {
+        $(this).removeClass('is-invalid').siblings('.invalid-feedback').text('');
+    });
+
+    // Modal band: fields + errors poore reset
+    $('#addCategoryModal, #editCategoryModal').on('hidden.bs.modal', function () {
+        const form = $(this).find('form');
+        form[0].reset();
+        clearErrors('#' + form.attr('id'));
+        form.find('button[type="submit"]').prop('disabled', false);
+    });
 
     // Add Category
     $('#addCategoryForm').on('submit', function (e) {
         e.preventDefault();
         clearErrors('#addCategoryForm');
+        const btn = $(this).find('button[type="submit"]').prop('disabled', true);
         $.ajax({
             url: "{{ route('expense_categories.store') }}",
             method: 'POST',
             data: $(this).serialize(),
             success: function (res) {
-                toastr.success(res.message ?? 'Category added.');
+                toastr.success(res.message || 'Category added.');
                 setTimeout(() => location.reload(), 800);
             },
             error: function (xhr) {
+                btn.prop('disabled', false);
                 if (xhr.status === 422) {
                     showErrors('#addCategoryForm', xhr.responseJSON.errors);
                 } else {
-                    toastr.error(xhr.responseJSON?.message || 'Something went wrong.');
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Something went wrong.');
                 }
             }
         });
@@ -132,19 +152,21 @@ $(document).ready(function () {
         e.preventDefault();
         clearErrors('#editCategoryForm');
         const id = $('#edit_category_id').val();
+        const btn = $(this).find('button[type="submit"]').prop('disabled', true);
         $.ajax({
             url: `/expense-categories/update/${id}`,
             method: 'PUT',
             data: $(this).serialize(),
             success: function (res) {
-                toastr.success(res.message ?? 'Category updated.');
+                toastr.success(res.message || 'Category updated.');
                 setTimeout(() => location.reload(), 800);
             },
             error: function (xhr) {
+                btn.prop('disabled', false);
                 if (xhr.status === 422) {
                     showErrors('#editCategoryForm', xhr.responseJSON.errors);
                 } else {
-                    toastr.error(xhr.responseJSON?.message || 'Something went wrong.');
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Something went wrong.');
                 }
             }
         });
@@ -159,8 +181,13 @@ $(document).ready(function () {
             text: "This category will be permanently deleted.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
+            // fee-assignment-swal = app.css dark mode popup + buttons gap
+            buttonsStyling: false,
+            customClass: {
+                popup: 'fee-assignment-swal',
+                confirmButton: 'btn btn-danger btn-sm',
+                cancelButton: 'btn btn-secondary btn-sm'
+            },
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -169,11 +196,11 @@ $(document).ready(function () {
                     method: 'DELETE',
                     data: { _token: '{{ csrf_token() }}' },
                     success: function (res) {
-                        toastr.success(res.message ?? 'Category deleted.');
+                        toastr.success(res.message || 'Category deleted.');
                         $(`#cat-row-${id}`).fadeOut(300, function () { $(this).remove(); });
                     },
                     error: function (xhr) {
-                        toastr.error(xhr.responseJSON?.message || 'Error occurred');
+                        toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Error occurred');
                     }
                 });
             }

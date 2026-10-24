@@ -42,7 +42,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success btn-sm">Save</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="bx bx-save"></i> Save</button>
                 </div>
             </form>
         </div>
@@ -59,7 +59,7 @@
                 <input type="hidden" name="id" id="edit_expense_id">
                 <div class="modal-header bg-warning">
                     <h5 class="modal-title"><i class="bx bx-edit me-1"></i> Edit Expense</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -95,7 +95,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning btn-sm">Update</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="bx bx-save"></i> Update</button>
                 </div>
             </form>
         </div>
