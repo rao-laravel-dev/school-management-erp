@@ -18,10 +18,10 @@
     <div class="container-fluid">
         
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 mb-3">
-            <div class="col"><div class="card radius-10 border-start border-0 border-3 border-success shadow-sm"><div class="card-body p-3"><div class="d-flex align-items-center"><div><p class="mb-0 text-secondary small">Total Present</p><h5 class="my-0 text-success fw-bold">{{ $attendanceRecords->whereIn('status', [1, 2])->count() }}</h5></div><div class="widgets-icons-2 rounded-circle bg-light-success text-success ms-auto"><i class='bx bxs-check-circle'></i></div></div></div></div></div>
+            <div class="col"><div class="card radius-10 border-start border-0 border-3 border-success shadow-sm"><div class="card-body p-3"><div class="d-flex align-items-center"><div><p class="mb-0 text-secondary small">Total Present</p><h5 class="my-0 text-success fw-bold">{{ $attendanceRecords->where('status', 1)->count() }}</h5></div><div class="widgets-icons-2 rounded-circle bg-light-success text-success ms-auto"><i class='bx bxs-check-circle'></i></div></div></div></div></div>
             <div class="col"><div class="card radius-10 border-start border-0 border-3 border-danger shadow-sm"><div class="card-body p-3"><div class="d-flex align-items-center"><div><p class="mb-0 text-secondary small">Total Absent</p><h5 class="my-0 text-danger fw-bold">{{ $attendanceRecords->where('status', 0)->count() }}</h5></div><div class="widgets-icons-2 rounded-circle bg-light-danger text-danger ms-auto"><i class='bx bxs-x-circle'></i></div></div></div></div></div>
             <div class="col"><div class="card radius-10 border-start border-0 border-3 border-warning shadow-sm"><div class="card-body p-3"><div class="d-flex align-items-center"><div><p class="mb-0 text-secondary small">Late / Half-Day</p><h5 class="my-0 text-warning fw-bold">{{ $attendanceRecords->whereIn('status', [2, 3])->count() }}</h5></div><div class="widgets-icons-2 rounded-circle bg-light-warning text-warning ms-auto"><i class='bx bxs-time'></i></div></div></div></div></div>
-            <div class="col"><div class="card radius-10 border-start border-0 border-3 border-info shadow-sm"><div class="card-body p-3"><div class="d-flex align-items-center"><div><p class="mb-0 text-secondary small">Total Leaves</p><h5 class="my-0 text-info fw-bold">{{ $attendanceRecords->where('status', 4)->count() }}</h5></div><div class="widgets-icons-2 rounded-circle bg-light-info text-info ms-auto"><i class='bx bxs-calendar-event'></i></div></div></div></div></div>
+            <div class="col"><div class="card radius-10 border-start border-0 border-3 border-info shadow-sm"><div class="card-body p-3"><div class="d-flex align-items-center"><div><p class="mb-0 text-secondary small">Total Leaves</p><h5 class="my-0 text-info fw-bold">{{ $attendanceRecords->where('status', 4)->filter(fn ($r) => strcasecmp(trim((string) $r->remarks), 'Holiday') !== 0)->count() }}</h5></div><div class="widgets-icons-2 rounded-circle bg-light-info text-info ms-auto"><i class='bx bxs-calendar-event'></i></div></div></div></div></div>
         </div>
 
         <div class="card radius-10 mb-3">
@@ -82,6 +82,7 @@
                                     @elseif($item->status == 2) <span class="badge bg-info-subtle text-info">Late</span>
                                     @elseif($item->status == 3) <span class="badge bg-warning-subtle text-warning">Half-Day</span>
                                     @elseif($item->status == 0) <span class="badge bg-danger-subtle text-danger">Absent</span>
+                                    @elseif(strcasecmp(trim((string) $item->remarks), 'Holiday') === 0) <span class="badge bg-secondary-subtle text-secondary">Holiday</span>
                                     @else <span class="badge bg-secondary-subtle text-secondary">Leave</span>
                                     @endif
                                 </td>

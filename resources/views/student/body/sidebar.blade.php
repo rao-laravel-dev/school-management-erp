@@ -17,7 +17,7 @@
             </a>
         </li>
 
-        @php $open = request()->routeIs('student.profile', 'student.academic_records.*'); @endphp
+        @php $open = request()->routeIs('student.profile'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-user-circle"></i></div>
@@ -25,14 +25,11 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 <li class="{{ request()->routeIs('student.profile') ? 'mm-active' : '' }}"><a href="{{ route('student.profile') }}"><i class='bx bx-radio-circle'></i>Personal Details</a></li>
-                @can('access-profile')
-                <li class="{{ request()->routeIs('student.academic_records.*') ? 'mm-active' : '' }}"><a href="{{ route('student.academic_records.index') }}"><i class='bx bx-radio-circle'></i>Academic Records</a></li>
-                @endcan
             </ul>
         </li>
 
         @can('access-student-academics')
-        @php $open = request()->routeIs('student.subjects.*', 'student.class_schedule.*', 'student.teacher.*', 'student.results.*'); @endphp
+        @php $open = request()->routeIs('student.subjects.*', 'student.class_schedule.*', 'student.teacher.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-book-reader"></i></div>
@@ -44,20 +41,19 @@
                 <li class="{{ request()->routeIs('student.class_schedule.*') ? 'mm-active' : '' }}"><a href="{{ route('student.class_schedule.index') }}"><i class='bx bx-radio-circle'></i>Class Schedule</a></li>
                 @endcan
                 <li class="{{ request()->routeIs('student.teacher.*') ? 'mm-active' : '' }}"><a href="{{ route('student.teacher.myteacher') }}"><i class='bx bx-radio-circle'></i>My Teachers</a></li>
-                <li class="{{ request()->routeIs('student.results.*') ? 'mm-active' : '' }}"><a href="{{ route('student.results.index') }}"><i class='bx bx-radio-circle'></i>Results/Grades</a></li>
             </ul>
         </li>
         @endcan
 
         @can('access-student-attendance')
         {{-- app.js active item ko poore URL (query string samet) se match karta hai; ?month=&year= par menu band ho jata tha, isliye route se active --}}
-        <li class="{{ request()->routeIs('student.attendance.*') ? 'mm-active' : '' }}">
+        <li class="{{ request()->routeIs('student.attendance.view') ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-calendar-check"></i></div>
                 <div class="menu-title">Attendance</div>
             </a>
-            <ul class="{{ request()->routeIs('student.attendance.*') ? 'mm-show' : '' }}">
-                <li class="{{ request()->routeIs('student.attendance.view', 'student.attendance.report') ? 'mm-active' : '' }}"><a href="{{ route('student.attendance.view') }}"><i class='bx bx-radio-circle'></i>View Attendance</a></li>
+            <ul class="{{ request()->routeIs('student.attendance.view') ? 'mm-show' : '' }}">
+                <li class="{{ request()->routeIs('student.attendance.view') ? 'mm-active' : '' }}"><a href="{{ route('student.attendance.view') }}"><i class='bx bx-radio-circle'></i>View Attendance</a></li>
             </ul>
         </li>
         @endcan
@@ -76,6 +72,27 @@
             </ul>
         </li>
         @endcan
+
+        @canany(['access-student-attendance', 'access-student-academics', 'access-profile'])
+        @php $open = request()->routeIs('student.attendance.report', 'student.results.*', 'student.academic_records.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bx-file"></i></div>
+                <div class="menu-title">Reports</div>
+            </a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                @can('access-student-attendance')
+                <li class="{{ request()->routeIs('student.attendance.report') ? 'mm-active' : '' }}"><a href="{{ route('student.attendance.report') }}"><i class='bx bx-radio-circle'></i>My Attendance Report</a></li>
+                @endcan
+                @can('access-student-academics')
+                <li class="{{ request()->routeIs('student.results.*') ? 'mm-active' : '' }}"><a href="{{ route('student.results.index') }}"><i class='bx bx-radio-circle'></i>My Results</a></li>
+                @endcan
+                @can('access-profile')
+                <li class="{{ request()->routeIs('student.academic_records.*') ? 'mm-active' : '' }}"><a href="{{ route('student.academic_records.index') }}"><i class='bx bx-radio-circle'></i>Academic Records</a></li>
+                @endcan
+            </ul>
+        </li>
+        @endcanany
 
         @can('access-fee')
         <li>

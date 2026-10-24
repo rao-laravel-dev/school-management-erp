@@ -575,7 +575,8 @@ class AttendanceController extends Controller
         $startDate = $request->input('start_date', now()->subMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
-        $attendanceRecords = Attendance::where('enrollment_id', $enrollment->id)
+        $attendanceRecords = Attendance::with(['enrollment.student.parent', 'enrollment.schoolClass', 'enrollment.section', 'enrollment.group'])
+            ->where('enrollment_id', $enrollment->id)
             ->whereBetween('attendance_date', [$startDate, $endDate])
             ->latest('attendance_date')
             ->get();

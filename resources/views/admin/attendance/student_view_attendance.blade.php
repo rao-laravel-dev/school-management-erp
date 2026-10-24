@@ -74,7 +74,7 @@
                         <div class="d-flex align-items-center">
                             <div>
                                 <p class="mb-0 text-secondary small">Total Leaves</p>
-                                <h5 class="my-0 text-info fw-bold">{{ $allAttendance->where('status', 4)->count() }}</h5>
+                                <h5 class="my-0 text-info fw-bold">{{ $allAttendance->where('status', 4)->filter(fn ($r) => strcasecmp(trim((string) $r->remarks), 'Holiday') !== 0)->count() }}</h5>
                             </div>
                             <div class="widgets-icons-2 rounded-circle bg-light-info text-info ms-auto" style="width: 45px; height: 45px; line-height: 45px; text-align: center;">
                                 <i class='bx bxs-calendar-event'></i>
