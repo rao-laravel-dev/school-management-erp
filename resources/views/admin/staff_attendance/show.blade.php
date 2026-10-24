@@ -33,7 +33,7 @@
     @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => $summary['present'], 'color' => 'success'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => $summary['absent'], 'color' => 'danger'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Half Day', 'value' => $summary['half_day'], 'color' => 'info'])
-    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'warning'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'secondary'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Attendance %', 'value' => $summary['percentage'] . '%', 'color' => 'primary'])
 </div>
 
@@ -126,7 +126,7 @@
                         <td>{{ $i + 1 }}</td>
                         <td>{{ \Carbon\Carbon::parse($record->date)->format('d-m-Y') }}</td>
                         <td>
-                            <span class="badge bg-{{ ['present'=>'success','absent'=>'danger','half_day'=>'info','leave'=>'warning'][$record->status] }}">
+                            <span class="badge bg-{{ ['present'=>'success','absent'=>'danger','half_day'=>'info','leave'=>'secondary'][$record->status] }}">
                                 {{ ucfirst(str_replace('_', ' ', $record->status)) }}
                             </span>
                         </td>
@@ -166,7 +166,7 @@
                 {{ $summary['half_day'] }},
                 {{ $summary['leave'] }}
             ],
-            backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#ffc107']
+            backgroundColor: ['#198754', '#dc3545', '#0dcaf0', '#6c757d']
         }]
     };
 
@@ -225,7 +225,7 @@
             { label: 'Present', data: monthly.map(m => m.present), backgroundColor: '#198754', borderColor: '#198754' },
             { label: 'Absent', data: monthly.map(m => m.absent), backgroundColor: '#dc3545', borderColor: '#dc3545' },
             { label: 'Half Day', data: monthly.map(m => m.half_day), backgroundColor: '#0dcaf0', borderColor: '#0dcaf0' },
-            { label: 'Leave', data: monthly.map(m => m.leave), backgroundColor: '#ffc107', borderColor: '#ffc107' }
+            { label: 'Leave', data: monthly.map(m => m.leave), backgroundColor: '#6c757d', borderColor: '#6c757d' }
         ]
     };
 
@@ -291,7 +291,7 @@
             if (d.backgroundColor === '#198754') rgbaColor = 'rgba(25, 135, 84, 0.2)';
             else if (d.backgroundColor === '#dc3545') rgbaColor = 'rgba(220, 53, 69, 0.2)';
             else if (d.backgroundColor === '#0dcaf0') rgbaColor = 'rgba(13, 202, 240, 0.2)';
-            else if (d.backgroundColor === '#ffc107') rgbaColor = 'rgba(255, 193, 7, 0.2)';
+            else if (d.backgroundColor === '#6c757d') rgbaColor = 'rgba(108, 117, 125, 0.2)';
 
             return {
                 label: d.label,

@@ -19,7 +19,7 @@
     @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => $summary['present'], 'color' => 'success', 'id' => 'card-present'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => $summary['absent'], 'color' => 'danger', 'id' => 'card-absent'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Half Day', 'value' => $summary['half_day'], 'color' => 'info', 'id' => 'card-half-day'])
-    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'warning', 'id' => 'card-leave'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'secondary', 'id' => 'card-leave'])
 </div>
 
 <div class="card">
@@ -31,7 +31,7 @@
             </a>
             <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" role="switch" id="holidayToggle" {{ $isHoliday ? 'checked' : '' }}>
-                <label class="form-check-label" for="holidayToggle">Mark Today as Holiday</label>
+                <label class="form-check-label text-danger fw-bold" for="holidayToggle">Mark Today as Holiday</label>
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
                             <th>Staff Name</th>
                             <th>Role</th>
                             <th>Attendance Status</th>
-                            <th>Marked_At</th>
+                            <th>Marked At</th>
                             <th>Time Out</th>
                             <th>Remarks</th>
                         </tr>
@@ -105,22 +105,22 @@
                                     <input type="radio" class="btn-check" name="attendance[{{ $staff->id }}]"
                                         id="p_{{ $staff->id }}" value="present"
                                         {{ ($att->status ?? 'absent') == 'present' ? 'checked' : '' }}>
-                                    <label class="btn btn-sm btn-outline-success" for="p_{{ $staff->id }}">P</label>
+                                    <label class="btn btn-sm btn-outline-success" for="p_{{ $staff->id }}" title="Present">P</label>
 
                                     <input type="radio" class="btn-check" name="attendance[{{ $staff->id }}]"
                                         id="a_{{ $staff->id }}" value="absent"
                                         {{ ($att->status ?? 'absent') == 'absent' ? 'checked' : '' }}>
-                                    <label class="btn btn-sm btn-outline-danger" for="a_{{ $staff->id }}">A</label>
-
-                                    <input type="radio" class="btn-check" name="attendance[{{ $staff->id }}]"
-                                        id="l_{{ $staff->id }}" value="leave"
-                                        {{ ($att->status ?? 'absent') == 'leave' ? 'checked' : '' }}>
-                                    <label class="btn btn-sm btn-outline-warning" for="l_{{ $staff->id }}">L</label>
+                                    <label class="btn btn-sm btn-outline-danger" for="a_{{ $staff->id }}" title="Absent">A</label>
 
                                     <input type="radio" class="btn-check" name="attendance[{{ $staff->id }}]"
                                         id="hd_{{ $staff->id }}" value="half_day"
                                         {{ ($att->status ?? 'absent') == 'half_day' ? 'checked' : '' }}>
-                                    <label class="btn btn-sm btn-outline-info" for="hd_{{ $staff->id }}">HD</label>
+                                    <label class="btn btn-sm btn-outline-info" for="hd_{{ $staff->id }}" title="Half Day">HD</label>
+
+                                    <input type="radio" class="btn-check" name="attendance[{{ $staff->id }}]"
+                                        id="l_{{ $staff->id }}" value="leave"
+                                        {{ ($att->status ?? 'absent') == 'leave' ? 'checked' : '' }}>
+                                    <label class="btn btn-sm btn-outline-secondary" for="l_{{ $staff->id }}" title="Leave">LV</label>
                                 </div>
                             </td>
                             <td>
@@ -160,7 +160,7 @@
                 </div>
                 <div class="col-md-6 text-end">
                     @can('mark-staff-attendance')
-                    <button type="submit" class="btn btn-sm btn-primary px-4" id="saveAttendanceBtn">
+                    <button type="submit" class="btn btn-sm btn-success px-4" id="saveAttendanceBtn">
                         <i class='bx bx-save'></i> {{ $isEditMode ? 'Update Attendance' : 'Save Attendance' }}
                     </button>
                     @endcan
@@ -218,13 +218,19 @@
             let toggle = $(this);
 
             if (toggle.is(':checked')) {
+                let holidayDate = String($('input[name=date]').val() || '').split('-').reverse().join('-');
                 Swal.fire({
                     title: 'Confirm Holiday?',
-                    text: "Do you want to mark today's attendance as a 'Holiday'?",
+                    text: "Do you want to mark the attendance of " + holidayDate + " as a 'Holiday'?",
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
+                    // fee-assignment-swal = app.css dark mode popup + buttons gap
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'fee-assignment-swal',
+                        confirmButton: 'btn btn-danger btn-sm',
+                        cancelButton: 'btn btn-secondary btn-sm'
+                    },
                     confirmButtonText: 'Yes, Mark Holiday!'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -234,9 +240,18 @@
                         }).done(function(res) {
                             $('.btn-check').prop('disabled', true);
                             $('.btn-group label').addClass('disabled-style');
-                            Swal.fire('Done!', res.message, 'success');
+                            Swal.fire({
+                                title: 'Done!',
+                                text: res.message,
+                                icon: 'success',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'fee-assignment-swal',
+                                    confirmButton: 'btn btn-success btn-sm'
+                                }
+                            });
                         }).fail(function(xhr) {
-                            toastr.error(xhr.responseJSON?.message || 'Could not mark holiday.');
+                            toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Could not mark holiday.');
                             toggle.prop('checked', false);
                         });
                     } else {

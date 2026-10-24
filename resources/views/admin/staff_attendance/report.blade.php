@@ -18,7 +18,7 @@
     @include('admin.attendance.partials.stat_card', ['label' => 'Present', 'value' => $summary['present'], 'color' => 'success'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => $summary['absent'], 'color' => 'danger'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Half Day', 'value' => $summary['half_day'], 'color' => 'info'])
-    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'warning'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => $summary['leave'], 'color' => 'secondary'])
 </div>
 
 <div class="card">
@@ -80,7 +80,7 @@
                         </td>
                         <td>{{ $record->staff ? $record->staff->roles->pluck('name')->implode(', ') : '-' }}</td>
                         <td>
-                            <span class="badge bg-{{ ['present'=>'success','absent'=>'danger','half_day'=>'info','leave'=>'warning'][$record->status] }}">
+                            <span class="badge bg-{{ ['present'=>'success','absent'=>'danger','half_day'=>'info','leave'=>'secondary'][$record->status] }}">
                                 {{ ucfirst(str_replace('_', ' ', $record->status)) }}
                             </span>
                         </td>

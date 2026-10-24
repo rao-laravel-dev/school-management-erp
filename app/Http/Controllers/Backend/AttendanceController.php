@@ -186,7 +186,18 @@ class AttendanceController extends Controller
             'attendance_date' => 'required|date',
             'class_id'        => 'required',
             'section_id'      => 'required',
+            'status'          => 'nullable|array',
+            'status.*'        => 'in:0,1,2,3,4',
         ]);
+
+        // Leave (4) ko Holiday nahi banne dena: Holiday sirf holiday switch se (4 + remarks "Holiday")
+        if (!$request->has('is_holiday') && $request->has('status')) {
+            foreach ($request->status as $enrollment_id => $status) {
+                if ((int) $status === Attendance::STATUS_LEAVE && strcasecmp(trim((string) ($request->remarks[$enrollment_id] ?? '')), 'Holiday') === 0) {
+                    return response()->json(['status' => 'error', 'message' => 'Use the Holiday switch to mark a holiday.'], 422);
+                }
+            }
+        }
 
         // 1. Authorization Check (Naya logic)
         if (!$isAdmin) {
@@ -272,13 +283,18 @@ class AttendanceController extends Controller
             }
         });
 
+        // Redirect path: teacher = apni class ka report (us date), admin/baqi = attendance index (us date)
+        $url = auth()->user()->hasRole('teacher')
+            ? route('attendance.class_report', ['class_id' => $class_id, 'section_id' => $section_id, 'date' => $date])
+            : route('attendance.index', ['date' => $date]);
+
         // 4. Final Response
         if ($request->has('is_holiday') && $request->is_holiday == 'on') {
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Today has been marked as a Holiday!',
-                'redirect' => url()->previous()
+                'message' => \Carbon\Carbon::parse($date)->format('d-m-Y') . ' has been marked as a Holiday!',
+                'redirect' => $url
             ]);
         } else if ($request->has('status')) {
             // Check karein ke record pehle se tha ya nahi (Update vs Submit)

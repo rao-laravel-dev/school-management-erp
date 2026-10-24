@@ -20,6 +20,7 @@
     @include('admin.attendance.partials.stat_card', ['label' => 'Absent', 'value' => '0', 'color' => 'danger', 'id' => 'absent-count'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Late', 'value' => '0', 'color' => 'warning', 'id' => 'late-count'])
     @include('admin.attendance.partials.stat_card', ['label' => 'Half-Day', 'value' => '0', 'color' => 'info', 'id' => 'hd-count'])
+    @include('admin.attendance.partials.stat_card', ['label' => 'Leave', 'value' => '0', 'color' => 'secondary', 'id' => 'leave-count'])
 </div>
 
 <div class="card">
@@ -106,7 +107,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
-                    <button type="submit" class="btn btn-primary px-4">Submit Attendance</button>
+                    <button type="submit" class="btn btn-sm btn-success px-4"><i class='bx bx-save'></i> Save Attendance</button>
                 </div>
             </div>
         </form>
@@ -253,11 +254,18 @@
                     // Yahan res.is_marked use karein (Backend ke mutabiq)
                     if (res.is_marked) {
                         $('#attendance-message').removeClass('d-none');
-                        $('button[type="submit"]').text('Update Attendance').removeClass('btn-primary').addClass('btn-info');
+                        $('#attendanceForm button[type="submit"]').html("<i class='bx bx-save'></i> Update Attendance");
                     } else {
                         $('#attendance-message').addClass('d-none');
-                        $('button[type="submit"]').text('Submit Attendance').removeClass('btn-info').addClass('btn-primary');
+                        $('#attendanceForm button[type="submit"]').html("<i class='bx bx-save'></i> Save Attendance");
                     }
+
+                    // Poori class Holiday (4 + remarks "Holiday") ho to toggle checked + buttons lock, bina Swal ke
+                    let allHoliday = res.students.length > 0 && res.students.every(function(item) {
+                        let a = item.attendance && item.attendance.length > 0 ? item.attendance[0] : null;
+                        return a && a.status == 4 && String(a.remarks || '').trim().toLowerCase() === 'holiday';
+                    });
+                    $('#holidayToggle').prop('checked', allHoliday);
 
                     // 2. Previous Pending Warning (agar aapne backend se ye key bheji hai)
                     if (res.is_previous_pending) {
@@ -266,6 +274,10 @@
 
                     // 3. Render Table (res.students pass karein)
                     renderStudentTable(res.students);
+                    if (allHoliday) {
+                        $('.btn-check').prop('disabled', true);
+                        $('.btn-group label').addClass('disabled-style');
+                    }
                     updateCounters();
                 },
                 error: function(err) {
@@ -301,18 +313,21 @@
                 <td>${rollNo}</td>
                 <td>${fullName.trim()}</td>
                 <td>
-                    <div class="btn-group" role="group">
+                    <div class="btn-group btn-group-sm" role="group">
                         <input type="radio" class="btn-check" name="status[${item.id}]" id="p${item.id}" value="1" ${status == '1' ? 'checked' : ''}>
-                        <label class="btn btn-outline-success btn-sm ${status == '1' ? 'active' : ''}" for="p${item.id}">P</label>
+                        <label class="btn btn-outline-success btn-sm ${status == '1' ? 'active' : ''}" for="p${item.id}" title="Present">P</label>
 
                         <input type="radio" class="btn-check" name="status[${item.id}]" id="a${item.id}" value="0" ${status == '0' ? 'checked' : ''}>
-                        <label class="btn btn-outline-danger btn-sm ${status == '0' ? 'active' : ''}" for="a${item.id}">A</label>
-                        
+                        <label class="btn btn-outline-danger btn-sm ${status == '0' ? 'active' : ''}" for="a${item.id}" title="Absent">A</label>
+
                         <input type="radio" class="btn-check" name="status[${item.id}]" id="l${item.id}" value="2" ${status == '2' ? 'checked' : ''}>
-                        <label class="btn btn-outline-warning btn-sm ${status == '2' ? 'active' : ''}" for="l${item.id}">L</label>
+                        <label class="btn btn-outline-warning btn-sm ${status == '2' ? 'active' : ''}" for="l${item.id}" title="Late">LT</label>
 
                         <input type="radio" class="btn-check" name="status[${item.id}]" id="h${item.id}" value="3" ${status == '3' ? 'checked' : ''}>
-                        <label class="btn btn-outline-info btn-sm ${status == '3' ? 'active' : ''}" for="h${item.id}">HD</label>
+                        <label class="btn btn-outline-info btn-sm ${status == '3' ? 'active' : ''}" for="h${item.id}" title="Half Day">HD</label>
+
+                        <input type="radio" class="btn-check" name="status[${item.id}]" id="lv${item.id}" value="4" ${status == '4' ? 'checked' : ''}>
+                        <label class="btn btn-outline-secondary btn-sm ${status == '4' ? 'active' : ''}" for="lv${item.id}" title="Leave">LV</label>
                     </div>
                 </td>
                 <td>
@@ -336,6 +351,11 @@
         let aCount = $('input[name^="status"][value="0"]:checked').length;
         let lCount = $('input[name^="status"][value="2"]:checked').length;
         let hdCount = $('input[name^="status"][value="3"]:checked').length;
+        // Holiday rows (4 + remarks "Holiday") Leave mein nahi ginti jati
+        let leaveCount = $('input[name^="status"][value="4"]:checked').filter(function() {
+            let rem = $(this).closest('tr').find('input[name^="remarks"]').val();
+            return $.trim(rem || '').toLowerCase() !== 'holiday';
+        }).length;
 
         // Logic: Present = sirf status 1 (reports jaisa); Late aur Half-Day ke apne cards hain
         let totalPresent = pCount;
@@ -345,6 +365,7 @@
         $('#absent-count').text(aCount);
         $('#late-count').text(lCount);
         $('#hd-count').text(hdCount);
+        $('#leave-count').text(leaveCount);
     }
 
     // Single Event Listener to rule them all
@@ -362,21 +383,37 @@
         let toggle = $(this); // Toggle button ka reference store kiya
 
         if (toggle.is(':checked')) {
+            // Selected date d-m-Y mein (aaj ki nahi, jo date select hai wahi)
+            let holidayDate = String($('input[name="attendance_date"]').val() || '').split('-').reverse().join('-');
             // SweetAlert dikhayein
             Swal.fire({
                 title: 'Confirm Holiday?',
-                text: "Do you want to mark today's attendance as a 'Holiday'?",
+                text: "Do you want to mark the attendance of " + holidayDate + " as a 'Holiday'?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                },
                 confirmButtonText: 'Yes, Mark Holiday!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Agar user ne OK kiya
                     $('.btn-check').prop('disabled', true);
                     $('.btn-group label').addClass('disabled-style');
-                    Swal.fire('Done!', 'Holiday has been marked.', 'success');
+                    Swal.fire({
+                        title: 'Done!',
+                        text: 'Holiday selected for ' + holidayDate + '. Click Save Attendance to apply.',
+                        icon: 'success',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'fee-assignment-swal',
+                            confirmButton: 'btn btn-success btn-sm'
+                        }
+                    });
                 } else {
                     // Agar user ne Cancel kiya, toh toggle wapas off kar dein
                     toggle.prop('checked', false);
