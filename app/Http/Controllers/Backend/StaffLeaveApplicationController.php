@@ -71,9 +71,9 @@ class StaffLeaveApplicationController extends Controller
 
         // Agar admin/superadmin hai toh sab, agar staff hai toh sirf uska
         if ($this->canManageAllLeaves()) {
-            $applications = StaffLeaveApplication::with('user')->latest()->get();
+            $applications = StaffLeaveApplication::with(['user', 'approvedBy'])->latest()->get();
         } else {
-            $applications = StaffLeaveApplication::where('user_id', auth()->id())->latest()->get();
+            $applications = StaffLeaveApplication::with('approvedBy')->where('user_id', auth()->id())->latest()->get();
         }
 
         return view('admin.staffleaveapp.index', compact('applications', 'staffs'));
@@ -324,9 +324,9 @@ class StaffLeaveApplicationController extends Controller
 
         $app = StaffLeaveApplication::findOrFail($id);
 
-        // Chuna hua status: approved to approver ka id, rejected to null (rejected_by column nahi hai)
+        // Chuna hua status; approved_by = jis user ne process kiya (approved ya rejected dono)
         $app->status = $request->status;
-        $app->approved_by = $request->status === 'approved' ? auth()->id() : null;
+        $app->approved_by = auth()->id();
         $message = 'Leave ' . ucfirst($request->status) . ' successfully.';
         $app->save();
 

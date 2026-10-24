@@ -18,4 +18,9 @@ public function user()
     // 'user_id' aapke staff_leave_applications table ka column hai
     return $this->belongsTo(User::class, 'user_id')->withTrashed();
 }
+public function approvedBy()
+{
+    // Jis user ne leave approve/reject ki (staff_leave_applications.approved_by)
+    return $this->belongsTo(User::class, 'approved_by')->withTrashed();
+}
 }

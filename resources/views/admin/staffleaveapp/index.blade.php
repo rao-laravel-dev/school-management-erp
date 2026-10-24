@@ -22,7 +22,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped table-sm align-middle small" id="leaveTable">
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
@@ -33,16 +33,17 @@
                         <th>Duration</th>
                         <th>Attachment</th>
                         <th>Status</th>
+                        <th>Action By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($applications as $key => $app)
+                    @foreach($applications as $key => $app)
                     <tr>
                         <td>{{ $key + 1 }}</td>
                         <td>{{ optional($app->user)->name ?? 'User not found' }}</td>
                         <td>{{ ucfirst($app->leave_type) }}</td>
-                        <td>{{ \Carbon\Carbon::parse($app->from_date)->format('d-m-Y') }} <br> to <br> {{ \Carbon\Carbon::parse($app->to_date)->format('d-m-Y') }}</td>
+                        <td class="text-nowrap" data-order="{{ \Carbon\Carbon::parse($app->from_date)->format('Y-m-d') }}">{{ \Carbon\Carbon::parse($app->from_date)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($app->to_date)->format('d-m-Y') }}</td>
                         <td>{{ $app->total_days }}</td>
                         <td>{{ ucfirst(str_replace('_', ' ', $app->leave_duration)) }}</td>
 
@@ -74,6 +75,16 @@
                             @endcan
                         </td>
 
+                        {{-- Action By: processed row par approver + status change time (processed row edit nahi hoti) --}}
+                        <td>
+                            @if($app->status != 'pending' && $app->approvedBy)
+                            {{ $app->approvedBy->name_with_role }}
+                            <br><small class="text-muted">{{ $app->updated_at->format('d-m-Y h:i A') }}</small>
+                            @else
+                            -
+                            @endif
+                        </td>
+
                         {{-- Actions Column --}}
                         <td class="text-center">
                             {{-- Edit sirf pending par (sab roles, non-admin ko list mein sirf apni rows milti hain) --}}
@@ -94,11 +105,7 @@
                             @endif
                         </td>
                     </tr>
-                    @empty
-                    <tr>
-                        <td colspan="9" class="text-center text-muted">No leave requests found.</td>
-                    </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -215,6 +222,16 @@
             "progressBar": true,
             "preventDuplicates": true
         };
+
+        // DataTable: latest first (controller order), Action column sortable nahi
+        $('#leaveTable').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            order: [],
+            columnDefs: [{ orderable: false, targets: -1 }],
+            language: { emptyTable: "No leave requests found." }
+        });
 
         // Apply aur Edit dono isi modal se; editData null = apply mode
         const STORE_URL = "{{ route('staffleaveapp.store') }}";
