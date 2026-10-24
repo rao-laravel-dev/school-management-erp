@@ -45,9 +45,24 @@ class StaffLeaveApplicationController extends Controller
     {
         return function ($attribute, $value, $fail) use ($request) {
             if ($value !== 'full' && $request->start_date !== $request->end_date) {
-                $fail('Half day leave sirf ek din (start = end) ke liye ho sakti hai.');
+                $fail('Half day leave is allowed only for a single day (start date must equal end date).');
             }
         };
+    }
+
+    // Validation messages mein form labels ("The Staff field is required.")
+    private function leaveAttributes(): array
+    {
+        return [
+            'user_id'        => 'Staff',
+            'apply_date'     => 'Apply Date',
+            'leave_type'     => 'Leave Type',
+            'start_date'     => 'Start',
+            'end_date'       => 'End',
+            'leave_duration' => 'Duration',
+            'reason'         => 'Reason',
+            'document'       => 'Attachment',
+        ];
     }
 
     public function index()
@@ -127,12 +142,13 @@ class StaffLeaveApplicationController extends Controller
         // 1. Validation
         $request->validate([
             'user_id'    => 'required|exists:users,id',
+            'apply_date' => 'required|date',
             'leave_type' => 'required',
             'start_date' => 'required|date',
             'end_date'   => 'required|date|after_or_equal:start_date',
             'document'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'leave_duration' => ['nullable', 'in:full,first_half,second_half', $this->halfDayRule($request)],
-        ]);
+        ], [], $this->leaveAttributes());
 
         try {
             // 2. File Upload (Updated: Stores ONLY file name in DB)
@@ -226,7 +242,7 @@ class StaffLeaveApplicationController extends Controller
             'end_date'   => 'required|date|after_or_equal:start_date',
             'document'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'leave_duration' => ['nullable', 'in:full,first_half,second_half', $this->halfDayRule($request)],
-        ]);
+        ], [], $this->leaveAttributes());
 
         // Owner check try se bahar, warna 403 catch hokar 500 ban jata
         $application = StaffLeaveApplication::findOrFail($id);
@@ -302,20 +318,16 @@ class StaffLeaveApplicationController extends Controller
 
 
 
-    public function updateStatus($id)
+    public function updateStatus(Request $request, $id)
     {
+        $request->validate(['status' => 'required|in:approved,rejected']);
+
         $app = StaffLeaveApplication::findOrFail($id);
 
-        // Toggle Logic: Agar pending/rejected hai toh approve kar do, warna reject kar do
-        if ($app->status == 'pending' || $app->status == 'rejected') {
-            $app->status = 'approved';
-            $message = 'Leave Approved Successfully';
-        } else {
-            $app->status = 'rejected';
-            $message = 'Leave Rejected Successfully';
-        }
-
-        $app->approved_by = auth()->id();
+        // Chuna hua status: approved to approver ka id, rejected to null (rejected_by column nahi hai)
+        $app->status = $request->status;
+        $app->approved_by = $request->status === 'approved' ? auth()->id() : null;
+        $message = 'Leave ' . ucfirst($request->status) . ' successfully.';
         $app->save();
 
         return response()->json([
@@ -332,7 +344,7 @@ class StaffLeaveApplicationController extends Controller
 
         // Non-admin sirf apni pending leave delete kare
         if (! $this->canManageAllLeaves() && $leaveApp->status !== 'pending') {
-            return response()->json(['status' => 'error', 'message' => 'Processed application delete nahi ho sakti.'], 403);
+            return response()->json(['status' => 'error', 'message' => 'A processed application cannot be deleted.'], 403);
         }
 
         try {
@@ -354,9 +366,10 @@ class StaffLeaveApplicationController extends Controller
                 'message' => 'Leave record deleted successfully!'
             ]);
         } catch (\Exception $e) {
+            Log::error('Leave delete failed: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Could not delete the leave record. Please try again.'
             ], 500);
         }
     }

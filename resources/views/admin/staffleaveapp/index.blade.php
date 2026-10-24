@@ -42,7 +42,7 @@
                         <td>{{ $key + 1 }}</td>
                         <td>{{ optional($app->user)->name ?? 'User not found' }}</td>
                         <td>{{ ucfirst($app->leave_type) }}</td>
-                        <td>{{ $app->from_date }} <br> to <br> {{ $app->to_date }}</td>
+                        <td>{{ \Carbon\Carbon::parse($app->from_date)->format('d-m-Y') }} <br> to <br> {{ \Carbon\Carbon::parse($app->to_date)->format('d-m-Y') }}</td>
                         <td>{{ $app->total_days }}</td>
                         <td>{{ ucfirst(str_replace('_', ' ', $app->leave_duration)) }}</td>
 
@@ -62,6 +62,7 @@
                             {{-- Admin ke liye: Button jo status change kar sake --}}
                             <button type="button"
                                 class="btn btn-sm toggle-leave-status {{ $app->status == 'approved' ? 'btn-success' : ($app->status == 'rejected' ? 'btn-danger' : 'btn-warning') }}"
+                                data-status="{{ $app->status }}"
                                 data-url="{{ route('staffleaveapp.updateStatus', $app->id) }}">
                                 {{ ucfirst($app->status) }}
                             </button>
@@ -107,26 +108,26 @@
 <div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('staffleaveapp.store') }}" method="POST" id="leaveForm" enctype="multipart/form-data">
+            <form action="{{ route('staffleaveapp.store') }}" method="POST" id="leaveForm" enctype="multipart/form-data" novalidate>
                 @csrf
-                <div class="modal-header bg-primary text-white p-2">
+                <div class="modal-header bg-success text-white p-2" id="leaveModalHeader">
                     <h5 class="modal-title text-white mb-0" id="leaveModalTitle">New Leave Application</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size: 0.7rem;" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" id="leaveModalClose" data-bs-dismiss="modal" style="font-size: 0.7rem;" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="apply_date" class="form-label">Apply Date *</label>
-                            <input type="date" name="apply_date" id="apply_date" class="form-control @error('apply_date') is-invalid @enderror" value="{{ old('apply_date', date('Y-m-d')) }}">
+                            <label for="apply_date" class="small fw-bold">Apply Date *</label>
+                            <input type="date" name="apply_date" id="apply_date" class="form-control form-control-sm @error('apply_date') is-invalid @enderror" value="{{ old('apply_date', date('Y-m-d')) }}">
                             @error('apply_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Staff *</label>
+                            <label for="staff_user_id" class="small fw-bold">Staff *</label>
                             @if(auth()->user()->hasAnyRole(['admin', 'superadmin']))
                             {{-- Admin/Superadmin ke liye Select Dropdown --}}
-                            <select name="user_id" id="staff_user_id" class="form-select @error('user_id') is-invalid @enderror">
+                            <select name="user_id" id="staff_user_id" class="form-select form-select-sm @error('user_id') is-invalid @enderror">
                                 <option value="">Select Staff</option>
                                 @foreach($staffs as $s)
                                 <option value="{{ $s->id }}">{{ $s->name }} ({{ ucfirst(optional($s->roles->first())->name ?: '-') }} - {{ $s->staff_code }})</option>
@@ -134,7 +135,7 @@
                             </select>
                             @else
                             {{-- Staff ke liye Read-only Input --}}
-                            <input type="text" class="form-control" value="{{ auth()->user()->name }}" readonly>
+                            <input type="text" class="form-control form-control-sm" value="{{ auth()->user()->name }}" readonly>
                             {{-- Hidden input jisme wahi ID hai --}}
                             <input type="hidden" name="user_id" id="staff_user_id" value="{{ auth()->id() }}">
                             @endif
@@ -142,9 +143,9 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label for="leave_type" class="form-label">Leave Type *</label>
+                            <label for="leave_type" class="small fw-bold">Leave Type *</label>
                             <select name="leave_type" id="leave_type"
-                                class="form-select @error('leave_type') is-invalid @enderror" required>
+                                class="form-select form-select-sm @error('leave_type') is-invalid @enderror">
                                 <option value="">Select Staff First</option>
                             </select>
                             @error('leave_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -158,19 +159,19 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="start_date" class="form-label">Start *</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control @error('start_date') is-invalid @enderror" value="{{ old('start_date') }}">
+                            <label for="start_date" class="small fw-bold">Start *</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm @error('start_date') is-invalid @enderror" value="{{ old('start_date') }}">
                             @error('start_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="end_date" class="form-label">End *</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control @error('end_date') is-invalid @enderror" value="{{ old('end_date') }}">
+                            <label for="end_date" class="small fw-bold">End *</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm @error('end_date') is-invalid @enderror" value="{{ old('end_date') }}">
                             @error('end_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             <small id="total_days_display" class="text-success fw-bold"></small>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label">Duration:</label><br>
+                            <label class="small fw-bold">Duration:</label><br>
                             <input type="radio" name="leave_duration" id="dur1" value="full" {{ old('leave_duration', 'full') == 'full' ? 'checked' : '' }}>
                             <label for="dur1" class="me-3">Full Day</label>
 
@@ -182,22 +183,22 @@
                         </div>
 
                         <div class="col-12">
-                            <label for="reason" class="form-label">Reason</label>
-                            <textarea name="reason" id="reason" class="form-control @error('reason') is-invalid @enderror">{{ old('reason') }}</textarea>
+                            <label for="reason" class="small fw-bold">Reason (optional)</label>
+                            <textarea name="reason" id="reason" class="form-control form-control-sm @error('reason') is-invalid @enderror">{{ old('reason') }}</textarea>
                             @error('reason') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-12">
-                            <label for="document" class="form-label">Attachment</label>
-                            <input type="file" name="document" id="document" class="form-control @error('document') is-invalid @enderror">
+                            <label for="document" class="small fw-bold">Attachment (optional)</label>
+                            <input type="file" name="document" id="document" class="form-control form-control-sm @error('document') is-invalid @enderror">
                             @error('document') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="leaveSubmitBtn">Save Application</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm" id="leaveSubmitBtn"><i class='bx bx-save'></i> Save</button>
                 </div>
             </form>
         </div>
@@ -341,10 +342,13 @@
                     setTimeout(() => location.reload(), 1000);
                 },
                 error: function(xhr) {
-                    btn.prop('disabled', false).text(editData ? 'Update' : 'Save Application');
+                    btn.prop('disabled', false).html(editData ? "<i class='bx bx-save'></i> Update" : "<i class='bx bx-save'></i> Save");
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
+                        let firstMsg = '';
+                        let firstEl = null;
                         $.each(errors, function(key, value) {
+                            if (!firstMsg) firstMsg = value[0];
                             // Duration radios 3 hain, error sirf ek dafa (Second Half label ke baad)
                             if (key === 'leave_duration') {
                                 $('label[for="dur3"]').after('<div class="invalid-feedback d-block">' + value[0] + '</div>');
@@ -353,7 +357,12 @@
                             let input = form.find('[name="' + key + '"]');
                             input.addClass('is-invalid');
                             input.after('<div class="invalid-feedback d-block">' + value[0] + '</div>');
+                            if (!firstEl) firstEl = input;
                         });
+                        // Sirf pehla error toastr mein, pehli invalid field par focus
+                        toastr.clear();
+                        toastr.error($('<div>').text(firstMsg).html());
+                        if (firstEl) firstEl.trigger('focus');
                     } else {
                         // 403 (processed / not owner) ya 500 ka server message
                         toastr.error((xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) || 'Something went wrong');
@@ -362,28 +371,63 @@
             });
         });
 
-        // 7. EVENT: Toggle Status
+        // 7. EVENT: Change Status (popup: current status chhor kar baqi option + Cancel)
         $(document).on('click', '.toggle-leave-status', function() {
             let btn = $(this);
             let url = btn.data('url');
+            let current = btn.data('status');
+            let options = [
+                { value: 'approved', label: 'Approved', cls: 'btn btn-success btn-sm' },
+                { value: 'rejected', label: 'Rejected', cls: 'btn btn-danger btn-sm' }
+            ].filter(function(o) { return o.value !== current; });
+
+            let swalConfig = {
+                title: 'Change Status',
+                text: 'Select the new status for this leave application.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: options[0].label,
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: options[0].cls,
+                    cancelButton: 'btn btn-secondary btn-sm'
+                }
+            };
+            if (options.length > 1) {
+                swalConfig.showDenyButton = true;
+                swalConfig.denyButtonText = options[1].label;
+                swalConfig.customClass.denyButton = options[1].cls;
+            }
+
+            Swal.fire(swalConfig).then(function(result) {
+                if (result.isConfirmed) sendLeaveStatus(btn, url, options[0].value);
+                else if (result.isDenied) sendLeaveStatus(btn, url, options[1].value);
+            });
+        });
+
+        function sendLeaveStatus(btn, url, newStatus) {
+            // Double click se bachao: reply aane tak button disabled
+            btn.prop('disabled', true);
             $.ajax({
                 url: url,
                 type: 'POST',
-                data: { _token: "{{ csrf_token() }}" },
+                data: { status: newStatus, _token: $('meta[name="csrf-token"]').attr('content') || $('#leaveForm input[name="_token"]').val() },
                 success: function(res) {
                     toastr.success(res.message);
                     btn.removeClass('btn-success btn-danger btn-warning');
-                    if (res.status === 'approved') {
-                        btn.addClass('btn-success').text('Approved');
-                    } else if (res.status === 'rejected') {
-                        btn.addClass('btn-danger').text('Rejected');
-                    } else {
-                        btn.addClass('btn-warning').text('Pending');
-                    }
+                    btn.addClass(res.status === 'approved' ? 'btn-success' : 'btn-danger').text(res.status === 'approved' ? 'Approved' : 'Rejected');
+                    btn.data('status', res.status);
+                    // Edit/Delete buttons status par depend karte hain, is liye reload
+                    setTimeout(function() { location.reload(); }, 1500);
                 },
-                error: function(xhr) { toastr.error("Error updating status!"); }
+                error: function(xhr) {
+                    btn.prop('disabled', false);
+                    toastr.error((xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Could not update the status.');
+                }
             });
-        });
+        }
 
         // 8. Modal Trigger (Yeh ab .ready() ke andar hai)
         $('#leaveModal').on('shown.bs.modal', function() {
@@ -407,8 +451,10 @@
                     editData = res;
                     let form = $('#leaveForm');
 
-                    $('#leaveModalTitle').text('Edit Leave Application');
-                    $('#leaveSubmitBtn').text('Update');
+                    $('#leaveModalTitle').text('Edit Leave Application').removeClass('text-white');
+                    $('#leaveModalHeader').removeClass('bg-success text-white').addClass('bg-warning');
+                    $('#leaveModalClose').removeClass('btn-close-white');
+                    $('#leaveSubmitBtn').html("<i class='bx bx-save'></i> Update");
                     form.attr('action', UPDATE_URL_TPL.replace(':id', res.id));
                     // File upload ke liye POST + _method=PUT
                     form.find('input[name="_method"]').remove();
@@ -427,43 +473,63 @@
                     $('#leaveModal').modal('show');
                 })
                 .fail(function(xhr) {
-                    toastr.error((xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) || 'Leave load nahi ho saki');
+                    toastr.error((xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) || 'Could not load the leave application.');
                 });
         });
 
-        // 10. Modal band: edit mode se wapas apply mode
+        // 10. Modal band: edit mode se wapas apply mode, form hamesha poora reset
         $('#leaveModal').on('hidden.bs.modal', function() {
-            if (!editData) return;
-            editData = null;
             let form = $('#leaveForm');
 
-            $('#leaveModalTitle').text('New Leave Application');
-            $('#leaveSubmitBtn').text('Save Application');
-            form.attr('action', STORE_URL);
-            form.find('input[name="_method"]').remove();
-            $('#apply_date').prop('readonly', false);
-            $('select#staff_user_id').prop('disabled', false);
+            if (editData) {
+                editData = null;
+                $('#leaveModalTitle').text('New Leave Application').addClass('text-white');
+                $('#leaveModalHeader').removeClass('bg-warning').addClass('bg-success text-white');
+                $('#leaveModalClose').addClass('btn-close-white');
+                form.attr('action', STORE_URL);
+                form.find('input[name="_method"]').remove();
+                $('#apply_date').prop('readonly', false);
+                $('select#staff_user_id').prop('disabled', false);
+            }
+            $('#leaveSubmitBtn').prop('disabled', false).html("<i class='bx bx-save'></i> Save");
 
             form[0].reset();
             form.find('.invalid-feedback').remove();
             form.find('.is-invalid').removeClass('is-invalid');
             $('#balance_container').hide();
+            // Admin: staff reset ke baad leave types dobara khali
+            if ($('select#staff_user_id').length) {
+                $('#leave_type').html('<option value="">Select Staff First</option>');
+            }
             calcLeaveDays();
         });
 
-        // 11. EVENT: Delete (confirm ke baad)
+        // Typing/change par us field ka error saaf
+        $(document).on('input change', '#leaveForm .is-invalid', function() {
+            $(this).removeClass('is-invalid').next('.invalid-feedback').remove();
+        });
+
+        // 11. EVENT: Delete (confirm ke baad, AJAX DELETE)
         $(document).on('click', '.delete-leave-btn', function() {
-            let id = $(this).data('id');
+            let deleteBtn = $(this);
+            let id = deleteBtn.data('id');
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                },
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (!result.isConfirmed) return;
+                // Double click se bachao: reply aane tak button disabled
+                deleteBtn.prop('disabled', true);
                 $.ajax({
                     url: DESTROY_URL_TPL.replace(':id', id),
                     type: 'DELETE',
@@ -471,13 +537,13 @@
                     data: { _token: $('meta[name="csrf-token"]').attr('content') || $('#leaveForm input[name="_token"]').val() }
                 }).done(function(res) {
                     toastr.success(res.message || 'Deleted');
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => location.reload(), 3000);
                 }).fail(function(xhr) {
-                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Delete nahi ho saka');
+                    deleteBtn.prop('disabled', false);
+                    toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Could not delete the leave record.');
                 });
             });
         });
-
     }); // End of $(document).ready
 </script>
 @endpush
