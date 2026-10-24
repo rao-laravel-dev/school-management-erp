@@ -92,6 +92,6 @@
 </tr>
 @empty
 <tr>
-    <td colspan="9" class="text-center text-muted">No students registered yet.</td>
+    <td colspan="10" class="text-center text-muted">No students registered yet.</td>
 </tr>
 @endforelse

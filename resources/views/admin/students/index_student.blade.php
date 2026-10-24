@@ -254,7 +254,8 @@
                             $('#example').DataTable().clear().destroy();
                         }
 
-                        $('#student-table-body').html(res.html);
+                        // Empty result par colspan row DataTables ko tod deta hai; empty tbody do, DataTables khud "No data" dikhayega
+                        $('#student-table-body').html(res.count > 0 ? res.html : '');
 
                         $('#example').DataTable({
                             "paging": true,
