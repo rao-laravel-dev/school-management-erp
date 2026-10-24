@@ -205,6 +205,10 @@ class AttendanceController extends Controller
             $teacher = Teacher::where('user_id', $user->id)->first();
 
             if (!$teacher) {
+                // AJAX form hai: redirect ki jagah JSON error (warna toastr khali aata hai)
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Teacher profile not found.'], 422);
+                }
                 return redirect()->back()->with('error', 'Teacher profile not found.');
             }
 
@@ -215,6 +219,9 @@ class AttendanceController extends Controller
                 ->exists();
 
             if (!$isAssigned) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'You are not authorized to mark attendance for this class or section.'], 422);
+                }
                 return redirect()->back()->with('error', 'You are not authorized to mark attendance for this class or section.');
             }
         }
@@ -225,8 +232,36 @@ class AttendanceController extends Controller
                 ->where('section_id', $request->section_id)
                 ->max('attendance_date');
 
-            if ($lastAttendance && \Carbon\Carbon::parse($request->attendance_date)->diffInDays(\Carbon\Carbon::parse($lastAttendance)) > 1) {
-                return redirect()->back()->with('error', 'You cannot skip dates. Please fill previous dates first.');
+            // Sirf aage ki taraf skip block hai; purani date edit allowed. Weekly off aur calendar off-day
+            // (OffDays) gap mein ginti nahi hote: block tab jab beech ka koi working din unmarked ho
+            $gapFrom = $lastAttendance ? Carbon::parse($lastAttendance)->addDay() : null;
+            $gapTo = Carbon::parse($request->attendance_date)->subDay();
+            if ($gapFrom && $gapFrom->lte($gapTo)) {
+                $offDates = OffDays::dates($gapFrom, $gapTo);
+                $weeklyOff = OffDays::weeklyOffDays($gapTo);
+                $markedDates = Attendance::where('class_id', $request->class_id)
+                    ->where('section_id', $request->section_id)
+                    ->whereBetween('attendance_date', [$gapFrom->toDateString(), $gapTo->toDateString()])
+                    ->pluck('attendance_date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->flip();
+
+                $missing = null;
+                for ($d = $gapFrom->copy(); $d->lte($gapTo); $d->addDay()) {
+                    if (isset($offDates[$d->toDateString()]) || in_array($d->format('l'), $weeklyOff, true) || $markedDates->has($d->toDateString())) {
+                        continue;
+                    }
+                    $missing = $d->copy();
+                    break;
+                }
+
+                if ($missing) {
+                    $skipMsg = 'You cannot skip dates. Please mark attendance for ' . $missing->format('d-m-Y') . ' first.';
+                    if ($request->ajax() || $request->expectsJson()) {
+                        return response()->json(['status' => 'error', 'message' => $skipMsg], 422);
+                    }
+                    return redirect()->back()->with('error', $skipMsg);
+                }
             }
         }
 
@@ -235,6 +270,12 @@ class AttendanceController extends Controller
         $class_id = $request->class_id;
         $section_id = $request->section_id;
         $activeSessionId = $this->getActiveSessionId();
+
+        // Save se PEHLE check: is date ki attendance pehle se thi (Update) ya nayi hai (Save)
+        $alreadyExists = Attendance::where('class_id', $class_id)
+            ->where('section_id', $section_id)
+            ->where('attendance_date', $date)
+            ->exists();
 
         // 3. Database Transaction
         DB::transaction(function () use ($request, $date, $class_id, $section_id, $activeSessionId, $user) {
@@ -297,16 +338,8 @@ class AttendanceController extends Controller
                 'redirect' => $url
             ]);
         } else if ($request->has('status')) {
-            // Check karein ke record pehle se tha ya nahi (Update vs Submit)
-            $alreadyExists = Attendance::where('class_id', $class_id)
-                ->where('section_id', $section_id)
-                ->where('attendance_date', $date)
-                ->exists();
-
-            $msg = $alreadyExists ? 'Attendance updated successfully!' : 'Attendance submitted successfully!';
-
-            // Redirect path define karein
-            $url = auth()->user()->hasRole('teacher') ? route('attendance.report') : route('attendance.index');
+            // $alreadyExists upar save se pehle nikala hai (Update vs Save)
+            $msg = $alreadyExists ? 'Attendance updated successfully!' : 'Attendance saved successfully!';
 
             return response()->json([
                 'status' => 'success',

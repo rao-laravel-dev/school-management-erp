@@ -160,8 +160,14 @@
             type: "POST",
             data: formData,
             success: function(res) {
+                // Sirf JSON success maane; HTML/redirect page aaye to khali green toastr nahi, error dikhao
+                if (!res || typeof res !== 'object' || !(res.status === 'success' || res.success === true)) {
+                    toastr.error((res && res.message) || 'Attendance could not be saved. Please try again.');
+                    return;
+                }
+
                 // 1. Toastr message show karein
-                toastr.success(res.message);
+                toastr.success(res.message || 'Attendance saved successfully.');
 
                 // 2. Redirect handle karein
                 // Agar res.redirect majood hai, toh kuch dair baad redirect karein
@@ -175,7 +181,7 @@
                 }
             },
             error: function(err) {
-                toastr.error("Error saving attendance!");
+                toastr.error((err.responseJSON && err.responseJSON.message) || "Error saving attendance!");
             }
         });
     });
