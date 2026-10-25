@@ -390,8 +390,13 @@
                 text: 'This book will be permanently deleted.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
+                // fee-assignment-swal = app.css dark mode popup + buttons gap
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                },
                 confirmButtonText: 'Yes, delete it',
             }).then((result) => {
                 if (!result.isConfirmed) return;
