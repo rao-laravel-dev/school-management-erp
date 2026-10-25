@@ -282,9 +282,7 @@ return view('parent.student_details', compact(
             // photo parent_profiles.father_photo mein hoti hai (User::photo_url wahi pehle dekhta hai), users.photo mein nahi
             $profile = $user->parentProfile;
             $oldPhoto = $profile ? $profile->father_photo : $user->photo;
-            if ($oldPhoto) {
-                $imageService->delete($oldPhoto, $profile ? 'uploads/parents' : 'uploads/parent_images');
-            }
+            $oldFolder = $profile ? 'uploads/parents' : 'uploads/parent_images';
 
             $newPhoto = $imageService->upload($request->file('photo'), 'uploads/parents', 300, 300); // student edit page wala folder
 
@@ -300,6 +298,11 @@ return view('parent.student_details', compact(
                 $user->parentProfile->update(['father_photo' => $newPhoto]);
             }
         });
+
+        // Purani photo naya save hone ke BAAD delete
+        if ($newPhoto && $oldPhoto) {
+            $imageService->delete($oldPhoto, $oldFolder);
+        }
 
         // redirect back with success message
         return redirect()->back()->with([

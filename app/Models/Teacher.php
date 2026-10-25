@@ -109,9 +109,6 @@ class Teacher extends Model
         return Attribute::make(
             get: function () {
                 if ($this->photo) {
-                    if (\Storage::disk('public')->exists('teacher_images/' . $this->photo)) {
-                        return asset('storage/teacher_images/' . $this->photo);
-                    }
                     if (file_exists(public_path('uploads/teacher_images/' . $this->photo))) {
                         return asset('uploads/teacher_images/' . $this->photo);
                     }

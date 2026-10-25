@@ -235,7 +235,7 @@ class StudentController extends Controller
         $logoPath = null;
 
         if ($siteSetting->logo) {
-            $webpPath = storage_path('app/public/uploads/site_setting/' . $siteSetting->logo);
+            $webpPath = public_path('uploads/site_setting/' . $siteSetting->logo);
 
             if (file_exists($webpPath)) {
                 $tempPngPath = storage_path('app/public/temp_excel_logo.png');
@@ -295,7 +295,7 @@ class StudentController extends Controller
         $logoPath = null;
 
         if ($siteSetting->logo) {
-            $webpPath = storage_path('app/public/uploads/site_setting/' . $siteSetting->logo);
+            $webpPath = public_path('uploads/site_setting/' . $siteSetting->logo);
 
             if (file_exists($webpPath)) {
                 // dompdf WebP reliably render nahi karta — temp PNG banate hain
@@ -953,6 +953,11 @@ class StudentController extends Controller
                 }
             }
 
+            // Purani files naya save hone ke BAAD delete hongi (commit ke baad, jo naye record mein use nahi ho rahi)
+            $oldParentPhotos = [$parentProfile->father_photo, $parentProfile->mother_photo, $parentProfile->guardian_photo];
+            $oldCnicFiles = [$parentProfile->father_cnic_front, $parentProfile->father_cnic_back, $parentProfile->mother_cnic_front, $parentProfile->mother_cnic_back];
+            $oldStudentPhoto = $student->photo;
+
             // Document Processing Streams with structural preservation layout
             $fatherPhoto = $parentProfile->father_photo;
             if ($request->hasFile('father_photo')) {
@@ -1066,6 +1071,20 @@ class StudentController extends Controller
             }
 
             DB::commit();
+
+            foreach (array_unique(array_filter($oldParentPhotos)) as $oldFile) {
+                if (!in_array($oldFile, [$fatherPhoto, $motherPhoto, $guardianPhoto], true)) {
+                    $this->imageService->delete($oldFile, 'uploads/parents');
+                }
+            }
+            foreach (array_unique(array_filter($oldCnicFiles)) as $oldFile) {
+                if (!in_array($oldFile, [$fCnicFront, $fCnicBack, $mCnicFront, $mCnicBack], true)) {
+                    $this->imageService->delete($oldFile, 'uploads/documents');
+                }
+            }
+            if ($oldStudentPhoto && $oldStudentPhoto !== $studentPhoto) {
+                $this->imageService->delete($oldStudentPhoto, 'uploads/students');
+            }
 
             return redirect()->route('students.index')
                 ->with('toastr-success', 'Records updated successfully!');
@@ -1238,9 +1257,7 @@ class StudentController extends Controller
             }
 
             // 3. File cleanup (Student ki profile photo)
-            if ($student->photo && file_exists(public_path('uploads/students/' . $student->photo))) {
-                unlink(public_path('uploads/students/' . $student->photo));
-            }
+            $this->imageService->delete($student->photo, 'uploads/students');
 
             // 4. Student permanently delete karein
             $student->forceDelete();

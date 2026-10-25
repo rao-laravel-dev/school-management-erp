@@ -259,15 +259,9 @@ class AccountantController extends Controller
 
             // B. Handle Photo
             $photoName = $accountant->photo;
+            $oldPhoto = null;
             if ($request->hasFile('photo')) {
-                // Purani photo delete karein agar exist karti ho
-                if ($photoName && file_exists(public_path('uploads/accountant_images/' . $photoName))) {
-                    unlink(public_path('uploads/accountant_images/' . $photoName));
-                }
-                // Purani photo storage disk se bhi delete (store ImageService se wahin save karta hai)
-                if ($photoName) {
-                    $this->imageService->delete($photoName, 'uploads/accountant_images');
-                }
+                $oldPhoto = $photoName; // naya save + commit ke BAAD delete
                 $photoName = $this->imageService->upload($request->file('photo'), 'uploads/accountant_images', 300, 300);
             }
 
@@ -320,6 +314,11 @@ class AccountantController extends Controller
             );
 
             DB::commit();
+
+            if ($oldPhoto) {
+                $this->imageService->delete($oldPhoto, 'uploads/accountant_images');
+            }
+
             // AJAX ko JSON chahiye (redirect follow hoke fake success dikhata tha)
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'message' => 'Accountant updated successfully!']);

@@ -68,10 +68,8 @@ class SuperAdminController extends Controller
     // check if new image uploaded
     if ($request->hasFile('photo')) {
 
-        // old image delete (safe path)
-        if ($user->photo) {
-            $imageService->delete($user->photo, 'uploads/superadmin_images');
-        }
+        // purani photo naya save hone ke BAAD delete hogi
+        $oldPhoto = $user->photo;
 
         // upload new image via service
         $data['photo'] = $imageService->upload(
@@ -84,6 +82,10 @@ class SuperAdminController extends Controller
 
     // update user record
     $user->update($data);
+
+    if (!empty($oldPhoto)) {
+        $imageService->delete($oldPhoto, 'uploads/superadmin_images');
+    }
 
     // redirect back with success message
     return redirect()->back()->with([

@@ -10,10 +10,17 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use App\Services\ImageService;
 
 class ComplaintController extends Controller
 {
+    protected ImageService $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     /**
      * Display a listing of the complaints.
      */
@@ -84,13 +91,13 @@ class ComplaintController extends Controller
             'email'             => 'nullable|email|max:255',
             'description'       => 'required|string',
             'assigned_to'       => 'nullable|exists:users,id',
-            'document'          => 'nullable|file|max:5120',
+            'document'          => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx|max:5120',
         ], [], $this->attributeNames());
 
         try {
             $documentPath = null;
             if ($request->hasFile('document')) {
-                $documentPath = $request->file('document')->store('complaints', 'public');
+                $documentPath = $this->imageService->uploadFile($request->file('document'), 'complaints'); // DB mein sirf file name
             }
 
             Complaint::create([
@@ -147,14 +154,14 @@ class ComplaintController extends Controller
             'action_taken'      => 'nullable|string',
             'status'            => 'required|in:pending,in_progress,resolved',
             'assigned_to'       => 'nullable|exists:users,id',
-            'document'          => 'nullable|file|max:5120',
+            'document'          => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx|max:5120',
         ], [], $this->attributeNames());
 
         try {
             $oldDocument = $complain->document;
             $documentPath = $oldDocument;
             if ($request->hasFile('document')) {
-                $documentPath = $request->file('document')->store('complaints', 'public');
+                $documentPath = $this->imageService->uploadFile($request->file('document'), 'complaints'); // DB mein sirf file name
             }
 
             $complain->update([
@@ -174,7 +181,7 @@ class ComplaintController extends Controller
 
             // Naya file save hone ke BAAD purani file storage se hatao
             if ($oldDocument && $documentPath !== $oldDocument) {
-                Storage::disk('public')->delete($oldDocument);
+                $this->imageService->delete($oldDocument, 'complaints');
             }
 
             return redirect()->route('complain.index')->with('success', 'Complaint updated successfully!');
@@ -217,7 +224,7 @@ class ComplaintController extends Controller
 
             // Row delete hone ke baad attachment file bhi hatao (orphan na rahe)
             if ($document) {
-                Storage::disk('public')->delete($document);
+                $this->imageService->delete($document, 'complaints');
             }
 
             // AJAX DELETE: JSON reply, page JS toastr + reload karta hai

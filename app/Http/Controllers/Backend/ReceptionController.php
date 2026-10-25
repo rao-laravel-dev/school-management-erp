@@ -275,15 +275,9 @@ class ReceptionController extends Controller
 
         // Standard Laravel Photo Upload Handle
         $photoName = $receptionist->photo; // Purani photo backup
+        $oldPhoto = null;
         if ($request->hasFile('photo')) {
-            // Agar purani photo file folder me exist karti ho to delete karna
-            if ($receptionist->photo && file_exists(public_path('uploads/receptionist_images/' . $receptionist->photo))) {
-                @unlink(public_path('uploads/receptionist_images/' . $receptionist->photo));
-            }
-            // Store wala pattern: purani photo storage disk se bhi delete, nayi ImageService se (store ke same folder mein)
-            if ($receptionist->photo) {
-                $this->imageService->delete($receptionist->photo, 'uploads/receptionist_images');
-            }
+            $oldPhoto = $receptionist->photo; // naya save hone ke BAAD delete
 
             $photoName = $this->imageService->upload($request->file('photo'), 'uploads/receptionist_images', 300, 300);
         }
@@ -348,6 +342,10 @@ class ReceptionController extends Controller
                 'advance_balance' => 0,
             ]
             );
+
+        if ($oldPhoto) {
+            $this->imageService->delete($oldPhoto, 'uploads/receptionist_images');
+        }
 
         return redirect()->route('receptionist.index')->with('toastr-success', 'Receptionist Profile Updated Successfully!');
     }
@@ -445,8 +443,11 @@ public function RestoreReceptionist($id)
 public function ForceDeleteReceptionist($id)
 {
     $receptionist = Receptionist::withTrashed()->find($id);
-    // Physical file delete logic yahan aayega (unlink...)
     $receptionist->forceDelete();
+    // Permanent delete par hi photo file delete hoti hai (trash mein file rehti hai)
+    if ($receptionist->photo) {
+        $this->imageService->delete($receptionist->photo, 'uploads/receptionist_images');
+    }
     return redirect()->back()->with('message', 'Receptionist permanently removed!')->with('alert-type', 'success');
 }
 }

@@ -271,10 +271,9 @@ class TeachersController extends Controller
             $user->update($userData);
 
             $photoName = $teacher->photo;
+            $oldPhoto = null;
             if ($request->hasFile('photo')) {
-                if ($teacher->photo) {
-                    $this->imageService->delete($teacher->photo, 'teacher_images');
-                }
+                $oldPhoto = $teacher->photo; // naya save + commit ke BAAD delete
                 $photoName = $this->imageService->upload($request->file('photo'), 'teacher_images', 300, 300);
             }
 
@@ -323,6 +322,11 @@ class TeachersController extends Controller
             );
 
             DB::commit();
+
+            if ($oldPhoto) {
+                $this->imageService->delete($oldPhoto, 'teacher_images');
+            }
+
             return redirect()->route('teacher.index')->with('toastr-success', 'Teacher updated successfully!');
         } catch (\Exception $e) {
             DB::rollBack();

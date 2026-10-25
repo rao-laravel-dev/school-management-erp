@@ -6,11 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\BookCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use App\Services\ImageService;
 use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
+    protected ImageService $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     public function index()
     {
         $books = Book::with('category')->latest()->get();
@@ -24,7 +31,7 @@ class BookController extends Controller
         $book = Book::with('category')->findOrFail($id);
 
         // Image ka URL generate karna taake frontend par preview theek se dikhe
-        $book->cover_url = $book->cover_image ? asset('storage/' . $book->cover_image) : null;
+        $book->cover_url = $book->cover_image ? asset('uploads/book_covers/' . $book->cover_image) : null;
 
         return response()->json(['book' => $book]);
     }
@@ -52,31 +59,8 @@ class BookController extends Controller
     $data['status'] = 1;
 
     if ($request->hasFile('cover_image')) {
-
-        $image = $request->file('cover_image');
-
-        $destinationPath = public_path('uploads/book_covers');
-
-        if (!file_exists($destinationPath)) {
-            mkdir($destinationPath, 0755, true);
-        }
-
-        $fileName = time() . '_' . uniqid() . '.webp';
-        $filePath = $destinationPath . '/' . $fileName;
-
-        $img = imagecreatefromstring(file_get_contents($image->getRealPath()));
-
-        if (!$img) {
-            return response()->json([
-                'message' => 'Invalid image file.'
-            ], 422);
-        }
-
-        imagewebp($img, $filePath, 80);
-        imagedestroy($img);
-
         // DB me sirf filename save hoga
-        $data['cover_image'] = $fileName;
+        $data['cover_image'] = $this->imageService->upload($request->file('cover_image'), 'book_covers', 400, 600, 80);
     }
 
     Book::create($data);
@@ -113,40 +97,20 @@ class BookController extends Controller
     $issuedCount = $book->total_copies - $book->available_copies;
     $data['available_copies'] = max(0, $data['total_copies'] - $issuedCount);
 
+    $oldCover = null;
     if ($request->hasFile('cover_image')) {
-
-        // Delete old image
-        if ($book->cover_image && file_exists(public_path('uploads/book_covers/' . $book->cover_image))) {
-            unlink(public_path('uploads/book_covers/' . $book->cover_image));
-        }
-
-        $image = $request->file('cover_image');
-
-        $destinationPath = public_path('uploads/book_covers');
-
-        if (!file_exists($destinationPath)) {
-            mkdir($destinationPath, 0755, true);
-        }
-
-        $fileName = time() . '_' . uniqid() . '.webp';
-        $filePath = $destinationPath . '/' . $fileName;
-
-        $img = imagecreatefromstring(file_get_contents($image->getRealPath()));
-
-        if (!$img) {
-            return response()->json([
-                'message' => 'Invalid image file.'
-            ], 422);
-        }
-
-        imagewebp($img, $filePath, 80);
-        imagedestroy($img);
+        $oldCover = $book->cover_image;
 
         // DB me sirf filename save hoga
-        $data['cover_image'] = $fileName;
+        $data['cover_image'] = $this->imageService->upload($request->file('cover_image'), 'book_covers', 400, 600, 80);
     }
 
     $book->update($data);
+
+    // Naya cover save hone ke BAAD purana delete
+    if ($oldCover) {
+        $this->imageService->delete($oldCover, 'book_covers');
+    }
 
     return response()->json([
         'message' => 'Book updated successfully.'
@@ -188,7 +152,7 @@ class BookController extends Controller
         }
 
         if ($book->cover_image) {
-            Storage::disk('public')->delete($book->cover_image);
+            $this->imageService->delete($book->cover_image, 'book_covers');
         }
 
         $book->delete();

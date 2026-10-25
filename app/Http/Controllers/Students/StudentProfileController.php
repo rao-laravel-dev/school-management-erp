@@ -128,9 +128,6 @@ class StudentProfileController extends Controller
         if ($request->hasFile('photo')) {
             // admin ki upload ki hui photo sirf students.photo mein hoti hai, isliye pehle wahi dekho
             $oldPhoto = $user->studentProfile ? $user->studentProfile->photo : $user->photo;
-            if ($oldPhoto) {
-                $imageService->delete($oldPhoto, 'uploads/students');
-            }
 
             $data['photo'] = $imageService->upload(
                 $request->file('photo'),
@@ -147,6 +144,11 @@ class StudentProfileController extends Controller
                 $user->studentProfile->update(['photo' => $data['photo']]);
             }
         });
+
+        // Purani photo naya save hone ke BAAD delete
+        if (!empty($oldPhoto)) {
+            $imageService->delete($oldPhoto, 'uploads/students');
+        }
 
         return redirect()->back()->with([
             'message' => 'Student Profile Updated Successfully',

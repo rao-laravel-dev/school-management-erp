@@ -9,10 +9,17 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use App\Services\ImageService;
 
 class StaffLeaveApplicationController extends Controller
 {
+    protected ImageService $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     private function getLeaveData()
     {
         // Ab yahan sirf staffs fetch karein, leaveSettings ki zaroorat nahi
@@ -154,16 +161,9 @@ class StaffLeaveApplicationController extends Controller
             // 2. File Upload (Updated: Stores ONLY file name in DB)
             $filePath = null;
             if ($request->hasFile('document')) {
-                $file = $request->file('document');
-
-                // hashName() se unique naam generate hoga bina folder path ke (e.g., abc123xyz.jpg)
-                $fileName = $file->hashName();
-
-                // File physically 'public/storage/leave_documents/' folder mein save hogi
-                $file->storeAs('leave_documents', $fileName, 'public');
-
+                // File physically 'public/uploads/leave_documents/' folder mein save hogi (uniqid_time.ext)
                 // DB table ke column ke liye sirf file ka naam set hoga
-                $filePath = $fileName;
+                $filePath = $this->imageService->uploadFile($request->file('document'), 'leave_documents');
             }
 
             // 3. Calculation
@@ -256,17 +256,13 @@ class StaffLeaveApplicationController extends Controller
 
             // 2. File Handling
             $filePath = $application->document; // Purani file ka naam
+            $oldDocument = null;
             if ($request->hasFile('document')) {
-                // Agar purani file exist karti hai to delete karein
-                if ($filePath && Storage::disk('public')->exists('leave_documents/' . $filePath)) {
-                    Storage::disk('public')->delete('leave_documents/' . $filePath);
-                }
+                // Purani file naya save hone ke BAAD delete hogi
+                $oldDocument = $filePath;
 
                 // Nayi file store karein
-                $file = $request->file('document');
-                $fileName = $file->hashName();
-                $file->storeAs('leave_documents', $fileName, 'public');
-                $filePath = $fileName;
+                $filePath = $this->imageService->uploadFile($request->file('document'), 'leave_documents');
             }
 
             // 3. Calculation
@@ -288,6 +284,10 @@ class StaffLeaveApplicationController extends Controller
                 'document'       => $filePath,
             ]);
 
+            if ($oldDocument) {
+                $this->imageService->delete($oldDocument, 'leave_documents');
+            }
+
             return response()->json(['success' => 'Application updated successfully!']);
         } catch (Exception $e) {
             // Asal error log mein, user ko generic message
@@ -307,10 +307,10 @@ class StaffLeaveApplicationController extends Controller
         }
 
         // File ka path check karein
-        $filePath = 'leave_documents/' . $leave->document;
+        $filePath = ImageService::path($leave->document, 'leave_documents');
 
-        if (Storage::disk('public')->exists($filePath)) {
-            return response()->file(storage_path('app/public/' . $filePath));
+        if ($filePath) {
+            return response()->file($filePath);
         }
 
         return back()->with('error', 'File does not exist on server.');
@@ -348,18 +348,13 @@ class StaffLeaveApplicationController extends Controller
         }
 
         try {
-            // 1. Storage se file delete karna (Agar document exist karta hai)
-            if ($leaveApp->document) {
-                // Check karein ke path mein folder name hai ya nahi (Hamara purana vs naya logic)
-                $exists = Storage::disk('public')->exists('leave_documents/' . $leaveApp->document);
-
-                if ($exists) {
-                    Storage::disk('public')->delete('leave_documents/' . $leaveApp->document);
-                }
-            }
-
-            // 2. Database se record delete karna
+            // 1. Database se record delete karna
             $leaveApp->delete();
+
+            // 2. Record delete hone ke baad file delete karna (Agar document exist karta hai)
+            if ($leaveApp->document) {
+                $this->imageService->delete($leaveApp->document, 'leave_documents');
+            }
 
             return response()->json([
                 'status' => 'success',

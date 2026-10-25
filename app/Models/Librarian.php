@@ -65,9 +65,6 @@ class Librarian extends Model
         return Attribute::make(
             get: function () {
                 if ($this->photo) {
-                    if (\Storage::disk('public')->exists('uploads/librarian_images/' . $this->photo)) {
-                        return asset('storage/uploads/librarian_images/' . $this->photo);
-                    }
                     if (file_exists(public_path('uploads/librarian_images/' . $this->photo))) {
                         return asset('uploads/librarian_images/' . $this->photo);
                     }

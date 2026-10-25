@@ -127,9 +127,6 @@ class ParentProfile extends Model
         if ($filename) {
             $dirs = ['uploads/parents', 'uploads/parent_images', 'uploads/students', 'parents', 'students'];
             foreach ($dirs as $dir) {
-                if (\Storage::disk('public')->exists($dir . '/' . $filename)) {
-                    return asset('storage/' . $dir . '/' . $filename);
-                }
                 if (file_exists(public_path($dir . '/' . $filename))) {
                     return asset($dir . '/' . $filename);
                 }

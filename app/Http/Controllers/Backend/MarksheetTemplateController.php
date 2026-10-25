@@ -136,14 +136,19 @@ class MarksheetTemplateController extends Controller
 
         $data = array_merge($data, $this->toggleFields($request));
 
+        $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         foreach ($this->imageDimensions() as $field => [$width, $height]) {
             if ($request->hasFile($field)) {
-                $this->imageService->delete($template->$field, $this->folder);
+                $oldFiles[] = $template->$field;
                 $data[$field] = $this->imageService->upload($request->file($field), $this->folder, $width, $height);
             }
         }
 
         $template->update($data);
+
+        foreach ($oldFiles as $oldFile) {
+            $this->imageService->delete($oldFile, $this->folder);
+        }
 
         return response()->json([
             'status' => 'success',

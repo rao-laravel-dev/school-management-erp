@@ -87,20 +87,25 @@ class IdCardTemplateController extends Controller
             $data[$toggle] = $request->boolean($toggle);
         }
 
+        $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         if ($request->hasFile('background_image')) {
-            $this->imageService->delete($template->background_image, $this->folder);
+            $oldFiles[] = $template->background_image;
             $data['background_image'] = $this->imageService->upload($request->file('background_image'), $this->folder, 600, 400);
         }
         if ($request->hasFile('logo')) {
-            $this->imageService->delete($template->logo, $this->folder);
+            $oldFiles[] = $template->logo;
             $data['logo'] = $this->imageService->upload($request->file('logo'), $this->folder, 200, 200);
         }
         if ($request->hasFile('signature')) {
-            $this->imageService->delete($template->signature, $this->folder);
+            $oldFiles[] = $template->signature;
             $data['signature'] = $this->imageService->upload($request->file('signature'), $this->folder, 300, 150);
         }
 
         $template->update($data);
+
+        foreach ($oldFiles as $oldFile) {
+            $this->imageService->delete($oldFile, $this->folder);
+        }
 
         return redirect()->route('id_card_template.index')->with('toastr-success', 'ID Card Template updated successfully.');
     }

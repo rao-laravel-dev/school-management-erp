@@ -83,10 +83,6 @@ class AccountantProfileController extends Controller
         // photo accountants table mein hoti hai (User::photo_url wahi pehle dekhta hai), users.photo mein nahi
         $profile = $user->accountant;
         $oldPhoto = $profile ? $profile->photo : $user->photo;
-        if ($oldPhoto) {
-            $imageService->delete($oldPhoto, 'uploads/accountant_images');
-        }
-
         $newPhoto = $imageService->upload($request->file('photo'), 'uploads/accountant_images', 300, 300);
 
         if (!$profile) {
@@ -101,6 +97,11 @@ class AccountantProfileController extends Controller
             $user->accountant->update(['photo' => $newPhoto]);
         }
     });
+
+    // Purani photo naya save hone ke BAAD delete
+    if ($newPhoto && $oldPhoto) {
+        $imageService->delete($oldPhoto, 'uploads/accountant_images');
+    }
 
     // redirect back with success message
     return redirect()->back()->with([

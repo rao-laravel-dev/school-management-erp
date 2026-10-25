@@ -59,9 +59,6 @@ class Receptionist extends Model
             get: function () {
                 if ($this->photo) {
                     foreach (['uploads/receptionist_images', 'uploads/reception_images', 'uploads/receptionists'] as $folder) {
-                        if (\Storage::disk('public')->exists($folder . '/' . $this->photo)) {
-                            return asset('storage/' . $folder . '/' . $this->photo);
-                        }
                         if (file_exists(public_path($folder . '/' . $this->photo))) {
                             return asset($folder . '/' . $this->photo);
                         }

@@ -182,12 +182,13 @@ class TeacherProfileController extends Controller
             'gender'  => $request->gender,
         ]);
         if ($request->hasFile('photo')) {
-            if ($teacher->photo) {
-                $imageService->delete($teacher->photo, 'teacher_images');
-            }
+            $oldPhoto = $teacher->photo; // naya save hone ke BAAD delete
             $teacher->update([
                 'photo' => $imageService->upload($request->file('photo'), 'teacher_images', 300, 300),
             ]);
+            if ($oldPhoto) {
+                $imageService->delete($oldPhoto, 'teacher_images');
+            }
         }
         return redirect()->back()->with('toastr-success', 'Teacher Profile Updated Successfully');
     }

@@ -68,7 +68,7 @@
                 @if($template->header_image)
                     <img class="header-img" src="{{ $template->imageUrl('header_image') }}">
                 @elseif($siteSetting?->logo)
-                    <img class="header-img" src="{{ asset('uploads/site_settings/' . $siteSetting->logo) }}">
+                    <img class="header-img" src="{{ asset('uploads/site_setting/' . $siteSetting->logo) }}">
                 @endif
                 <p class="school-name">{{ $siteSetting->school_name ?? '' }}</p>
                 <p class="school-meta">

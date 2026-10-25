@@ -231,9 +231,6 @@ class User extends Authenticatable
             ][$role] ?? ['uploads/' . $role . '_images'];
 
             foreach ($folders as $folder) {
-                if (\Storage::disk('public')->exists($folder . '/' . $photo)) {
-                    return asset('storage/' . $folder . '/' . $photo);
-                }
                 if (file_exists(public_path($folder . '/' . $photo))) {
                     return asset($folder . '/' . $photo);
                 }

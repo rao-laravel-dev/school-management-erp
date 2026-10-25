@@ -347,7 +347,7 @@
                                     <label class="form-label" for="father_cnic_front">Father CNIC Front</label>
                                     <div class="d-flex gap-2">
                                         <input type="file" name="father_cnic_front" id="father_cnic_front" class="form-control form-control-sm @error('father_cnic_front') is-invalid @enderror" accept="image/*">
-                                        <img id="father_cnic_front_preview" src="{{ !empty($student->parent->father_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                        <img id="father_cnic_front_preview" src="{{ !empty($student->parent->father_cnic_front) ? asset('uploads/documents/'.$student->parent->father_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                                     </div>
                                     @error('father_cnic_front') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
@@ -355,7 +355,7 @@
                                     <label class="form-label" for="father_cnic_back">Father CNIC Back</label>
                                     <div class="d-flex gap-2">
                                         <input type="file" name="father_cnic_back" id="father_cnic_back" class="form-control form-control-sm @error('father_cnic_back') is-invalid @enderror" accept="image/*">
-                                        <img id="father_cnic_back_preview" src="{{ !empty($student->parent->father_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->father_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                        <img id="father_cnic_back_preview" src="{{ !empty($student->parent->father_cnic_back) ? asset('uploads/documents/'.$student->parent->father_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                                     </div>
                                     @error('father_cnic_back') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
@@ -369,7 +369,7 @@
                                     <label class="form-label" for="mother_cnic_front">Mother CNIC Front</label>
                                     <div class="d-flex gap-2">
                                         <input type="file" name="mother_cnic_front" id="mother_cnic_front" class="form-control form-control-sm @error('mother_cnic_front') is-invalid @enderror" accept="image/*">
-                                        <img id="mother_cnic_front_preview" src="{{ !empty($student->parent->mother_cnic_front) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                        <img id="mother_cnic_front_preview" src="{{ !empty($student->parent->mother_cnic_front) ? asset('uploads/documents/'.$student->parent->mother_cnic_front) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                                     </div>
                                     @error('mother_cnic_front') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
@@ -377,7 +377,7 @@
                                     <label class="form-label" for="mother_cnic_back">Mother CNIC Back</label>
                                     <div class="d-flex gap-2">
                                         <input type="file" name="mother_cnic_back" id="mother_cnic_back" class="form-control form-control-sm @error('mother_cnic_back') is-invalid @enderror" accept="image/*">
-                                        <img id="mother_cnic_back_preview" src="{{ !empty($student->parent->mother_cnic_back) ? asset('storage/uploads/documents/'.$student->parent->mother_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
+                                        <img id="mother_cnic_back_preview" src="{{ !empty($student->parent->mother_cnic_back) ? asset('uploads/documents/'.$student->parent->mother_cnic_back) : asset('uploads/no_image.jpg') }}" style="width:38px; height:38px; object-fit:cover" class="border rounded">
                                     </div>
                                     @error('mother_cnic_back') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>

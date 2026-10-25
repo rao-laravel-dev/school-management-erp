@@ -52,7 +52,7 @@ class ReportCardTemplate extends Model
             return asset('uploads/report_card_template/' . $file);
         }
 
-        return asset('storage/uploads/report_card_template/' . $file);
+        return asset('uploads/report_card_template/' . $file);
     }
 
 }

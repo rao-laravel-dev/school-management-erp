@@ -182,7 +182,7 @@
                             <label class="form-label fw-semibold" for="edit_document_{{ $complain->id }}">Attachment</label>
                             @if($complain->document)
                             <div class="mb-2">
-                                <a href="{{ asset('storage/'.$complain->document) }}" target="_blank" class="text-primary">
+                                <a href="{{ asset('uploads/complaints/'.basename($complain->document)) }}" target="_blank" class="text-primary">
                                     <i class="bx bx-file"></i> View current file
                                 </a>
                             </div>
@@ -264,7 +264,7 @@
 
                         @if($complain->document)
                         <p class="mb-1"><strong>Attachment:</strong></p>
-                        <p><a href="{{ asset('storage/'.$complain->document) }}" target="_blank" class="text-primary"><i class="bx bx-file"></i> View file</a></p>
+                        <p><a href="{{ asset('uploads/complaints/'.basename($complain->document)) }}" target="_blank" class="text-primary"><i class="bx bx-file"></i> View file</a></p>
                         @endif
                     </div>
                 </div>

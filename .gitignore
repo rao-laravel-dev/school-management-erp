@@ -45,4 +45,9 @@ Thumbs.db
 # Seeder with demo passwords (local only)
 /database/seeders/UserSeeder.php
 # User uploads (never in git)
-/public/uploads/
+/public/uploads/*
+# Static app assets + upload-folder script guard stay tracked
+!/public/uploads/.htaccess
+!/public/uploads/no_image.jpg
+!/public/uploads/id-card-images/
+!/public/uploads/images/

@@ -34,7 +34,7 @@
         <div class="kiosk-header">
             <div class="kiosk-logo-box">
                 @if(!empty($siteSetting->logo))
-                <img src="{{ asset($siteSetting->logo) }}" alt="logo" class="kiosk-logo-img">
+                <img src="{{ asset('uploads/site_setting/' . $siteSetting->logo) }}" alt="logo" class="kiosk-logo-img">
                 @endif
                 <h1 class="kiosk-school-name">{{ $siteSetting->school_name ?? 'School System' }}</h1>
             </div>

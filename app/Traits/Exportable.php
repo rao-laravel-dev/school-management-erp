@@ -22,7 +22,7 @@ trait Exportable
             return null;
         }
 
-        $source = storage_path('app/public/uploads/site_setting/' . $siteSetting->logo);
+        $source = public_path('uploads/site_setting/' . $siteSetting->logo);
 
         if (!file_exists($source)) {
             return null;

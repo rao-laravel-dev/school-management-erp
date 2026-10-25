@@ -160,10 +160,6 @@ class ReceptionistProfileController extends Controller
         // photo receptionists table mein hoti hai (User::photo_url wahi pehle dekhta hai), users.photo mein nahi
         $profile = $user->receptionist;
         $oldPhoto = $profile ? $profile->photo : $user->photo;
-        if ($oldPhoto) {
-            $imageService->delete($oldPhoto, 'uploads/receptionist_images');
-        }
-
         $newPhoto = $imageService->upload($request->file('photo'), 'uploads/receptionist_images', 300, 300);
 
         if (!$profile) {
@@ -178,6 +174,11 @@ class ReceptionistProfileController extends Controller
             $user->receptionist->update(['photo' => $newPhoto]);
         }
     });
+
+    // Purani photo naya save hone ke BAAD delete
+    if ($newPhoto && $oldPhoto) {
+        $imageService->delete($oldPhoto, 'uploads/receptionist_images');
+    }
 
     // redirect back with success message
     return redirect()->back()->with([

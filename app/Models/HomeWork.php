@@ -30,16 +30,14 @@ class HomeWork extends Model
         'status'        => 'integer',
     ];
 
-    // Images are saved on the public disk (storage/app/public) by ImageService; other files go to public/uploads
+    // DB mein path 'uploads/homework/<name>' hai; images aur documents dono public/uploads mein hain
     public function getAttachmentUrlAttribute(): ?string
     {
         if (!$this->attachment) {
             return null;
         }
 
-        return Storage::disk('public')->exists($this->attachment)
-            ? asset('storage/' . $this->attachment)
-            : asset($this->attachment);
+        return asset($this->attachment);
     }
 
     public function class()

@@ -274,9 +274,10 @@ class TeacherLessonPlanController extends Controller
             'presentation' => 'nullable|string',
         ]);
 
+        $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         if ($request->hasFile('attachment')) {
             if ($lessonPlan->attachment) {
-                $this->imageService->delete($lessonPlan->attachment, 'uploads/lesson_plan');
+                $oldFiles[] = $lessonPlan->attachment;
             }
             $file = $request->file('attachment');
             if (str_starts_with($file->getMimeType(), 'image/')) {
@@ -288,12 +289,16 @@ class TeacherLessonPlanController extends Controller
 
         if ($request->hasFile('lecture_video')) {
             if ($lessonPlan->lecture_video) {
-                $this->imageService->delete($lessonPlan->lecture_video, 'uploads/lesson_plan');
+                $oldFiles[] = $lessonPlan->lecture_video;
             }
             $validated['lecture_video'] = $this->moveFile($request->file('lecture_video'), 'lesson_plan');
         }
 
         $lessonPlan->update($validated);
+
+        foreach ($oldFiles as $oldFile) {
+            $this->imageService->delete($oldFile, 'uploads/lesson_plan');
+        }
 
         if (!empty($validated['topic_id'])) {
             Topic::where('id', $validated['topic_id'])->update([
@@ -383,13 +388,8 @@ class TeacherLessonPlanController extends Controller
 
     private function moveFile($file, $folder)
     {
-        $path = public_path("uploads/{$folder}");
-        if (!file_exists($path)) {
-            mkdir($path, 0755, true);
-        }
-        $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $file->move($path, $filename);
-        return $filename;
+        // public/uploads/<folder>, uniqid_time.ext (extension whitelist ImageService mein)
+        return $this->imageService->uploadFile($file, $folder);
     }
     // End Method
 

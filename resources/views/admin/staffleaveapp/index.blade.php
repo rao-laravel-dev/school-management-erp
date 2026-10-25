@@ -49,7 +49,7 @@
 
                         <td class="text-center">
                             @if($app->document)
-                            <a href="{{ asset('storage/leave_documents/' . $app->document) }}" target="_blank" class="btn btn-sm btn-info text-white">
+                            <a href="{{ asset('uploads/leave_documents/' . $app->document) }}" target="_blank" class="btn btn-sm btn-info text-white">
                                 <i class="bx bx-file"></i> View
                             </a>
                             @else

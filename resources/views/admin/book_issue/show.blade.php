@@ -28,7 +28,7 @@
                     if ($memberDetail) {
                     $photoUrl = $memberDetail->photo_url;
                     } elseif ($staffDetail && $staffDetail->photo) {
-                    $photoUrl = asset('storage/' . $staffDetail->photo);
+                    $photoUrl = $staffDetail->photo_url;
                     } else {
                     $photoUrl = asset('uploads/no_image.jpg');
                     }

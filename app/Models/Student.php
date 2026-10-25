@@ -187,17 +187,11 @@ class Student extends Model
     public function getPhotoUrlAttribute(): string
     {
         if ($this->photo) {
-            if (\Storage::disk('public')->exists('uploads/students/' . $this->photo)) {
-                return asset('storage/uploads/students/' . $this->photo);
-            }
-            if (\Storage::disk('public')->exists('students/' . $this->photo)) {
-                return asset('storage/students/' . $this->photo);
-            }
-            if (\Storage::disk('public')->exists('uploads/student_images/' . $this->photo)) { // purane portal uploads
-                return asset('storage/uploads/student_images/' . $this->photo);
-            }
             if (file_exists(public_path('uploads/students/' . $this->photo))) {
                 return asset('uploads/students/' . $this->photo);
+            }
+            if (file_exists(public_path('uploads/student_images/' . $this->photo))) { // purane portal uploads
+                return asset('uploads/student_images/' . $this->photo);
             }
         }
         return asset('uploads/no_image.jpg');

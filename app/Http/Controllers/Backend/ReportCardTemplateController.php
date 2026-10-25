@@ -103,16 +103,21 @@ class ReportCardTemplateController extends Controller
             $validated[$field] = $request->boolean($field);
         }
 
+        $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         foreach ($this->imageFields as $field) {
             if ($request->hasFile($field)) {
                 if ($report_card_template->{$field}) {
-                    $this->imageService->delete($report_card_template->{$field}, $this->folder);
+                    $oldFiles[] = $report_card_template->{$field};
                 }
                 $validated[$field] = $this->imageService->upload($request->file($field), $this->folder, 600, 400, 80);
             }
         }
 
         $report_card_template->update($validated);
+
+        foreach ($oldFiles as $oldFile) {
+            $this->imageService->delete($oldFile, $this->folder);
+        }
 
         return response()->json(['success' => true, 'message' => 'Report Card Template updated successfully.']);
     }

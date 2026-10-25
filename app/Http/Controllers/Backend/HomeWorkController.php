@@ -26,20 +26,8 @@ class HomeWorkController extends Controller
 
     private function handleFileUpload(UploadedFile $file, string $folder): string
     {
-        $imageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
-
-        if (in_array($file->getMimeType(), $imageMimes)) {
-            $filename = $this->imageService->upload($file, 'uploads/' . $folder, 1200, 1200, 85);
-            return 'uploads/' . $folder . '/' . $filename;
-        }
-
-        // non-image files - as-is save
-        $destination = public_path('uploads/' . $folder);
-        if (!is_dir($destination)) {
-            mkdir($destination, 0755, true);
-        }
-        $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $file->move($destination, $filename);
+        // images webp mein convert (max 1200px), baqi files as-is; dono public/uploads/<folder> mein
+        $filename = $this->imageService->uploadFile($file, 'uploads/' . $folder, 1200, 1200, 85);
 
         return 'uploads/' . $folder . '/' . $filename;
     }
@@ -163,7 +151,7 @@ class HomeWorkController extends Controller
         'description'    => 'nullable|string',
         'homework_date'  => 'required|date',
         'due_date'       => 'required|date|after_or_equal:homework_date',
-        'attachment'     => 'nullable|file|max:5120',
+        'attachment'     => 'nullable|file|mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:5120',
     ]);
 
     if ($validator->fails()) {
@@ -264,7 +252,7 @@ class HomeWorkController extends Controller
         'description'    => 'nullable|string',
         'homework_date'  => 'required|date',
         'due_date'       => 'required|date|after_or_equal:homework_date',
-        'attachment'     => 'nullable|file|max:5120',
+        'attachment'     => 'nullable|file|mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:5120',
     ]);
 
     if ($validator->fails()) {
@@ -276,14 +264,17 @@ class HomeWorkController extends Controller
 
     $data = $validator->validated();
 
+    $oldAttachment = null;
     if ($request->hasFile('attachment')) {
-        if ($homework->attachment && file_exists(public_path($homework->attachment))) {
-            unlink(public_path($homework->attachment));
-        }
+        $oldAttachment = $homework->attachment; // naya save hone ke BAAD delete
         $data['attachment'] = $this->handleFileUpload($request->file('attachment'), 'homework');
     }
 
     $homework->update($data);
+
+    if ($oldAttachment) {
+        $this->imageService->delete($oldAttachment, 'homework');
+    }
 
     return redirect()->back()->with('success', 'Homework updated successfully.');
 }
@@ -306,11 +297,11 @@ class HomeWorkController extends Controller
         }
     }
 
-    if ($homework->attachment && file_exists(public_path($homework->attachment))) {
-        unlink(public_path($homework->attachment));
-    }
-
     $homework->delete();
+
+    if ($homework->attachment) {
+        $this->imageService->delete($homework->attachment, 'homework');
+    }
 
     if (request()->expectsJson()) {
         return response()->json(['message' => 'Homework deleted successfully.']);

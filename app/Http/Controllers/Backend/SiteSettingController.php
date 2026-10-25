@@ -60,17 +60,22 @@ class SiteSettingController extends Controller
             'footer_note',
         ]);
 
+        $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         if ($request->hasFile('logo')) {
-            $this->imageService->delete($setting->logo, 'uploads/site_setting');
+            $oldFiles[] = $setting->logo;
             $data['logo'] = $this->imageService->upload($request->file('logo'), 'uploads/site_setting', 400, 150);
         }
 
         if ($request->hasFile('principal_signature')) {
-            $this->imageService->delete($setting->principal_signature, 'uploads/site_setting');
+            $oldFiles[] = $setting->principal_signature;
             $data['principal_signature'] = $this->imageService->upload($request->file('principal_signature'), 'uploads/site_setting', 300, 150);
         }
 
         $setting->update($data);
+
+        foreach ($oldFiles as $oldFile) {
+            $this->imageService->delete($oldFile, 'uploads/site_setting');
+        }
 
         return redirect()->route('site_setting.edit')->with('toastr-success', 'Site Settings updated successfully.');
     }

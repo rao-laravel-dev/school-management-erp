@@ -2,10 +2,7 @@
 <tr>
     <td class="text-center align-middle">
     @php
-        $photoPath = $teacher->photo;
-        $imageUrl = ($photoPath && \Storage::disk('public')->exists('teacher_images/' . $photoPath))
-            ? asset('storage/teacher_images/' . $photoPath)
-            : asset('uploads/no_image.jpg');
+        $imageUrl = $teacher->photo_url;
     @endphp
 
     <img src="{{ $imageUrl }}" 
