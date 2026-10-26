@@ -169,6 +169,13 @@ class User extends Authenticatable
             }
         });
 
+        // Status active (1) se hata to API tokens foran revoke (staff toggles, access control)
+        static::updated(function (User $user) {
+            if ($user->wasChanged('status') && (int) $user->status !== 1) {
+                $user->tokens()->delete();
+            }
+        });
+
         static::deleting(function (User $user) {
             if ($user->isSuperAdmin() && auth()->check()) {
                 abort(403, 'Super Admin cannot be deleted.');

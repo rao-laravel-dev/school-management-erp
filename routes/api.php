@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FeeApiController;
+use App\Http\Middleware\EnsureApiUserIsActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,7 +11,7 @@ Route::post('/login', [AuthController::class, 'login'])
     ->middleware('throttle:5,1');
 
 // Protected routes (in sabko valid Sanctum token chahiye hoga) + rate limit
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+Route::middleware(['auth:sanctum', EnsureApiUserIsActive::class, 'throttle:60,1'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
