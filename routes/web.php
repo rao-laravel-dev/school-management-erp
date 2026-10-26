@@ -237,15 +237,22 @@ Route::get('teacher/login', [TeacherProfileController::class, 'TeacherLogin'])->
 // PARENTS ROUTES
 Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->group(function () {
     Route::controller(ParentsController::class)->group(function () {
-        Route::get('/dashboard', 'ParentManage')->name('dashboard');
-        Route::get('/student-dashboard/{id}', 'StudentDashboard')->name('students.dashboard');
-        Route::get('/student-details/{id}', 'StudentDashboard')->name('students.details');
+        Route::middleware('can:view dashboard')->group(function () {
+            Route::get('/dashboard', 'ParentManage')->name('dashboard');
+        });
+        // Selected child's dashboard / details (ownership checked in the controller)
+        Route::middleware('can:access-parent-students')->group(function () {
+            Route::get('/student-dashboard/{id}', 'StudentDashboard')->name('students.dashboard');
+            Route::get('/student-details/{id}', 'StudentDashboard')->name('students.details');
+        });
         Route::get('/logout', 'ParentLogout')->name('logout');
         // Own account Change Password (same pattern as staff portals)
         Route::get('/change/password', 'ParentChangePassword')->name('change.password');
         Route::post('/password/update', 'ParentPasswordUpdate')->name('password.update');
-        Route::get('/profile', 'ParentProfile')->name('profile');
-        Route::post('/profile/update', 'ParentProfileUpdate')->name('profile.update');
+        Route::middleware('can:access-profile')->group(function () {
+            Route::get('/profile', 'ParentProfile')->name('profile');
+            Route::post('/profile/update', 'ParentProfileUpdate')->name('profile.update');
+        });
         // Selected child's results (ownership checked in the controller)
         Route::middleware('can:access-parent-results')->group(function () {
             Route::get('/student/{id}/results', 'childResults')->whereNumber('id')->name('students.results.index');
@@ -270,10 +277,14 @@ Route::get('parent/login', [ParentsController::class, 'ParentLogin'])->name('par
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
     // Student Basic Operations
     Route::controller(StudentProfileController::class)->group(function () {
-        Route::get('/dashboard', 'StudentManage')->name('dashboard');
+        Route::middleware('can:view dashboard')->group(function () {
+            Route::get('/dashboard', 'StudentManage')->name('dashboard');
+        });
         Route::get('/logout', 'StudentLogout')->name('logout');
-        Route::get('/profile', 'StudentProfile')->name('profile');
-        Route::post('/profile/update', 'StudentProfileUpdate')->name('profile.update');
+        Route::middleware('can:access-profile')->group(function () {
+            Route::get('/profile', 'StudentProfile')->name('profile');
+            Route::post('/profile/update', 'StudentProfileUpdate')->name('profile.update');
+        });
         // NAYA ROUTE: Iska auto name 'student.teachers.index' banega
         Route::middleware('can:access-student-academics')->group(function () {
             Route::get('/teacher/myteacher', 'myTeachers')->name('teacher.myteacher');

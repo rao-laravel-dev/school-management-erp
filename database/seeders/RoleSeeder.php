@@ -308,6 +308,8 @@ class RoleSeeder extends Seeder
             'access-parent-timetable', // parent portal: selected child's class timetable (read-only)
             'access-parent-homework',  // parent portal: selected child's homework (read-only)
             'access-parent-results',   // parent portal: selected child's results (read-only)
+            'access-parent-students',  // parent portal: selected child's dashboard / details (read-only)
+            'access-profile',          // parent portal: own profile
         ]);
 
         // 9. Student

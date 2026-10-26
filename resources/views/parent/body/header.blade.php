@@ -173,9 +173,11 @@
 					</div>
 				</a>
 				<ul class="dropdown-menu dropdown-menu-end">
+					@can('access-profile')
 					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('parent.profile') }}"><i
 								class="bx bx-user fs-5"></i><span>Profile</span></a>
 					</li>
+					@endcan
 					<li><a class="dropdown-item d-flex align-items-center" href="{{ route('parent.change.password') }}"><i
 								class="bx bx-cog fs-5"></i><span>Change Password</span></a>
 					</li>

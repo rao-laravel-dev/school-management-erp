@@ -19,6 +19,7 @@
         </li>
 
         {{-- Child links without an active child go to ?select=1 (redirects to the clean dashboard), so they never exact-match the current URL for app.js --}}
+        @can('access-parent-students')
         @php $open = request()->routeIs('parent.students.dashboard', 'parent.students.details'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
@@ -31,6 +32,7 @@
                 </li>
             </ul>
         </li>
+        @endcan
 
         @canany(['access-parent-timetable', 'access-parent-results'])
         @php $open = request()->routeIs('parent.students.class_schedule.*', 'parent.students.results.*'); @endphp

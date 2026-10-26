@@ -17,6 +17,7 @@
             </a>
         </li>
 
+        @can('access-profile')
         @php $open = request()->routeIs('student.profile'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
@@ -27,6 +28,7 @@
                 <li class="{{ request()->routeIs('student.profile') ? 'mm-active' : '' }}"><a href="{{ route('student.profile') }}"><i class='bx bx-radio-circle'></i>Personal Details</a></li>
             </ul>
         </li>
+        @endcan
 
         @can('access-student-academics')
         @php $open = request()->routeIs('student.subjects.*', 'student.class_schedule.*', 'student.teacher.*'); @endphp
