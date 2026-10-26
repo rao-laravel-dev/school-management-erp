@@ -2934,3 +2934,11 @@ html.dark-theme .fee-assignment-swal .swal2-html-container { color: #e4e5e6; }
     div.dataTables_wrapper div.dataTables_filter label { display: block; width: 100%; }
     div.dataTables_wrapper div.dataTables_filter input { display: block; width: 100%; margin-left: 0; margin-top: .25rem; }
 }
+
+/* Dashboard stat card (shared by all role dashboards): sparkline / progress bar pinned to the card bottom */
+.dash-stat .card-body { display: flex; flex-direction: column; }
+.dash-stat .dash-stat-top { min-width: 0; }
+.dash-stat .dash-stat-text { min-width: 0; overflow-wrap: anywhere; }
+.dash-stat .dash-stat-bottom { margin-top: auto; padding-top: .75rem; }
+.dash-stat .dash-stat-spark { min-height: 65px; position: relative; z-index: 2; }
+.dash-stat .widgets-icons { flex-shrink: 0; }
