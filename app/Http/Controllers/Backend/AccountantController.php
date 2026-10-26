@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -59,11 +60,18 @@ class AccountantController extends Controller
             })
             ->max();
 
-        $uniqueNumber = str_pad($maxNumber + 1, 3, '0', STR_PAD_LEFT);
+        $number = $maxNumber + 1;
+        $accountantId = $first . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        // users.username sab staff mein unique hai: kisi bhi role / trashed user ka same ho to next number
+        while (User::withTrashed()->where('username', $accountantId)->exists()) {
+            $number++;
+            $accountantId = $first . str_pad($number, 3, '0', STR_PAD_LEFT);
+        }
 
         // Final Format: FIRSTNAME + 001 (receptionist/teacher jaisa)
         // Misal: KHAWAR + 004 = KHAWAR004
-        return $first . $uniqueNumber;
+        return $accountantId;
     }
 
     // 3. Generate ID (AJAX Request) - sirf preview, save par dobara server banata hai
@@ -174,6 +182,14 @@ class AccountantController extends Controller
 
             DB::commit();
             return redirect()->route('accountant.index')->with('toastr-success', 'Accountant added successfully!');
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // Do saves ek saath: doosre ko next free ID naye submit par milti hai
+            DB::rollBack();
+            $dupMsg = 'Another staff record was saved with the same Staff ID or email at the same time. Please click Save again.';
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $dupMsg], 422);
+            }
+            return back()->with('toastr-error', $dupMsg)->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
             // Agar error aaye aur photo upload ho gayi ho to usse delete krne ke liye logic yahan likh sakte hain

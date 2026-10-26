@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class TeachersController extends Controller
@@ -92,8 +93,15 @@ class TeachersController extends Controller
             ->max();
 
         $number = $maxNumber + 1;
+        $teacherId = $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
 
-        return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
+        // users.username sab staff mein unique hai: kisi bhi role / trashed user ka same ho to next number
+        while (User::withTrashed()->where('username', $teacherId)->exists()) {
+            $number++;
+            $teacherId = $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
+        }
+
+        return $teacherId;
     }
 
 
@@ -211,6 +219,10 @@ class TeachersController extends Controller
             DB::commit();
             return redirect()->route('teacher.index')
                 ->with('toastr-success', 'Teacher profile created successfully! ID: ' . $teacherId);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // Do saves ek saath: doosre ko next free ID naye submit par milti hai
+            DB::rollBack();
+            return back()->withInput()->with('toastr-error', 'Another staff record was saved with the same Staff ID or email at the same time. Please click Save again.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('toastr-error', 'Database Error: ' . $e->getMessage());

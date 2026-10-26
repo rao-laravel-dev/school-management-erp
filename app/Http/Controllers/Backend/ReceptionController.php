@@ -82,15 +82,24 @@ class ReceptionController extends Controller
         // Agar first_name khali ho to default 'REC' lag jaye
         $prefix = !empty($firstName) ? strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName)) : 'REC';
 
-        $lastReceptionist = Receptionist::latest('id')->first();
+        // Max existing number (withTrashed) takki trash ke baad bhi ID repeat na ho (teacher/accountant jaisa)
+        $maxNumber = (int) Receptionist::withTrashed()
+            ->get(['receptionist_id'])
+            ->map(function ($r) {
+                return preg_match('/(\d+)$/', (string) $r->receptionist_id, $m) ? (int) $m[1] : 0;
+            })
+            ->max();
 
-        $number = 1;
-        if ($lastReceptionist && !empty($lastReceptionist->receptionist_id)) {
-            $lastId = $lastReceptionist->receptionist_id;
-            $number = (int)preg_replace('/[^0-9]/', '', $lastId) + 1;
+        $number = $maxNumber + 1;
+        $receptionistId = $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        // users.username sab staff mein unique hai: kisi bhi role / trashed user ka same ho to next number
+        while (User::withTrashed()->where('username', $receptionistId)->exists()) {
+            $number++;
+            $receptionistId = $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
         }
 
-        return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
+        return $receptionistId;
     }
 
     public function getReceptionistId(Request $request)
@@ -240,6 +249,10 @@ class ReceptionController extends Controller
 
             // Consistent Toastr Response Key
             return redirect()->route('receptionist.index')->with('toastr-success', 'Receptionist profile created successfully! ID: ' . $receptionistId);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // Do saves ek saath: doosre ko next free ID naye submit par milti hai
+            DB::rollBack();
+            return back()->with('error', 'Another staff record was saved with the same Staff ID or email at the same time. Please click Save again.')->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Database Error: ' . $e->getMessage())->withInput();
