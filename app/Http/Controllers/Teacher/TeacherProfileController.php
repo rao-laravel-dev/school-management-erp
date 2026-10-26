@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
+use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\ClassSubject;
 use App\Models\ClassTimetable;
@@ -19,6 +20,7 @@ use App\Models\Topic;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
 use App\Services\TimetableDayStatus;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -94,6 +96,65 @@ class TeacherProfileController extends Controller
         $recentHomework = HomeWork::with(['class', 'section', 'subject'])->where('created_by', $userId)
             ->orderByDesc('homework_date')->orderByDesc('id')->limit(5)->get();
 
+        // 3b. Homework Given sparkline: pichle 12 mahine (current mahina shamil), ek grouped query; khali mahina 0
+        $sparkStart = now()->startOfMonth()->subMonthsNoOverflow(11);
+        $months = [];
+        $monthLabels = [];
+        for ($i = 0; $i < 12; $i++) {
+            $m = $sparkStart->copy()->addMonthsNoOverflow($i);
+            $months[] = $m->format('Y-m');
+            $monthLabels[] = $m->format('M y');
+        }
+        $homeworkByMonth = HomeWork::where('created_by', $userId)->where('homework_date', '>=', $sparkStart->toDateString())->toBase()
+            ->selectRaw("DATE_FORMAT(homework_date, '%Y-%m') AS ym, COUNT(*) AS c")->groupBy('ym')->pluck('c', 'ym');
+        $homeworkSeries = array_map(fn($m) => (int) ($homeworkByMonth[$m] ?? 0), $months);
+
+        // 3c. Today's Classes card progress: kitne periods khatam (time_to guzar chuka)
+        $periodsDone = $offDayLabel ? 0 : $todayPeriods->filter(fn($p) => $p->time_to && Carbon::parse($p->time_to)->lte(now()))->count();
+
+        // 3d. My Class Attendance (session ke mahine): Present (Present + Late + Half Day) vs Absent, ek grouped query
+        // Leave + Holiday ginti me nahi; class teacher na ho ya session na ho to empty
+        $sessionLabels = [];
+        $sessionPresent = [];
+        $sessionAbsent = [];
+        $session = $myClasses->isNotEmpty() && $sessionId ? AcademicYear::find($sessionId, ['start_date', 'end_date']) : null;
+        if ($session && $session->start_date && $session->end_date) {
+            $sFrom = Carbon::parse($session->start_date)->toDateString();
+            // end_date mahine ki 1 tareekh ho (01 Jan 2026 -> 01 Jan 2027) to pichla mahina aakhri mahina; start se pehle na jaye
+            $sEnd = Carbon::parse($session->end_date);
+            if ($sEnd->day === 1) {
+                $sEnd = $sEnd->copy()->subDay();
+            }
+            $sTo = max($sEnd->toDateString(), $sFrom); // same $sTo query aur month loop dono me
+
+            $sessionAttRows = Attendance::whereIn('class_id', $myClasses->pluck('class_id'))
+                ->whereIn('section_id', $myClasses->pluck('section_id'))
+                ->whereBetween('attendance_date', [$sFrom, $sTo])->toBase()
+                ->selectRaw("DATE_FORMAT(attendances.attendance_date, '%Y-%m') AS ym, attendances.class_id, attendances.section_id, attendances.status AS st, COUNT(*) AS c")
+                ->groupBy('ym', 'attendances.class_id', 'attendances.section_id', 'st')->get()
+                ->filter(fn($r) => in_array($r->class_id . '-' . $r->section_id, $classKeys, true));
+            $presentByMonth = [];
+            $absentByMonth = [];
+            foreach ($sessionAttRows as $r) {
+                if (in_array((int) $r->st, [Attendance::STATUS_PRESENT, Attendance::STATUS_LATE, Attendance::STATUS_HALF_DAY], true)) {
+                    $presentByMonth[$r->ym] = ($presentByMonth[$r->ym] ?? 0) + (int) $r->c;
+                } elseif ((int) $r->st === Attendance::STATUS_ABSENT) {
+                    $absentByMonth[$r->ym] = ($absentByMonth[$r->ym] ?? 0) + (int) $r->c;
+                }
+            }
+            $sLast = Carbon::parse($sTo);
+            for ($m = Carbon::parse($sFrom)->startOfMonth(); $m->lte($sLast); $m->addMonthNoOverflow()) {
+                $ym = $m->format('Y-m');
+                $sessionLabels[] = $m->format('M y');
+                $sessionPresent[] = $presentByMonth[$ym] ?? 0;
+                $sessionAbsent[] = $absentByMonth[$ym] ?? 0;
+            }
+        }
+        $sessionPresentTotal = array_sum($sessionPresent);
+        $sessionAbsentTotal = array_sum($sessionAbsent);
+        $sessionAttPercent = ($sessionPresentTotal + $sessionAbsentTotal) > 0
+            ? round($sessionPresentTotal / ($sessionPresentTotal + $sessionAbsentTotal) * 100, 1) : 0;
+
         // 4. Apni staff attendance is mahine (My Attendance Report wali % rule)
         $staffAtt = StaffAttendance::where('user_id', $userId)->whereBetween('date', [$monthStart, $today])
             ->selectRaw('status, COUNT(*) AS c')->groupBy('status')->pluck('c', 'status');
@@ -138,7 +199,10 @@ class TeacherProfileController extends Controller
         return view('teacher.dashboard', compact(
             'profileMissing', 'todayPeriods', 'offDayLabel',
             'myClasses', 'rosterTotal', 'classCounts', 'classMarked', 'classHoliday',
-            'homeworkThisMonth', 'recentHomework', 'myAtt', 'syllabus', 'recentLeaves'
+            'homeworkThisMonth', 'recentHomework', 'myAtt', 'syllabus', 'recentLeaves',
+            'monthLabels', 'homeworkSeries', 'periodsDone',
+            'sessionLabels', 'sessionPresent', 'sessionAbsent',
+            'sessionPresentTotal', 'sessionAbsentTotal', 'sessionAttPercent'
         ));
     }
     // End Method

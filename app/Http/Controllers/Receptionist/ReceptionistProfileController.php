@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Receptionist;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
+use App\Models\AcademicYear;
 use App\Models\AdmissionEnquiry;
 use App\Models\Attendance;
 use App\Models\Complaint;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Models\Visitor;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +42,7 @@ class ReceptionistProfileController extends Controller
 
     // 3. Complaints: open (pending + in_progress) + aaj ki
     $complaintStats = Complaint::toBase()
-        ->selectRaw("COALESCE(SUM(status IN ('pending','in_progress')), 0) AS open_c, COALESCE(SUM(date = ?), 0) AS today_c", [$today])->first();
+        ->selectRaw("COALESCE(SUM(status IN ('pending','in_progress')), 0) AS open_c, COALESCE(SUM(date = ?), 0) AS today_c, COUNT(*) AS total_c, COALESCE(SUM(status = 'resolved'), 0) AS resolved_c", [$today])->first();
     $todayComplaints = Complaint::with('complaintType')->where('date', $today)->orderByDesc('id')->get();
 
     // 4. Apni staff attendance is mahine (My Attendance Report wali % rule)
@@ -86,15 +88,69 @@ class ReceptionistProfileController extends Controller
     $staffTotal = $staffIds->count();
     $staffMarked = $staffTotal > 0 ? StaffAttendance::where('date', $today)->whereIn('user_id', $staffIds)->count() : 0;
 
-    // 6. Apni pending leave requests
-    $pendingLeaves = StaffLeaveApplication::where('user_id', $userId)->where('status', 'pending')
-        ->orderByDesc('apply_date')->orderByDesc('id')->get();
+    // 6. Apni leave requests: last 3 (sab dashboards par same card)
+    $recentLeaves = StaffLeaveApplication::where('user_id', $userId)
+        ->orderByDesc('apply_date')->orderByDesc('id')->limit(3)->get();
+
+    // 7. Front office charts (access-front-office par hi); permission na ho to empty defaults
+    // Sparklines: pichle 12 mahine (current mahina shamil) + is mahine ke roz; khali din / mahina 0
+    $sparkStart = now()->startOfMonth()->subMonthsNoOverflow(11);
+    $months = [];
+    $monthLabels = [];
+    for ($i = 0; $i < 12; $i++) {
+        $m = $sparkStart->copy()->addMonthsNoOverflow($i);
+        $months[] = $m->format('Y-m');
+        $monthLabels[] = $m->format('M y');
+    }
+    $visitorDaily = [];
+    $enquirySeries = array_fill(0, 12, 0);
+    $sessionLabels = $sessionVisitors = $sessionEnquiries = [];
+    if (Auth::user()->can('access-front-office')) {
+        // Visitors = visits (rows), no_of_person nahi
+        $visitorRows = Visitor::whereBetween('date', [$monthStart, $today])->toBase()
+            ->selectRaw('date AS d, COUNT(*) AS c')->groupBy('d')->pluck('c', 'd');
+        for ($day = 1; $day <= now()->day; $day++) {
+            $visitorDaily[] = (int) ($visitorRows[now()->format('Y-m-') . sprintf('%02d', $day)] ?? 0);
+        }
+        $enquiryByMonth = AdmissionEnquiry::where('date', '>=', $sparkStart->toDateString())->toBase()
+            ->selectRaw("DATE_FORMAT(date, '%Y-%m') AS ym, COUNT(*) AS c")->groupBy('ym')->pluck('c', 'ym');
+        $enquirySeries = array_map(fn($m) => (int) ($enquiryByMonth[$m] ?? 0), $months);
+
+        // Visitors vs Enquiries: current session ke har mahine (Admin Revenue vs Expense wali month range), 2 grouped queries
+        $currentSession = AcademicYear::where('is_current', 1)->first(['start_date', 'end_date']);
+        if ($currentSession && $currentSession->start_date && $currentSession->end_date) {
+            $sFrom = Carbon::parse($currentSession->start_date)->toDateString();
+            // end_date mahine ki 1 tareekh ho (01 Jan 2026 -> 01 Jan 2027) to pichla mahina aakhri mahina; start se pehle na jaye
+            $sEnd = Carbon::parse($currentSession->end_date);
+            if ($sEnd->day === 1) {
+                $sEnd = $sEnd->copy()->subDay();
+            }
+            $sTo = max($sEnd->toDateString(), $sFrom); // same $sTo queries aur month loop dono me
+
+            $sessVisitors = Visitor::whereBetween('date', [$sFrom, $sTo])->toBase()
+                ->selectRaw("DATE_FORMAT(date, '%Y-%m') AS ym, COUNT(*) AS c")->groupBy('ym')->pluck('c', 'ym');
+            $sessEnquiries = AdmissionEnquiry::whereBetween('date', [$sFrom, $sTo])->toBase()
+                ->selectRaw("DATE_FORMAT(date, '%Y-%m') AS ym, COUNT(*) AS c")->groupBy('ym')->pluck('c', 'ym');
+
+            $sLast = Carbon::parse($sTo);
+            for ($m = Carbon::parse($sFrom)->startOfMonth(); $m->lte($sLast); $m->addMonthNoOverflow()) {
+                $ym = $m->format('Y-m');
+                $sessionLabels[] = $m->format('M y');
+                $sessionVisitors[] = (int) ($sessVisitors[$ym] ?? 0);
+                $sessionEnquiries[] = (int) ($sessEnquiries[$ym] ?? 0);
+            }
+        }
+    }
+    $sessionVisitorsTotal = array_sum($sessionVisitors);
+    $sessionEnquiriesTotal = array_sum($sessionEnquiries);
 
     return view('reception.dashboard', compact(
         'visitorStats', 'todayVisitors', 'enquiryStats', 'dueEnquiries',
         'complaintStats', 'todayComplaints', 'myAtt',
         'attendanceCounts', 'studentsMarked', 'studentsHoliday',
-        'staffTotal', 'staffMarked', 'pendingLeaves'
+        'staffTotal', 'staffMarked', 'recentLeaves',
+        'monthLabels', 'visitorDaily', 'enquirySeries',
+        'sessionLabels', 'sessionVisitors', 'sessionEnquiries', 'sessionVisitorsTotal', 'sessionEnquiriesTotal'
     ));
 }
     // End Method
