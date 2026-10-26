@@ -27,6 +27,11 @@ class AttendanceController extends Controller
 {
     public function AllAttendance(Request $request)
     {
+        // Teacher ko sab classes ka index nahi: apni class ke report par bhejo (admin / receptionist / accountant ka scope null)
+        if ($this->reportScope() !== null) {
+            return redirect()->route('attendance.class_report', $request->query());
+        }
+
         $date = $request->input('date', date('Y-m-d'));
         // Attendance done check (Grouped by class and section)
         $attendanceDone = Attendance::where('attendance_date', $date)
@@ -75,6 +80,12 @@ class AttendanceController extends Controller
 
     public function showDetails($class_id)
     {
+        // Teacher sirf apni assigned class; baqi sab ka scope null
+        $scope = $this->reportScope();
+        if ($scope !== null && !$scope->contains(fn($a) => $a->class_id == $class_id)) {
+            abort(403);
+        }
+
         $today = date('Y-m-d');
         $class = SchoolClass::findOrFail($class_id);
         $students = Student::where('class_id', $class_id)->with(['attendance' => function ($q) use ($today) {
@@ -88,37 +99,58 @@ class AttendanceController extends Controller
     // 1. Initial page load (Dropdowns ke liye)
     public function AddAttendance()
     {
-        $user = auth()->user();
+        $scope = $this->reportScope();
 
-        if ($user->hasAnyRole(['admin', 'superadmin'])) {
-            // Admin ke liye sab open hai
+        if ($scope === null) {
+            // Admin / superadmin ke liye sab open hai
             $classes = SchoolClass::all();
             $sections = Section::all();
+            $allowedSections = null;
         } else {
-            // Teacher profile verify karein
-            $teacher = \App\Models\Teacher::where('user_id', $user->id)->first();
-
-            if (!$teacher) {
-                return redirect()->back()->with('error', 'Teacher profile not found.');
+            // Teacher: sirf apni class-teacher assignment(s) (active session); assignment nahi = block
+            if ($scope->isEmpty()) {
+                return redirect()->back()->with(['message' => 'No class is assigned to you as class teacher.', 'alert-type' => 'error']);
             }
 
-            // Assigned classes aur sections fetch karein
-            $assignments = \App\Models\TeacherAssignment::where('teacher_id', $teacher->id)->get();
-
-            $classIds = $assignments->pluck('class_id')->unique();
-            $sectionIds = $assignments->pluck('section_id')->unique();
-
-            // Sirf assigned data get karein
-            $classes = SchoolClass::whereIn('id', $classIds)->get();
-            $sections = Section::whereIn('id', $sectionIds)->get();
+            [$classes, $allowedSections] = $this->scopedClassData($scope);
+            $sections = Section::whereIn('id', $scope->pluck('section_id')->unique())->get();
         }
 
-        return view('admin.attendance.create_attendance', compact('classes', 'sections'));
+        return view('admin.attendance.create_attendance', compact('classes', 'sections', 'allowedSections'));
+    }
+
+    // Teacher scope se: assigned classes + har class ke allowed section ids (view ke section dropdown ke liye)
+    private function scopedClassData($scope): array
+    {
+        $classes = SchoolClass::whereIn('id', $scope->pluck('class_id')->unique())->get();
+        $allowedSections = [];
+        foreach ($scope as $a) {
+            $allowedSections[$a->class_id][] = (int) $a->section_id;
+        }
+
+        return [$classes, $allowedSections];
     }
 
     public function markAttendance($class_id = null, $section_id = null, $date = null)
     {
-        $data['classes'] = SchoolClass::all();
+        $scope = $this->reportScope();
+        $allowedSections = null;
+        $classes = SchoolClass::all();
+
+        if ($scope !== null) {
+            $denied = redirect()->route('attendance.create')
+                ->with(['message' => 'You are not authorized to mark attendance for this class or section.', 'alert-type' => 'error']);
+            if ($scope->isEmpty()) {
+                return $denied;
+            }
+            if ($class_id !== null && !$scope->contains(fn($a) => $a->class_id == $class_id && ($section_id === null || $a->section_id == $section_id))) {
+                return $denied;
+            }
+            [$classes, $allowedSections] = $this->scopedClassData($scope);
+        }
+
+        $data['classes'] = $classes;
+        $data['allowedSections'] = $allowedSections;
         $data['selected_class'] = $class_id;
         $data['selected_section'] = $section_id;
         $data['selected_date'] = $date ?? date('Y-m-d');
@@ -134,21 +166,9 @@ class AttendanceController extends Controller
         $user = auth()->user();
         $date = $request->attendance_date ?? date('Y-m-d');
 
-        // --- SECURITY CHECK (Sirf Admin ko sab allow hai, Teacher apni assigned class dekhega) ---
-        if (!$user->hasAnyRole(['admin', 'superadmin'])) {
-            $teacher = \App\Models\Teacher::where('user_id', $user->id)->first();
-
-            if ($teacher) {
-                $isAssigned = \App\Models\TeacherAssignment::where('teacher_id', $teacher->id)
-                    ->where('class_id', $request->class_id)
-                    ->where('section_id', $request->section_id)
-                    ->exists();
-
-                // Agar teacher us class/section me assigned nahi hai toh error return karein
-                if (!$isAssigned) {
-                    return response()->json(['error' => 'Unauthorized Access'], 403);
-                }
-            }
+        // --- SECURITY CHECK (admin / superadmin ko sab, teacher ko sirf apni class-teacher class+section; teacher profile na ho to bhi block) ---
+        if (!$this->inReportScope($this->reportScope(), $request->class_id, $request->section_id)) {
+            return response()->json(['error' => 'Unauthorized Access'], 403);
         }
         // --- END SECURITY CHECK ---
 
@@ -156,6 +176,7 @@ class AttendanceController extends Controller
         $students = \App\Models\Enrollment::with(['student', 'attendance' => function ($query) use ($date) {
             $query->where('attendance_date', $date);
         }])
+            ->whereHas('student') // trashed student ki row nahi dikhani
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
             ->where('academic_year_id', $this->getActiveSessionId()) // purane saal ki enrollment kabhi na dikhe
@@ -179,7 +200,8 @@ class AttendanceController extends Controller
     public function StoreAttendance(Request $request)
     {
         $user = auth()->user();
-        $isAdmin = $user->hasAnyRole(['admin', 'superadmin']);
+        $scope = $this->reportScope();
+        $isAdmin = $scope === null; // admin / superadmin (receptionist / accountant route permission se pehle hi block)
 
         // Ab line 199 par ye error nahi aayega
         Log::info("Logged In User ID: " . $user->id);
@@ -203,28 +225,26 @@ class AttendanceController extends Controller
 
         // 1. Authorization Check (Naya logic)
         if (!$isAdmin) {
-            // 1. Pehle User ID se Teacher ka record uthayein
-            $teacher = Teacher::where('user_id', $user->id)->first();
-
-            if (!$teacher) {
-                // AJAX form hai: redirect ki jagah JSON error (warna toastr khali aata hai)
-                if ($request->ajax() || $request->expectsJson()) {
-                    return response()->json(['status' => 'error', 'message' => 'Teacher profile not found.'], 422);
-                }
-                return redirect()->back()->with('error', 'Teacher profile not found.');
-            }
-
-            // 2. Ab Teacher table ki id use karein
-            $isAssigned = TeacherAssignment::where('teacher_id', $teacher->id)
-                ->where('class_id', $request->class_id)
-                ->where('section_id', $request->section_id)
-                ->exists();
-
-            if (!$isAssigned) {
+            // Teacher sirf apni class-teacher class+section (active session); profile / assignment na ho to bhi block
+            if (!$this->inReportScope($scope, $request->class_id, $request->section_id)) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json(['status' => 'error', 'message' => 'You are not authorized to mark attendance for this class or section.'], 422);
                 }
                 return redirect()->back()->with('error', 'You are not authorized to mark attendance for this class or section.');
+            }
+        }
+
+        // Posted enrollment ids isi class + section + active session ke Active students ke hon (GetStudents wali query), warna hand-made POST
+        if ($request->has('status')) {
+            $validEnrollmentIds = Enrollment::whereHas('student')
+                ->where('class_id', $request->class_id)
+                ->where('section_id', $request->section_id)
+                ->where('academic_year_id', $this->getActiveSessionId())
+                ->where('enroll_status', 1)
+                ->pluck('id')
+                ->all();
+            if (array_diff(array_keys($request->status), $validEnrollmentIds)) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid student in attendance data. Please reload the page.'], 422);
             }
         }
 
@@ -288,7 +308,8 @@ class AttendanceController extends Controller
                     ->where('attendance_date', $date)
                     ->delete();
 
-                $enrollments = Enrollment::where('class_id', $class_id)
+                $enrollments = Enrollment::whereHas('student')
+                    ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('academic_year_id', $activeSessionId)
                     ->where('enroll_status', 1) // Holiday rows bhi sirf Active students ki
@@ -328,9 +349,9 @@ class AttendanceController extends Controller
         });
 
         // Redirect path: teacher = apni class ka report (us date), admin/baqi = attendance index (us date)
-        $url = auth()->user()->hasRole('teacher')
-            ? route('attendance.class_report', ['class_id' => $class_id, 'section_id' => $section_id, 'date' => $date])
-            : route('attendance.index', ['date' => $date]);
+        $url = $isAdmin
+            ? route('attendance.index', ['date' => $date])
+            : route('attendance.class_report', ['class_id' => $class_id, 'section_id' => $section_id, 'date' => $date]);
 
         // 4. Final Response
         if ($request->has('is_holiday') && $request->is_holiday == 'on') {
@@ -360,15 +381,9 @@ class AttendanceController extends Controller
 
         $user = auth()->user();
 
-        // Authorization Check for Teacher
-        if (!$user->hasAnyRole(['admin', 'superadmin'])) {
-            $teacher = Teacher::where('user_id', $user->id)->first();
-            $isAssigned = TeacherAssignment::where('teacher_id', $teacher->id ?? 0)
-                ->where('class_id', $id)
-                ->exists();
-            if (!$isAssigned) {
-                return redirect()->back()->with('You are not authorized to edit attendance for this class.');
-            }
+        // Authorization Check for Teacher (apni class-teacher class+section; admin / superadmin ka scope null)
+        if (!$this->inReportScope($this->reportScope(), $id, $request->query('section_id'))) {
+            return redirect()->back()->with(['message' => 'You are not authorized to edit attendance for this class.', 'alert-type' => 'error']);
         }
 
 
@@ -383,7 +398,8 @@ class AttendanceController extends Controller
 
         if (!$currentClass) return "Class not found!";
 
-        $students = Enrollment::where('class_id', $id)
+        $students = Enrollment::whereHas('student')
+            ->where('class_id', $id)
             ->where('section_id', $section_id)
             ->where('academic_year_id', $activeSessionId) // FILTER ADDED
             ->where('enroll_status', 1) // sirf Active enrollment
@@ -622,7 +638,13 @@ class AttendanceController extends Controller
     {
         $userId = Auth::id();
         $student = Student::where('user_id', $userId)->first();
+        if (!$student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
         $enrollment = Enrollment::where('student_id', $student->id)->latest()->first();
+        if (!$enrollment) {
+            return redirect()->back()->with('error', 'Enrollment not found.');
+        }
 
         // Default range: 1 Month
         $startDate = $request->input('start_date', now()->subMonth()->format('Y-m-d'));
@@ -992,24 +1014,27 @@ class AttendanceController extends Controller
     //  TEACHER K LIYE VIEW PAGE METHOD
     public function myClassAttendanceReport(Request $request)
     {
-        $user = auth()->user();
-        $teacher = \App\Models\Teacher::where('user_id', $user->id)->first();
+        $scope = $this->reportScope();
 
-        if (!$teacher) {
-            return redirect()->back()->with('error', 'Teacher profile not found.');
+        // Ye teacher ka page hai; admin / receptionist / accountant (scope null) apne report index par
+        if ($scope === null) {
+            return redirect()->route('attendance.index');
         }
-
-        // Teacher ko assigned classes ki ID nikalna
-        $assignedClassIds = TeacherAssignment::where('teacher_id', $teacher->id)
-            ->pluck('class_id');
+        if ($scope->isEmpty()) {
+            return redirect()->back()->with('error', 'No class is assigned to you as class teacher.');
+        }
 
         // Filter dates
         $startDate = $request->input('start_date', now()->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
-        // Sirf unki assigned classes ka data fetch karna
-        $attendanceRecords = Attendance::with(['enrollment.student', 'enrollment.schoolClass', 'enrollment.section', 'markedBy.roles'])
-            ->whereIn('class_id', $assignedClassIds)
+        // Sirf apni class + section (active session) ka data; trashed student ka naam bhi dikhe
+        $attendanceRecords = Attendance::with(['enrollment.student' => fn($q) => $q->withTrashed(), 'enrollment.schoolClass', 'enrollment.section', 'markedBy.roles'])
+            ->where(function ($q) use ($scope) {
+                foreach ($scope as $a) {
+                    $q->orWhere(fn($w) => $w->where('class_id', $a->class_id)->where('section_id', $a->section_id));
+                }
+            })
             ->whereBetween('attendance_date', [$startDate, $endDate])
             ->orderBy('attendance_date', 'DESC')
             ->get()
@@ -1033,7 +1058,8 @@ class AttendanceController extends Controller
         $user = auth()->user();
         $role = $user->activeRoleName();
 
-        if (in_array($role, ['admin', 'superadmin', 'receptionist', 'accountant'], true)) {
+        // Superadmin hamesha admin jaisa (teacher branch se pehle), chahe doosra role pehle ho
+        if ($user->isSuperAdmin() || in_array($role, ['admin', 'superadmin', 'receptionist', 'accountant'], true)) {
             return null;
         }
         if ($role !== 'teacher') {

@@ -217,7 +217,13 @@
 
         $.get("{{ url('/students/get-sections') }}/" + class_id, function(res) {
             let options = '<option value="">-- Choose Section --</option>';
-            if (res.status == 'success') res.data.forEach(s => options += `<option value="${s.id}">${s.name}</option>`);
+            // Teacher ko sirf apne allowed sections (server par bhi check hota hai); admin = null = sab
+            let allowedSections = @json($allowedSections ?? null);
+            let allowedForClass = allowedSections ? (allowedSections[class_id] || []) : null;
+            if (res.status == 'success') res.data.forEach(function(s) {
+                if (allowedForClass && allowedForClass.indexOf(Number(s.id)) === -1) return;
+                options += `<option value="${s.id}">${s.name}</option>`;
+            });
             $('#section_id').html(options);
         });
     });
