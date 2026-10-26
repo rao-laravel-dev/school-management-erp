@@ -30,87 +30,34 @@
     }
 @endphp
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 gy-4 mb-4">
-    <div class="col">
-        <div class="card radius-10 h-100 mb-0">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Total Revenue</p>
-                        <h4 class="my-1">Rs {{ number_format($finance->rev_this) }}</h4>
-                        @if($revDelta == 0)
-                            <p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
-                        @else
-                            <p class="mb-0 font-13 {{ $revDelta > 0 ? 'text-success' : 'text-danger' }}"><i class='bx {{ $revDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> Rs {{ number_format(abs($revDelta)) }} vs same days last month</p>
-                        @endif
-                    </div>
-                    <div class="widgets-icons bg-light-success text-success ms-auto"><i class='bx bxs-wallet'></i></div>
-                </div>
-                <div id="w-revenue" class="mt-2"></div>
-            </div>
-        </div>
-    </div>
+    <x-dashboard-stat title="Total Revenue" :value="'Rs ' . number_format($finance->rev_this)" icon="bx bxs-wallet" color="success" spark-id="w-revenue">
+        @if($revDelta == 0)
+            <p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
+        @else
+            <p class="mb-0 font-13 {{ $revDelta > 0 ? 'text-success' : 'text-danger' }}"><i class='bx {{ $revDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> Rs {{ number_format(abs($revDelta)) }} vs same days last month</p>
+        @endif
+    </x-dashboard-stat>
 
-    <div class="col">
-        <div class="card radius-10 h-100 mb-0">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Total Expense</p>
-                        <h4 class="my-1">Rs {{ number_format($finance->exp_this) }}</h4>
-                        @if($expDelta == 0)
-                            <p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
-                        @else
-                            <p class="mb-0 font-13 {{ $expDelta > 0 ? 'text-danger' : 'text-success' }}"><i class='bx {{ $expDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> Rs {{ number_format(abs($expDelta)) }} vs same days last month</p>
-                        @endif
-                    </div>
-                    <div class="widgets-icons bg-light-danger text-danger ms-auto"><i class='bx bxs-credit-card'></i></div>
-                </div>
-                <div id="w-expense" class="mt-2"></div>
-            </div>
-        </div>
-    </div>
+    <x-dashboard-stat title="Total Expense" :value="'Rs ' . number_format($finance->exp_this)" icon="bx bxs-credit-card" color="danger" spark-id="w-expense">
+        @if($expDelta == 0)
+            <p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
+        @else
+            <p class="mb-0 font-13 {{ $expDelta > 0 ? 'text-danger' : 'text-success' }}"><i class='bx {{ $expDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> Rs {{ number_format(abs($expDelta)) }} vs same days last month</p>
+        @endif
+    </x-dashboard-stat>
 
-    <div class="col">
-        <div class="card radius-10 h-100 mb-0">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Active Users</p>
-                        <h4 class="my-1">{{ $activeUsersCount }}</h4>
-                        <p class="mb-0 font-13 text-success">+{{ $newUsersThisMonth }} new this month</p>
-                    </div>
-                    <div class="widgets-icons bg-light-info text-info ms-auto"><i class='bx bxs-user-badge'></i></div>
-                </div>
-                <div id="w-users" class="mt-2"></div>
-            </div>
-        </div>
-    </div>
+    <x-dashboard-stat title="Active Users" :value="$activeUsersCount" icon="bx bxs-user-badge" color="info" spark-id="w-users">
+        <p class="mb-0 font-13 text-success">+{{ $newUsersThisMonth }} new this month</p>
+    </x-dashboard-stat>
 
-    <div class="col">
-        <div class="card radius-10 h-100 mb-0">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Session</p>
-                        @if($currentSession)
-                            <h4 class="my-1">{{ $currentSession->name }}</h4>
-                            <p class="mb-0 font-13 text-secondary">Active {{ $sessionCounts->active }} / Total {{ $sessionCounts->total }}</p>
-                            <p class="mb-0 font-13 text-secondary">{{ $currentSession->start_date ? \Carbon\Carbon::parse($currentSession->start_date)->format('d M Y') : '-' }} - {{ $currentSession->end_date ? \Carbon\Carbon::parse($currentSession->end_date)->format('d M Y') : '-' }}</p>
-                        @else
-                            <h4 class="my-1">-</h4>
-                            <p class="mb-0 font-13 text-secondary">Active {{ $sessionCounts->active }} / Total {{ $sessionCounts->total }}</p>
-                            <p class="mb-0 font-13 text-secondary">No active session</p>
-                        @endif
-                    </div>
-                    <div class="widgets-icons bg-light-warning text-warning ms-auto"><i class='bx bx-calendar-event'></i></div>
-                </div>
-                <p class="mb-1 mt-3 font-13 text-secondary">{{ $sessionText }}</p>
-                <div class="progress radius-10" style="height: 4.5px;">
-                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $sessionPercent }}%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-dashboard-stat title="Session" :value="$currentSession ? $currentSession->name : '-'" icon="bx bx-calendar-event" color="warning" :percent="$sessionPercent" :percent-label="$sessionText">
+        <p class="mb-0 font-13 text-secondary">Active {{ $sessionCounts->active }} / Total {{ $sessionCounts->total }}</p>
+        @if($currentSession)
+            <p class="mb-0 font-13 text-secondary">{{ $currentSession->start_date ? \Carbon\Carbon::parse($currentSession->start_date)->format('d M Y') : '-' }} - {{ $currentSession->end_date ? \Carbon\Carbon::parse($currentSession->end_date)->format('d M Y') : '-' }}</p>
+        @else
+            <p class="mb-0 font-13 text-secondary">No active session</p>
+        @endif
+    </x-dashboard-stat>
 </div>
 <!--end row-->
 
@@ -121,21 +68,6 @@
 							<div class="d-flex align-items-center">
 								<div>
 									<h6 class="mb-0">Revenue vs Expense</h6>
-								</div>
-								<div class="dropdown ms-auto">
-									<a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class='bx bx-dots-horizontal-rounded font-22 text-option'></i>
-									</a>
-									<ul class="dropdown-menu">
-										<li><a class="dropdown-item" href="javascript:;">Action</a>
-										</li>
-										<li><a class="dropdown-item" href="javascript:;">Another action</a>
-										</li>
-										<li>
-											<hr class="dropdown-divider">
-										</li>
-										<li><a class="dropdown-item" href="javascript:;">Something else here</a>
-										</li>
-									</ul>
 								</div>
 							</div>
 						</div>
@@ -181,21 +113,6 @@
 								<div>
 									<h6 class="mb-0">Student Attendance (This Month)</h6>
 								</div>
-								<div class="dropdown ms-auto">
-									<a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class='bx bx-dots-horizontal-rounded font-22 text-option'></i>
-									</a>
-									<ul class="dropdown-menu">
-										<li><a class="dropdown-item" href="javascript:;">Action</a>
-										</li>
-										<li><a class="dropdown-item" href="javascript:;">Another action</a>
-										</li>
-										<li>
-											<hr class="dropdown-divider">
-										</li>
-										<li><a class="dropdown-item" href="javascript:;">Something else here</a>
-										</li>
-									</ul>
-								</div>
 							</div>
 						</div>
 						   <div class="card-body">
@@ -221,85 +138,32 @@
 				</div><!--end row-->
 
 <!-- Cards Row 2: Students + Staff (today attendance) -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5">
-    <div class="col">
-        <div class="card radius-10">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">Students</p>
-                        <h4 class="my-1">{{ $presentStudents }} / {{ $totalStudents }}</h4>
-                        <p class="mb-0 font-13 text-secondary">Present today</p>
-                    </div>
-                    <div class="widgets-icons bg-light-success text-success ms-auto"><i class='bx bxs-graduation'></i></div>
-                </div>
-                <div class="progress mt-3" style="height: 4.5px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ $studentPercent }}%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 gy-4 mb-4">
+    <x-dashboard-stat title="Students" :value="$presentStudents . ' / ' . $totalStudents" icon="bx bxs-graduation" color="success" :percent="$studentPercent">
+        <p class="mb-0 font-13 text-secondary">Present today</p>
+    </x-dashboard-stat>
 
     @foreach($staffCards as $card)
-    <div class="col">
-        <div class="card radius-10">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <p class="mb-0 text-secondary">{{ $card['label'] }}</p>
-                        <h4 class="my-1">{{ $card['present'] }} / {{ $card['total'] }}</h4>
-                        <p class="mb-0 font-13 text-secondary">{{ $card['marked'] ? 'Present today' : 'Not marked yet' }}</p>
-                    </div>
-                    <div class="widgets-icons bg-light-{{ $card['color'] }} text-{{ $card['color'] }} ms-auto"><i class='{{ $card['icon'] }}'></i></div>
-                </div>
-                <div class="progress mt-3" style="height: 4.5px;">
-                    <div class="progress-bar bg-{{ $card['color'] }}" role="progressbar" style="width: {{ $card['marked'] ? $card['percent'] : 0 }}%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-dashboard-stat :title="$card['label']" :value="$card['present'] . ' / ' . $card['total']" :icon="$card['icon']" :color="$card['color']" :percent="$card['marked'] ? $card['percent'] : 0">
+        <p class="mb-0 font-13 text-secondary">{{ $card['marked'] ? 'Present today' : 'Not marked yet' }}</p>
+    </x-dashboard-stat>
     @endforeach
 </div>
-<!--end row-->
 
 @endsection
 
 {{-- --- DASHBOARD CHARTS INJECTED HERE SAFELY --- --}}
 @push('scripts')
     <script src="{{ asset('backend/assets/plugins/chartjs/js/chart.js') }}"></script>
+    @include('partials.dashboard_sparkline')
     <script>
     // Row 1 sparklines (ApexCharts, layout me pehle se loaded): pichle 12 mahine
     $(function () {
         var labels = @json($monthLabels);
 
-        function sparkline(selector, type, color, name, data, isMoney) {
-            var options = {
-                series: [{ name: name, data: data }],
-                chart: { type: type, height: 65, toolbar: { show: false }, zoom: { enabled: false }, sparkline: { enabled: true } },
-                stroke: { show: true, width: type === 'bar' ? 0 : 2.4, curve: 'smooth' },
-                // ApexCharts v3.19.0: borderRadius bar par supported nahi, endingShape 'rounded' hi chalta hai
-                plotOptions: { bar: { horizontal: false, columnWidth: '45%', endingShape: 'rounded' } },
-                dataLabels: { enabled: false },
-                colors: [color],
-                xaxis: { categories: labels },
-                fill: { opacity: type === 'area' ? 0.35 : 1 },
-                tooltip: {
-                    theme: 'dark',
-                    fixed: { enabled: false },
-                    x: { show: true },
-                    y: {
-                        title: { formatter: function () { return ''; } },
-                        formatter: function (v) { return isMoney ? 'Rs ' + Number(v).toLocaleString() : v; }
-                    },
-                    marker: { show: false }
-                }
-            };
-            new ApexCharts(document.querySelector(selector), options).render();
-        }
-
-        sparkline('#w-revenue', 'area', '#17a00e', 'Revenue', @json($revenueSeries), true);
-        sparkline('#w-expense', 'area', '#f41127', 'Expense', @json($expenseSeries), true);
-        sparkline('#w-users', 'bar', '#0dcaf0', 'New users', @json($usersSeries), false);
+        dashSparkline('#w-revenue', 'area', '#17a00e', 'Revenue', @json($revenueSeries), labels, true);
+        dashSparkline('#w-expense', 'area', '#f41127', 'Expense', @json($expenseSeries), labels, true);
+        dashSparkline('#w-users', 'area', '#0dcaf0', 'New users', @json($usersSeries), labels, false);
 
         // Charts section (Chart.js): light/dark theme ke hisab se text + grid colors (html.dark-theme)
         function chartTheme() {
@@ -320,8 +184,8 @@
                 data: {
                     labels: @json($sessionLabels),
                     datasets: [
-                        { label: 'Revenue', data: @json($sessionRevenue), backgroundColor: '#17a00e', borderRadius: 6, borderWidth: 0 },
-                        { label: 'Expense', data: @json($sessionExpense), backgroundColor: '#f41127', borderRadius: 6, borderWidth: 0 }
+                        { label: 'Revenue', data: @json($sessionRevenue), backgroundColor: '#17a00e', borderRadius: { topLeft: 20, topRight: 20, bottomLeft: 0, bottomRight: 0 }, borderSkipped: false, borderWidth: 0 },
+                        { label: 'Expense', data: @json($sessionExpense), backgroundColor: '#f41127', borderRadius: { topLeft: 20, topRight: 20, bottomLeft: 0, bottomRight: 0 }, borderSkipped: false, borderWidth: 0 }
                     ]
                 },
                 options: {

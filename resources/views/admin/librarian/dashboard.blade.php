@@ -5,93 +5,33 @@
 	// Issued / Returned: month-to-date vs pichle mahine ke same din (Admin dashboard wali rule); up = green dono ke liye
 	$issuedDelta = $issuedThis - $issuedLast;
 	$returnedDelta = $returnedThis - $returnedLast;
-	$leaveBadges = ['pending' => 'bg-warning text-dark', 'approved' => 'bg-success', 'rejected' => 'bg-danger'];
 @endphp
 
 <!-- Cards Row 1: Issued / Returned / Overdue / My Attendance -->
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 gy-4 mb-4">
 	@can('access-book-issues')
-	<div class="col">
-		<div class="card radius-10 h-100 mb-0">
-			<div class="card-body">
-				<div class="d-flex align-items-center">
-					<div>
-						<p class="mb-0 text-secondary">Books Issued (This Month)</p>
-						<h4 class="my-1">{{ $issuedThis }}</h4>
-						@if($issuedDelta == 0)
-							<p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
-						@else
-							<p class="mb-0 font-13 {{ $issuedDelta > 0 ? 'text-success' : 'text-danger' }}"><i class='bx {{ $issuedDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> {{ abs($issuedDelta) }} vs same days last month</p>
-						@endif
-					</div>
-					<div class="widgets-icons bg-light-primary text-primary ms-auto"><i class='bx bx-book-reader'></i></div>
-				</div>
-				<div id="w-issued" class="mt-2 position-relative" style="z-index: 2;"></div>
-				<a href="{{ route('book_issue.index') }}" class="stretched-link" aria-label="Open Issue / Return Book"></a>
-			</div>
-		</div>
-	</div>
-	<div class="col">
-		<div class="card radius-10 h-100 mb-0">
-			<div class="card-body">
-				<div class="d-flex align-items-center">
-					<div>
-						<p class="mb-0 text-secondary">Books Returned (This Month)</p>
-						<h4 class="my-1">{{ $returnedThis }}</h4>
-						@if($returnedDelta == 0)
-							<p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
-						@else
-							<p class="mb-0 font-13 {{ $returnedDelta > 0 ? 'text-success' : 'text-danger' }}"><i class='bx {{ $returnedDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> {{ abs($returnedDelta) }} vs same days last month</p>
-						@endif
-					</div>
-					<div class="widgets-icons bg-light-success text-success ms-auto"><i class='bx bx-check-circle'></i></div>
-				</div>
-				<div id="w-returned" class="mt-2 position-relative" style="z-index: 2;"></div>
-				<a href="{{ route('book_issue.index') }}" class="stretched-link" aria-label="Open Issue / Return Book"></a>
-			</div>
-		</div>
-	</div>
-	<div class="col">
-		<div class="card radius-10 h-100 mb-0">
-			<div class="card-body">
-				<div class="d-flex align-items-center">
-					<div>
-						<p class="mb-0 text-secondary">Overdue</p>
-						<h4 class="my-1">{{ (int) $issueStats->overdue }}</h4>
-						<p class="mb-0 font-13 text-secondary">Past due date</p>
-					</div>
-					<div class="widgets-icons bg-light-danger text-danger ms-auto"><i class='bx bx-time-five'></i></div>
-				</div>
-				<div id="w-overdue" class="mt-2 position-relative" style="z-index: 2;"></div>
-				<a href="{{ route('book_issue.index') }}" class="stretched-link" aria-label="Open Issue / Return Book"></a>
-			</div>
-		</div>
-	</div>
+	<x-dashboard-stat title="Books Issued (This Month)" :value="$issuedThis" icon="bx bx-book-reader" color="primary" spark-id="w-issued" :href="route('book_issue.index')" href-label="Open Issue / Return Book">
+		@if($issuedDelta == 0)
+			<p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
+		@else
+			<p class="mb-0 font-13 {{ $issuedDelta > 0 ? 'text-success' : 'text-danger' }}"><i class='bx {{ $issuedDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> {{ abs($issuedDelta) }} vs same days last month</p>
+		@endif
+	</x-dashboard-stat>
+	<x-dashboard-stat title="Books Returned (This Month)" :value="$returnedThis" icon="bx bx-check-circle" color="success" spark-id="w-returned" :href="route('book_issue.index')" href-label="Open Issue / Return Book">
+		@if($returnedDelta == 0)
+			<p class="mb-0 font-13 text-secondary">No change vs same days last month</p>
+		@else
+			<p class="mb-0 font-13 {{ $returnedDelta > 0 ? 'text-success' : 'text-danger' }}"><i class='bx {{ $returnedDelta > 0 ? 'bxs-up-arrow' : 'bxs-down-arrow' }} align-middle'></i> {{ abs($returnedDelta) }} vs same days last month</p>
+		@endif
+	</x-dashboard-stat>
+	<x-dashboard-stat title="Overdue" :value="(int) $issueStats->overdue" icon="bx bx-time-five" color="danger" spark-id="w-overdue" :href="route('book_issue.index')" href-label="Open Issue / Return Book">
+		<p class="mb-0 font-13 text-secondary">Past due date</p>
+	</x-dashboard-stat>
 	@endcan
 	@can('access-my-attendance')
-	<div class="col">
-		<div class="card radius-10 h-100 mb-0">
-			<div class="card-body">
-				<div class="d-flex align-items-center">
-					<div>
-						<p class="mb-0 text-secondary">My Attendance</p>
-						@if($myAtt['marked'] > 0)
-							<h4 class="my-1">{{ $myAtt['present'] + $myAtt['half_day'] }} / {{ $myAtt['marked'] }}</h4>
-							<p class="mb-0 font-13 text-secondary">{{ $myAtt['percent'] }}% this month</p>
-						@else
-							<h4 class="my-1">-</h4>
-							<p class="mb-0 font-13 text-secondary">Not marked yet</p>
-						@endif
-					</div>
-					<div class="widgets-icons bg-light-warning text-warning ms-auto"><i class='bx bx-calendar-check'></i></div>
-				</div>
-				<div class="progress radius-10 mt-3" style="height: 4.5px;">
-					<div class="progress-bar bg-warning" role="progressbar" style="width: {{ $myAtt['marked'] > 0 ? min(100, (float) $myAtt['percent']) : 0 }}%"></div>
-				</div>
-				<a href="{{ route('my.attendance.index') }}" class="stretched-link" aria-label="Open My Attendance Report"></a>
-			</div>
-		</div>
-	</div>
+	<x-dashboard-stat title="My Attendance" :value="$myAtt['marked'] > 0 ? ($myAtt['present'] + $myAtt['half_day']) . ' / ' . $myAtt['marked'] : '-'" icon="bx bx-calendar-check" color="warning" :percent="$myAtt['marked'] > 0 ? $myAtt['percent'] : 0" :href="route('my.attendance.index')" href-label="Open My Attendance Report">
+		<p class="mb-0 font-13 text-secondary">{{ $myAtt['marked'] > 0 ? $myAtt['percent'] . '% this month' : 'Not marked yet' }}</p>
+	</x-dashboard-stat>
 	@endcan
 </div><!--end row-->
 
@@ -266,29 +206,7 @@
 	@endcan
 	@can('access-leave-application')
 	<div class="col-12 col-lg-3 d-flex">
-		<div class="card radius-10 w-100">
-			<div class="card-header">
-				<div class="d-flex align-items-center">
-					<h6 class="mb-0">My Leave Requests</h6>
-					<a href="{{ route('staffleaveapp.index') }}" class="btn btn-sm btn-outline-primary ms-auto">All</a>
-				</div>
-			</div>
-			@if($recentLeaves->isEmpty())
-				<div class="card-body text-secondary text-center py-4">No leave requests</div>
-			@else
-				<ul class="list-group list-group-flush">
-					@foreach($recentLeaves as $lv)
-					<li class="list-group-item bg-transparent d-flex justify-content-between align-items-start gap-2">
-						<div style="min-width: 0;">
-							<div class="fw-semibold text-break">{{ ucfirst($lv->leave_type) }}</div>
-							<div class="font-13 text-secondary">{{ \Carbon\Carbon::parse($lv->from_date)->format('d-m-Y') }} - {{ \Carbon\Carbon::parse($lv->to_date)->format('d-m-Y') }} &middot; {{ rtrim(rtrim($lv->total_days, '0'), '.') }} day(s)</div>
-						</div>
-						<span class="badge {{ isset($leaveBadges[$lv->status]) ? $leaveBadges[$lv->status] : 'bg-secondary' }} rounded-pill">{{ ucfirst($lv->status) }}</span>
-					</li>
-					@endforeach
-				</ul>
-			@endif
-		</div>
+		@include('partials.dashboard_leave_card')
 	</div>
 	@endcan
 </div><!--end row-->
@@ -297,6 +215,7 @@
 
 @push('scripts')
 <script src="{{ asset('backend/assets/plugins/apexcharts-bundle/js/apexcharts.min.js') }}"></script>
+@include('partials.dashboard_sparkline')
 <script>
 $(document).ready(function () {
 	// Recent issues: sirf latest 10, isliye paging/search band
@@ -310,29 +229,6 @@ $(document).ready(function () {
 		});
 	}
 
-	// Row 1 sparklines (ApexCharts v3.19.0): Admin dashboard wali options
-	function sparkline(selector, type, color, name, data, labels) {
-		if (!document.querySelector(selector)) { return; }
-		var options = {
-			series: [{ name: name, data: data }],
-			chart: { type: type, height: 65, toolbar: { show: false }, zoom: { enabled: false }, sparkline: { enabled: true } },
-			stroke: { show: true, width: type === 'bar' ? 0 : 2.4, curve: 'smooth' },
-			// ApexCharts v3.19.0: borderRadius bar par supported nahi, endingShape 'rounded' hi chalta hai
-			plotOptions: { bar: { horizontal: false, columnWidth: '45%', endingShape: 'rounded' } },
-			dataLabels: { enabled: false },
-			colors: [color],
-			xaxis: { categories: labels },
-			fill: { opacity: type === 'area' ? 0.35 : 1 },
-			tooltip: {
-				theme: 'dark',
-				fixed: { enabled: false },
-				x: { show: true },
-				y: { title: { formatter: function () { return ''; } } },
-				marker: { show: false }
-			}
-		};
-		new ApexCharts(document.querySelector(selector), options).render();
-	}
 
 	// Daily sparkline labels: "1 Oct", "2 Oct" ...
 	var monthName = @json(now()->format('M'));
@@ -341,9 +237,9 @@ $(document).ready(function () {
 	var dayLabels = [];
 	for (var d = 1; d <= issuedDaily.length; d++) { dayLabels.push(d + ' ' + monthName); }
 
-	sparkline('#w-issued', 'area', '#0d6efd', 'Issued', issuedDaily, dayLabels);
-	sparkline('#w-returned', 'area', '#17a00e', 'Returned', returnedDaily, dayLabels);
-	sparkline('#w-overdue', 'bar', '#f41127', 'Overdue', @json($overdueSeries), @json($monthLabels));
+	dashSparkline('#w-issued', 'area', '#0d6efd', 'Issued', issuedDaily, dayLabels, false);
+	dashSparkline('#w-returned', 'area', '#17a00e', 'Returned', returnedDaily, dayLabels, false);
+	dashSparkline('#w-overdue', 'bar', '#f41127', 'Overdue', @json($overdueSeries), @json($monthLabels), false);
 
 	// Charts section (Chart.js): light/dark theme ke hisab se text + grid colors (html.dark-theme)
 	function chartTheme() {
@@ -364,8 +260,8 @@ $(document).ready(function () {
 			data: {
 				labels: @json($sessionLabels),
 				datasets: [
-					{ label: 'Issued', data: @json($sessionIssued), backgroundColor: '#0d6efd', borderRadius: 6, borderWidth: 0 },
-					{ label: 'Returned', data: @json($sessionReturned), backgroundColor: '#17a00e', borderRadius: 6, borderWidth: 0 }
+					{ label: 'Issued', data: @json($sessionIssued), backgroundColor: '#0d6efd', borderRadius: { topLeft: 20, topRight: 20, bottomLeft: 0, bottomRight: 0 }, borderSkipped: false, borderWidth: 0 },
+					{ label: 'Returned', data: @json($sessionReturned), backgroundColor: '#17a00e', borderRadius: { topLeft: 20, topRight: 20, bottomLeft: 0, bottomRight: 0 }, borderSkipped: false, borderWidth: 0 }
 				]
 			},
 			options: {
