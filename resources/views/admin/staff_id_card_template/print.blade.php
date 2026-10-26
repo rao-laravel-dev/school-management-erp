@@ -63,7 +63,7 @@
             </table>
         </div>
         <div id="noStaffMsg" class="alert alert-warning d-none mb-0">
-            <i class="bx bx-error-circle"></i> Is role me koi staff nahi mila.
+            <i class="bx bx-error-circle"></i> No staff found for this role.
         </div>
     </div>
 </div>
@@ -88,7 +88,7 @@ $(function() {
         const templateId = $('#template_id').val();
 
         if (!role || !templateId) {
-            toastr.error('Role aur Template dono select karein.');
+            toastr.error('Please select Role and Template.');
             return;
         }
 
@@ -126,7 +126,7 @@ $(function() {
         const selected = $('.staffCheckbox:checked').map(function() { return this.value; }).get();
 
         if (selected.length === 0) {
-            toastr.error('Kam az kam ek staff select karein.');
+            toastr.error('Please select at least one staff member.');
             return;
         }
 

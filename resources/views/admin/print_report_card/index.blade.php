@@ -59,7 +59,7 @@
                     <input class="form-check-input" type="checkbox" id="selectAll">
                     <label class="form-check-label" for="selectAll">Select All</label>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm px-3" id="printBtn" disabled>
+                <button type="button" class="btn btn-primary btn-sm px-3" id="printBtn">
                     <i class="bx bx-printer"></i> Generate &amp; Print
                 </button>
             </div>
@@ -67,7 +67,7 @@
             <table id="studentsTable" class="table table-sm table-bordered w-100">
                 <thead>
                     <tr>
-                        <th width="40"><input type="checkbox" id="headCheck" disabled></th>
+                        <th width="40"></th>
                         <th>Roll No</th>
                         <th>Name</th>
                         <th>Father Name</th>
@@ -103,7 +103,6 @@
             $('#studentsWrapper').addClass('d-none');
             $('#emptyState').addClass('d-none');
             $('#studentsTable tbody').empty();
-            $('#printBtn').prop('disabled', true);
         }
 
         // ---------- Class -> Sections ----------
@@ -160,7 +159,7 @@
 
                 $('#studentsTable tbody').html(rows);
                 $('#studentsWrapper').removeClass('d-none');
-                $('#headCheck').prop('disabled', false).prop('checked', false);
+                $('#selectAll').prop('checked', false);
             }).fail(function () {
                 toastr.error('Unable to load students.');
             });
@@ -169,21 +168,24 @@
         $('#exam_id, #section_id').on('change', loadStudents);
 
         // ---------- Select all ----------
-        $(document).on('change', '#selectAll, #headCheck', function () {
-            const checked = $(this).is(':checked');
-            $('.student-check').prop('checked', checked);
-            $('#selectAll, #headCheck').prop('checked', checked);
-            togglePrintBtn();
+        $(document).on('change', '#selectAll', function () {
+            $('.student-check').prop('checked', $(this).is(':checked'));
         });
 
-        $(document).on('change', '.student-check', togglePrintBtn);
-
-        function togglePrintBtn() {
-            $('#printBtn').prop('disabled', $('.student-check:checked').length === 0);
-        }
+        // keep Select All in sync with the row checkboxes
+        $(document).on('change', '.student-check', function () {
+            const total = $('.student-check').length;
+            const checked = $('.student-check:checked').length;
+            $('#selectAll').prop('checked', total > 0 && total === checked);
+        });
 
         // ---------- Generate & Print ----------
         $('#printBtn').on('click', function () {
+            if ($('.student-check:checked').length === 0) {
+                toastr.error('Please select at least one student.');
+                return;
+            }
+
             const templateId = $('#template_id').val();
             if (!templateId) {
                 toastr.error('Please select a Report Card Template.');

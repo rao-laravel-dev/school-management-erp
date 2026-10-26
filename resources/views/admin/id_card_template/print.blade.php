@@ -115,7 +115,7 @@ $(function() {
         const templateId = $('#template_id').val();
 
         if (!classId || !sectionId || !templateId) {
-            toastr.error('Class, Section aur Template teeno select karein.');
+            toastr.error('Please select Class, Section and Template.');
             return;
         }
 
@@ -154,7 +154,7 @@ $(function() {
         const selected = $('.studentCheckbox:checked').map(function() { return this.value; }).get();
 
         if (selected.length === 0) {
-            toastr.error('Kam az kam ek student select karein.');
+            toastr.error('Please select at least one student.');
             return;
         }
 
