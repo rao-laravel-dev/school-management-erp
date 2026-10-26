@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <title>Rocker</title>
 </head>
 
@@ -116,6 +117,16 @@
                 }
             });
         });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "3000" };
+        @if (session('status'))
+            toastr.success(@json(session('status')));
+        @endif
+        @if ($errors->has('email'))
+            toastr.error(@json($errors->first('email')));
+        @endif
     </script>
     <!--app JS-->
     <script src="{{ asset('backend/assets/js/app.js') }}"></script>

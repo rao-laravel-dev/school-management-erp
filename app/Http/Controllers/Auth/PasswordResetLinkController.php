@@ -32,6 +32,8 @@ class PasswordResetLinkController extends Controller
 {
     $request->validate([
         'email' => ['required', 'email', 'exists:users,email'],
+    ], [
+        'email.exists' => 'No account found with this email address.',
     ]);
 
     // 1. Token generate karein
@@ -50,6 +52,6 @@ class PasswordResetLinkController extends Controller
     Mail::to($request->email)->send(new SchoolResetPasswordMail($token, $request->email));
 
     // 4. Success message ke sath wapis bhejein
-    return back()->with('status', 'We have emailed your professional reset link!');
+    return back()->with('status', 'Password reset link has been sent to your email.');
 }
 }

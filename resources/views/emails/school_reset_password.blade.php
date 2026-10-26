@@ -54,10 +54,19 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div class="icon-circle">
-                <!-- Lock Icon from an online source -->
-                <img src="https://cdn-icons-png.flaticon.com/512/6195/6195700.png" alt="Lock" style="width: 45px; filter: brightness(0) invert(1);">
+            @php
+                // School logo from Site Settings, embedded inline (email clients cannot reach local URLs); fallback = default logo
+                $siteSetting = \App\Models\SiteSetting::current();
+                $logoPath = \App\Services\ImageService::path($siteSetting->logo, 'site_setting');
+                if (!$logoPath) {
+                    $logoPath = public_path('backend/assets/images/logo-img.png');
+                }
+            @endphp
+            @if (file_exists($logoPath))
+            <div style="background: #ffffff; border-radius: 12px; padding: 8px 14px; display: inline-block; margin-bottom: 15px;">
+                <img src="{{ $message->embed($logoPath) }}" alt="School Logo" style="max-height: 60px; max-width: 200px; display: block;">
             </div>
+            @endif
             <h1 style="margin: 0; font-size: 28px; letter-spacing: 2px;">SMART SCHOOL</h1>
             <p style="opacity: 0.8; margin-top: 5px;">Secure Password Recovery</p>
         </div>
@@ -68,7 +77,7 @@
             <img src="https://cdn-icons-png.flaticon.com/512/6357/6357042.png" alt="Reset" style="width: 100px; margin-bottom: 20px;">
             
             <h2 style="color: #2e59d9;">Reset Your Password?</h2>
-            <p style="color: #5a5c69; font-size: 15px;">Assalam-o-Alaikum! Humein aapke account ke liye password reset ki request mili hai. Naya password set karne ke liye niche button click karein.</p>
+            <p style="color: #5a5c69; font-size: 15px;">Hello! We received a request to reset the password for your account. Click the button below to set a new password.</p>
             
             <a href="{{ url('reset-password/'.$token.'?email='.$email) }}" class="btn">
                 Reset Password
@@ -78,18 +87,14 @@
             
             <p style="color: #e74a3b; font-size: 13px; font-weight: 600;">
                 <img src="https://cdn-icons-png.flaticon.com/512/564/564619.png" width="15" style="vertical-align: middle;">
-                Ye link 60 minutes mein expire ho jayega.
+                This link will expire in 60 minutes.
             </p>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p>Agar aapne ye request nahi ki, toh is email ko ignore karein.</p>
+            <p>If you did not request this, you can safely ignore this email.</p>
             <p style="margin-top: 10px; font-weight: bold;">SmartSchool IT Support Team</p>
-            <div style="margin-top: 15px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="20" style="margin: 0 5px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="20" style="margin: 0 5px;">
-            </div>
         </div>
     </div>
 </body>
