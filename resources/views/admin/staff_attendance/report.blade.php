@@ -90,9 +90,16 @@
                         <td>{{ $record->markedBy->name_with_role ?? '-' }}</td>
                         <td>
                             @can('mark-staff-attendance')
-                            <a href="{{ route('staff_attendance.edit', ['date' => $record->date, 'role' => $record->staff ? $record->staff->roles->pluck('name')->first() : null]) }}" class="btn btn-sm btn-outline-primary">
+                            @php $staffRole = $record->staff ? $record->staff->roles->pluck('name')->first() : null; @endphp
+                            @if($staffRole && $roles->contains($staffRole))
+                            <a href="{{ route('staff_attendance.edit', ['date' => $record->date->format('Y-m-d'), 'role' => $staffRole]) }}" class="btn btn-sm btn-outline-primary">
                                 <i class='bx bx-edit'></i>
                             </a>
+                            @else
+                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="No staff role, cannot edit">
+                                <i class='bx bx-edit'></i>
+                            </button>
+                            @endif
                             @endcan
                             <a href="{{ route('staff_attendance.show', $record->user_id) }}" class="btn btn-sm btn-outline-info">
                                 <i class='bx bx-show'></i>
