@@ -77,7 +77,7 @@ class ReceptionController extends Controller
     return view('admin.receptionist.details_partials', compact('receptionist', 'leaveSettings'))->render();
 }
 
-    private function generateReceptionistId($firstName = null)
+    public function generateReceptionistId($firstName = null)
     {
         // Agar first_name khali ho to default 'REC' lag jaye
         $prefix = !empty($firstName) ? strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName)) : 'REC';

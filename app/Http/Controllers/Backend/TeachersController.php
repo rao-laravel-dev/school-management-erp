@@ -79,7 +79,7 @@ class TeachersController extends Controller
 
 
     // Function ko update karein takki woh argument handle kar sake
-    private function generateTeacherId($firstName = null)
+    public function generateTeacherId($firstName = null)
     {
         // Agar first_name khali hai, toh default 'TCH' prefix rakhein (NEW hata dein)
         $prefix = !empty($firstName) ? strtoupper(preg_replace('/[^A-Za-z]/', '', $firstName)) : 'TCH';
