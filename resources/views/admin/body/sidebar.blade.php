@@ -76,7 +76,7 @@
 
         {{-- Student Information Section --}}
         @if(auth()->user()->can('access-students') || auth()->user()->can('access-student-categories') || auth()->user()->can('access-student-houses') || auth()->user()->can('access-student-import'))
-        @php $open = request()->routeIs('students.*', 'student_import.*', 'student-category.*', 'student-house.*'); @endphp
+        @php $open = request()->routeIs('students.*', 'student_import.*', 'student_promotion.*', 'student-category.*', 'student-house.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-user-pin"></i></div>
@@ -90,6 +90,10 @@
 
                 @can('access-student-import')
                 <li class="{{ request()->routeIs('student_import.*') ? 'mm-active' : '' }}"><a href="{{ route('student_import.index') }}"><i class="bx bx-radio-circle"></i>Bulk Import</a></li>
+                @endcan
+
+                @can('access-student-promotion')
+                <li class="{{ request()->routeIs('student_promotion.*') ? 'mm-active' : '' }}"><a href="{{ route('student_promotion.index') }}"><i class="bx bx-radio-circle"></i>Student Promotion</a></li>
                 @endcan
 
                 @can('access-student-categories')

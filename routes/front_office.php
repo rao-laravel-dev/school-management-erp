@@ -40,6 +40,7 @@ use App\Http\Controllers\Backend\StaffIdCardTemplateController;
 use App\Http\Controllers\Backend\StudentCategoryController;
 use App\Http\Controllers\Backend\StudentHouseController;
 use App\Http\Controllers\Backend\StudentImportController;
+use App\Http\Controllers\Backend\StudentPromotionController;
 use App\Http\Controllers\Backend\SyllabusStatusController;
 use App\Http\Controllers\Backend\TeacherTimetableController;
 use App\Http\Controllers\Backend\TopicController;
@@ -973,6 +974,28 @@ Route::middleware(['auth'])->group(function () {
             });
         });
     });
+
+    // ==========================================
+    // STUDENT PROMOTION
+    // ==========================================
+    Route::prefix('student-promotion')->name('student_promotion.')->group(function () {
+
+        Route::middleware('can:access-student-promotion')->group(function () {
+            Route::controller(StudentPromotionController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/get-sections/{classId}', 'getSections')->name('get_sections');
+                Route::get('/get-exams/{yearId}', 'getExams')->name('get_exams');
+                Route::get('/students', 'getStudents')->name('students');
+            });
+        });
+
+        Route::middleware('can:manage-student-promotion')->group(function () {
+            Route::controller(StudentPromotionController::class)->group(function () {
+                Route::post('/store', 'store')->name('store');
+                Route::post('/undo/{enrollment}', 'undo')->whereNumber('enrollment')->name('undo');
+            });
+        });
+    }); // NEW 27-10-26
 
     // ==========================================
     // STUDENT ID CARD TEMPLATE

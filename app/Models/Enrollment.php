@@ -21,7 +21,7 @@ class Enrollment extends Model
         'section_id',
         'group_id',
         'roll_no',
-        'enroll_status' // ⚙️ (0=Inactive, 1=Active, 2=Promoted, 3=Detained, 4=Pending Approval)
+        'enroll_status' // ⚙️ (0=Inactive, 1=Active, 2=Promoted, 3=Detained, 4=Pending Approval, 5=Passed Out)
     ];
 
     // --- Relationships ---

@@ -62,7 +62,9 @@ class PermissionSeeder extends Seeder
             'manage-site-settings',
             'access-student-import',
             'manage-student-import',
-            'access-school-timing',             // web.php          
+            'access-student-promotion',         // front_office.php student_promotion.*
+            'manage-student-promotion',         // front_office.php student_promotion.* (store, undo)
+            'access-school-timing',             // web.php
             'manage-school-timing',             // web.php
             'access-id-card-templates',
             'manage-id-card-templates',
