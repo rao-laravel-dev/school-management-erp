@@ -635,10 +635,8 @@ Route::middleware(['auth'])->group(function () {
         // ==========================================
         Route::controller(AcademicYearController::class)->group(function () {
             Route::get('/academic-years', 'index')->name('academic_years.index');
-            Route::post('/academic-years/store', 'store')->name('academic_years.store');
             Route::get('/academic-years/edit/{id}', 'edit')->name('academic_years.edit');
-            Route::post('/academic-years/update/{id}', 'update')->name('academic_years.update');
-            Route::get('/academic-years/current/{id}', 'markAsCurrent')->name('academic_years.current');
+            // store / update / current ab manage-academics group mein hain (neeche)
         });
 
         // ==========================================
@@ -733,6 +731,9 @@ Route::middleware(['auth'])->group(function () {
         // ACADEMIC YEARS ALL ROUTES
         // ==========================================
         Route::controller(AcademicYearController::class)->group(function () {
+            Route::post('/academic-years/store', 'store')->name('academic_years.store'); // MOVED 28-10-26
+            Route::put('/academic-years/update/{id}', 'update')->name('academic_years.update'); // MOVED 28-10-26
+            Route::get('/academic-years/current/{id}', 'markAsCurrent')->name('academic_years.current'); // MOVED 28-10-26
             Route::get('/academic-years/delete/{id}', 'destroy')->name('academic_years.delete');
             // Special Status & Current Year Actions
             Route::get('/academic-years/status/{id}', 'toggleStatus')->name('academic_years.status');

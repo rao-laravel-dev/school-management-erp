@@ -31,7 +31,11 @@ class AcademicYearController extends Controller
             'weekly_off_days' => 'nullable|array',
             'weekly_off_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
         ], [
-            'name.unique' => 'This Academic Year / Session is already registered.',
+            'name.required'       => 'Academic Year / Session is required.',
+            'name.unique'         => 'This Academic Year / Session is already registered.',
+            'start_date.required' => 'Start Date is required.',
+            'end_date.required'   => 'End Date is required.',
+            'end_date.after'      => 'End Date must be after Start Date.',
         ]);
 
         // Form ne checkboxes render kiye hon to jo tick hain wahi (khali bhi ho sakta hai), warna default Sunday
@@ -46,12 +50,10 @@ class AcademicYearController extends Controller
             'status'     => $request->status ?? 1,
             'weekly_off_days' => $weeklyOff,
         ]);
-        
 
-        return redirect()->back()->with([
-            'message'    => 'Academic Year created successfully!',
-            'alert-type' => 'success'
-        ]);
+
+        // AJAX form hai: redirect nahi, JSON (page toastr dikha kar reload karta hai)
+        return response()->json(['success' => true, 'message' => 'Academic Year created successfully!']);
     }
 
     /**
@@ -73,12 +75,16 @@ class AcademicYearController extends Controller
 
         $request->validate([
             'name'       => 'required|string|unique:academic_years,name,' . $id,
-            'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after:start_date',
             'weekly_off_days' => 'nullable|array',
             'weekly_off_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
         ], [
-            'name.unique' => 'This Academic Year / Session name is already taken.',
+            'name.required'       => 'Academic Year / Session is required.',
+            'name.unique'         => 'This Academic Year / Session name is already taken.',
+            'start_date.required' => 'Start Date is required.',
+            'end_date.required'   => 'End Date is required.',
+            'end_date.after'      => 'End Date must be after Start Date.',
         ]);
 
         $academic_year->update([
@@ -89,10 +95,8 @@ class AcademicYearController extends Controller
             'weekly_off_days' => $request->input('weekly_off_days', []),
         ]);
 
-        return redirect()->route('academic_years.index')->with([
-            'message'    => 'Academic Year updated successfully!',
-            'alert-type' => 'info'
-        ]);
+        // AJAX form hai: redirect nahi, JSON (page toastr dikha kar reload karta hai)
+        return response()->json(['success' => true, 'message' => 'Academic Year updated successfully!']);
     }
 
     /**
