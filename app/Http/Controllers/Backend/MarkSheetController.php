@@ -71,10 +71,16 @@ class MarkSheetController extends Controller
                     ->first();
 
                 // Active students of this class-section
+                $examYearId = $exam->academic_year_id;
                 $enrollments = Enrollment::with('student')
                     ->where('class_id', $selectedClassId)
                     ->where('section_id', $selectedSectionId)
-                    ->where('enroll_status', 1)
+                    ->when($examYearId, function ($q) use ($examYearId) {
+                        $q->where('academic_year_id', $examYearId)
+                          ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+                    }, function ($q) {
+                        $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
+                    })
                     ->whereHas('student') // soft-deleted student marks entry mein nahi
                     ->orderBy('roll_no')
                     ->get();
@@ -184,6 +190,27 @@ class MarkSheetController extends Controller
             ->first();
 
         $maxMarks = $schedule->max_marks ?? null;
+
+        // ===== Enrollment ids must belong to this exam's session + class + section =====
+        $examYearId = $exam->academic_year_id;
+        $allowedIds = Enrollment::where('class_id', $request->class_id)
+            ->where('section_id', $request->section_id)
+            ->when($examYearId, function ($q) use ($examYearId) {
+                $q->where('academic_year_id', $examYearId)
+                  ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+            }, function ($q) {
+                $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
+            })
+            ->whereHas('student')
+            ->pluck('id')
+            ->all();
+
+        if (array_diff(array_keys($request->marks), $allowedIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Some students do not belong to this exam\'s session/class.',
+            ], 422);
+        }
 
         foreach ($request->marks as $enrollmentId => $marksObtained) {
             if ($marksObtained !== null && $maxMarks !== null && $marksObtained > $maxMarks) {

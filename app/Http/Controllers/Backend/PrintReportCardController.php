@@ -60,10 +60,17 @@ class PrintReportCardController extends Controller
             'section_id' => 'required|exists:sections,id',
         ]);
  
+        $examYearId = Exam::whereKey($request->exam_id)->value('academic_year_id');
+
         $enrollments = Enrollment::with('student.parent')
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
-            ->where('enroll_status', 1)
+            ->when($examYearId, function ($q) use ($examYearId) {
+                $q->where('academic_year_id', $examYearId)
+                  ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+            }, function ($q) {
+                $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
+            })
             ->whereHas('student') // soft-deleted student list mein nahi
             ->whereHas('result', function ($q) use ($request) {
                 $q->where('exam_id', $request->exam_id);

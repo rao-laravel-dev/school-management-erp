@@ -57,10 +57,17 @@ class PrintMarksheetController extends Controller
             ->where('section_id', $sectionId)
             ->pluck('enrollment_id');
 
+        $examYearId = Exam::whereKey($examId)->value('academic_year_id');
+
         $enrollments = Enrollment::with('student')
             ->where('class_id', $classId)
             ->where('section_id', $sectionId)
-            ->where('enroll_status', 1)
+            ->when($examYearId, function ($q) use ($examYearId) {
+                $q->where('academic_year_id', $examYearId)
+                  ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+            }, function ($q) {
+                $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
+            })
             ->whereIn('id', $resultEnrollmentIds)
             ->whereHas('student') // soft-deleted student list mein nahi
             ->orderBy('roll_no')

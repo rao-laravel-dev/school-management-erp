@@ -56,10 +56,17 @@ class SkillAssessmentEntryController extends Controller
             'area_id' => 'required|exists:skill_assessment_areas,id',
         ]);
 
+        $examYearId = Exam::whereKey($request->exam_id)->value('academic_year_id');
+
         $enrollments = Enrollment::with('student')
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
-            ->where('enroll_status', 1)
+            ->when($examYearId, function ($q) use ($examYearId) {
+                $q->where('academic_year_id', $examYearId)
+                  ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+            }, function ($q) {
+                $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
+            })
             ->whereHas('student') // soft-deleted student list mein nahi
             ->orderBy('roll_no')
             ->get();
@@ -95,6 +102,23 @@ class SkillAssessmentEntryController extends Controller
             'entries.*.grade_id' => 'nullable|exists:marks_grades,id',
             'entries.*.remark' => 'nullable|string',
         ]);
+
+        // ===== Enrollment ids must belong to this exam's session =====
+        $examYearId = Exam::whereKey($request->exam_id)->value('academic_year_id');
+        if ($examYearId) {
+            $entryIds = collect($request->entries)->pluck('enrollment_id')->unique()->values();
+            $validCount = Enrollment::whereIn('id', $entryIds)
+                ->where('academic_year_id', $examYearId)
+                ->whereIn('enroll_status', [1, 2, 3, 5]) // Active + Promoted / Detained / Passed Out
+                ->count();
+
+            if ($validCount !== $entryIds->count()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Some students do not belong to this exam\'s session.',
+                ], 422);
+            }
+        }
 
         foreach ($request->entries as $entry) {
             if (empty($entry['grade_id']) && empty($entry['remark'])) {
