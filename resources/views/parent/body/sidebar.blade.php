@@ -20,7 +20,7 @@
 
         {{-- Child links without an active child go to ?select=1 (redirects to the clean dashboard), so they never exact-match the current URL for app.js --}}
         @can('access-parent-students')
-        @php $open = request()->routeIs('parent.students.dashboard', 'parent.students.details'); @endphp
+        @php $open = request()->routeIs('parent.students.dashboard', 'parent.students.details', 'parent.students.child-dashboard'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>

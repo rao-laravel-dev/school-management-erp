@@ -76,7 +76,7 @@
         <div class="student-card-wrapper">
             {{-- View Profile Button --}}
             <div style="margin-bottom: 10px;">
-                <a href="{{ route('parent.students.dashboard', $child->id) }}" 
+                <a href="{{ route('parent.students.child-dashboard', $child->id) }}" 
                    class="btn {{ $btnClass }} shadow-sm text-white" 
                    style="display: flex; align-items: center; border-radius: 15px; padding: 12px; font-weight: 500; width: 100%;">
                     <i class='bx bx-user' style="margin-right: 8px;"></i>

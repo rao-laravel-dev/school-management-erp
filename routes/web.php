@@ -243,6 +243,7 @@ Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->g
         // Selected child's dashboard / details (ownership checked in the controller)
         Route::middleware('can:access-parent-students')->group(function () {
             Route::get('/student-dashboard/{id}', 'StudentDashboard')->name('students.dashboard');
+            Route::get('/students/child-dashboard/{id}', 'childDashboard')->whereNumber('id')->name('students.child-dashboard');
             Route::get('/student-details/{id}', 'StudentDashboard')->name('students.details');
         });
         Route::get('/logout', 'ParentLogout')->name('logout');
