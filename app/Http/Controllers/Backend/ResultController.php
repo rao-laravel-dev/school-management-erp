@@ -104,9 +104,17 @@ class ResultController extends Controller
         $subjectIds = $schedules->pluck('subject_id');
 
         // ===== 3. Get all active students of this class-section =====
+        // Exam ka apna session: promotion ke baad purana exam dobara calculate ho to usi saal ki rows li jayen
+        $examYearId = Exam::whereKey($examId)->value('academic_year_id');
+
         $enrollments = Enrollment::where('class_id', $classId)
             ->where('section_id', $sectionId)
-            ->where('enroll_status', 1)
+            ->when($examYearId, function ($q) use ($examYearId) {
+                $q->where('academic_year_id', $examYearId)
+                  ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+            }, function ($q) {
+                $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
+            })
             ->whereHas('student') // soft-deleted student ka result generate nahi hota
             ->get();
 
