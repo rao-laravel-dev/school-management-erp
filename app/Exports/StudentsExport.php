@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\AcademicYear;
 use App\Models\Enrollment;
 use App\Models\SiteSetting;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -42,6 +43,7 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
 
     public function collection()
     {
+        $sessionId = AcademicYear::getActiveSessionId();
         $query = Enrollment::with([
             'student.user',
             'student.parent',
@@ -50,7 +52,8 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
             'schoolClass',
             'section',
             'group',
-        ])->whereHas('student'); // soft-deleted student wali enrollment skip
+        ])->whereHas('student') // soft-deleted student wali enrollment skip
+            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)); // sirf current session ki enrollment
 
         if ($this->classId) {
             $query->where('class_id', $this->classId);

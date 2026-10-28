@@ -62,6 +62,7 @@ class StudentController extends Controller
         $inactiveCount = User::whereIn('status', [0, 2])->whereHas('studentProfile')->count();
 
         // 2. Aapka purana Enrollment data fetch karne ka logic
+        $sessionId = $this->getActiveSessionId();
         $enrollments = Enrollment::with([
             'student.user',
             'student.parent.user',
@@ -70,6 +71,7 @@ class StudentController extends Controller
             'group'
         ])
             ->whereHas('student') // soft-deleted student wali enrollment skip (warna table_rows 500)
+            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // promote ke baad purane saal ki row dobara na aaye
             ->latest()
             ->get();
 
@@ -187,8 +189,10 @@ class StudentController extends Controller
     {
         // 1. Student model se start karne ke bajaye Enrollment se start karein
         // Kyunke enrollments table mein sab kuch linked hai.
+        $sessionId = $this->getActiveSessionId();
         $query = Enrollment::with(['student.user', 'schoolClass', 'section', 'group'])
-            ->whereHas('student'); // soft-deleted student wali enrollment skip
+            ->whereHas('student') // soft-deleted student wali enrollment skip
+            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)); // sirf current session ki enrollment
 
         // 2. Dynamic Filtering (Condition checks)
         if ($request->filled('class_id')) {
@@ -263,8 +267,10 @@ class StudentController extends Controller
      */
     public function ExportPdf(Request $request)
     {
+        $sessionId = $this->getActiveSessionId();
         $query = Enrollment::with(['student.user', 'student.parent', 'schoolClass', 'section', 'group'])
-            ->whereHas('student'); // soft-deleted student wali enrollment skip
+            ->whereHas('student') // soft-deleted student wali enrollment skip
+            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)); // sirf current session ki enrollment
 
         if ($request->filled('class_id')) {
             $query->where('class_id', $request->class_id);

@@ -36,9 +36,11 @@ class PrintIdCardController extends Controller
     // naya method — students list AJAX
     public function getStudents($classId, $sectionId)
     {
+        $sessionId = $this->getActiveSessionId();
         $enrollments = Enrollment::with('student')
             ->where('class_id', $classId)
             ->where('section_id', $sectionId)
+            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // promote ke baad purane saal ki row na aaye
             ->whereHas('student') // soft-deleted student wali enrollment skip (warna null crash)
             ->get();
 
@@ -67,8 +69,10 @@ class PrintIdCardController extends Controller
 
         $template = IdCardTemplate::findOrFail($request->template_id);
 
+        $sessionId = $this->getActiveSessionId();
         $enrollments = Enrollment::with(['student.parent', 'student.house', 'schoolClass', 'section'])
             ->whereIn('id', $request->enrollment_ids)
+            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // purane saal ki enrollment ka card nahi banta
             ->whereHas('student') // soft-deleted student ka card nahi banta
             ->get();
 
