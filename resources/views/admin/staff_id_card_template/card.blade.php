@@ -270,7 +270,7 @@
 
             <div class="id-card-back-footer">
                 @if($template->show_qr_code)
-                <div class="qr-wrap">{!! QrCode::size(60)->generate($staff->getOrCreateQrCode()) !!}</div>
+                <div class="qr-wrap">{!! QrCode::size(60)->generate(route('card_verify.show', $staff->getOrCreateQrCode())) !!}</div>
                 @endif
                 @if($template->show_barcode)
                 @php $barcodeValue = $staff->getOrCreateQrCode(); @endphp

@@ -7,6 +7,7 @@ use App\Http\Controllers\Backend\AccessControlController;
 use App\Http\Controllers\Backend\AccountantController;
 use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\AttendanceController;
+use App\Http\Controllers\Backend\CardVerifyController;
 use App\Http\Controllers\Backend\ClassController;
 use App\Http\Controllers\Backend\EventTypeController;
 use App\Http\Controllers\Backend\GroupController;
@@ -326,6 +327,12 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
 });
 // STUDENTS LOGIN
 Route::get('students/login', [StudentProfileController::class, 'StudentLogin'])->name('students.login');
+
+// ID CARD QR VERIFY (public by design; full-vs-basic decided inside the controller by permission)
+Route::controller(CardVerifyController::class)->prefix('verify')->name('card_verify.')
+    ->middleware('throttle:30,1')->group(function () {
+        Route::get('/{code}', 'show')->where('code', '[A-Za-z0-9-]+')->name('show');
+    });
 
 
 // CRUD ROUTE IN ONE GROUP

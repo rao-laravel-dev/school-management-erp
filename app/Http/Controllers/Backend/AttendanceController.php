@@ -713,6 +713,11 @@ class AttendanceController extends Controller
 
         $code = preg_replace('/\s+/', '', ltrim(trim($request->code), '#')); // leading "#" aur spaces hata do
 
+        // Naye card ka QR poora URL hai (.../verify/{code}): sirf code nikal lo, purana plain token waisa hi chalta hai
+        if (preg_match('~/verify/([A-Za-z0-9-]+)/?(?:[?#].*)?$~i', $code, $m)) {
+            $code = $m[1];
+        }
+
         // Scope server-side (client par bharosa nahi): null = full, collection = teacher ki apni class(es)
         $scope = $this->scanScope();
         if ($scope !== null && $scope->isEmpty()) {
