@@ -33,6 +33,7 @@ use App\Http\Controllers\Backend\SubjectController;
 use App\Http\Controllers\Backend\SuperAdminController;
 use App\Http\Controllers\Backend\TeacherAssignmentController;
 use App\Http\Controllers\Backend\TeachersController;
+use App\Http\Controllers\Backend\StaffProfileController;
 use App\Http\Controllers\Backend\TeacherTimetableController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\ProfileController;
@@ -138,7 +139,7 @@ Route::middleware(['auth', 'role:receptionist'])->prefix('reception')->name('rec
 
         Route::get('/dashboard', 'ReceptionistManage')->name('dashboard');
         Route::get('/logout', 'ReceptionLogout')->name('logout');
-        Route::get('/profile', 'ReceptionistProfile')->name('profile');
+        Route::redirect('/profile', '/staff-profile')->name('profile');
         Route::post('/profile/update', 'ReceptionistProfileUpdate')->name('profile.update');
         Route::get('/change/password', 'ReceptionistChangePassword')->name('change.password');
         Route::post('/password/update', 'ReceptionistPasswordUpdate')->name('password.update');
@@ -155,7 +156,7 @@ Route::middleware(['auth', 'role:accountant'])->prefix('accountant')->name('acco
 
         Route::get('/dashboard', 'AccountantManage')->name('dashboard');
         Route::get('/logout', 'AccountantLogout')->name('logout');
-        Route::get('/profile', 'AccountantProfile')->name('profile');
+        Route::redirect('/profile', '/staff-profile')->name('profile');
         Route::post('/profile/update', 'AccountantProfileUpdate')->name('profile.update');
         Route::get('/change/password', 'AccountantChangePassword')->name('change.password');
         Route::post('/password/update', 'AccountantPasswordUpdate')->name('password.update');
@@ -172,7 +173,7 @@ Route::middleware(['auth', 'role:librarian'])->prefix('librarian')->name('librar
 
         Route::get('/dashboard', 'LibrarianManage')->name('dashboard');
         Route::get('/logout', 'LibrarianLogout')->name('logout');
-        Route::get('/profile', 'LibrarianProfile')->name('profile');
+        Route::redirect('/profile', '/staff-profile')->name('profile');
         Route::post('/profile/update', 'LibrarianProfileUpdate')->name('profile.update');
         Route::get('/change/password', 'LibrarianChangePassword')->name('change.password');
         Route::post('/password/update', 'LibrarianPasswordUpdate')->name('password.update');
@@ -187,7 +188,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
     Route::controller(TeacherProfileController::class)->group(function () {
         Route::get('/dashboard', 'TeacherManage')->name('dashboard');
         Route::get('/logout', 'TeacherLogout')->name('logout');
-        Route::get('/profile', 'TeacherProfile')->name('profile');
+        Route::redirect('/profile', '/staff-profile')->name('profile');
         Route::post('/profile/update', 'TeacherProfileUpdate')->name('profile.update');
         Route::get('/change/password', 'TeacherChangePassword')->name('change.password');
         Route::post('/password/update', 'TeacherPasswordUpdate')->name('password.update');
@@ -232,6 +233,12 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 });
 // TEACHERS LOGIN
 Route::get('teacher/login', [TeacherProfileController::class, 'TeacherLogin'])->name('teacher.login');
+
+// STAFF PROFILE (teacher / receptionist / accountant / librarian: one shared page, active role decides the row)
+Route::middleware(['auth', 'role:teacher|receptionist|accountant|librarian', 'can:access-profile'])->prefix('staff-profile')->name('staff_profile.')->group(function () {
+    Route::get('/', [StaffProfileController::class, 'index'])->name('index');
+    Route::post('/update', [StaffProfileController::class, 'update'])->name('update');
+});
 
 
 // PARENTS ROUTES

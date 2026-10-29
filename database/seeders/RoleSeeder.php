@@ -195,6 +195,7 @@ class RoleSeeder extends Seeder
             'mark-staff-attendance',
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
+            'access-profile',               // web.php staff_profile.* (own profile)
             'manage-print-report-card',     // web.php print_report_card.generate
 
         ]);
@@ -243,6 +244,7 @@ class RoleSeeder extends Seeder
             'access-fine-policies',
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
+            'access-profile',               // web.php staff_profile.* (own profile)
             'manage-fee-collections',       // fees.collect pay / report
             'manage-salary-slips',          // salary_slips generate / pay
             'manage-expenses',              // expenses add / pay
@@ -266,6 +268,7 @@ class RoleSeeder extends Seeder
             'access-leave-application',
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
+            'access-profile',               // web.php staff_profile.* (own profile)
         ]);
 
         // 7. Teacher
@@ -279,6 +282,7 @@ class RoleSeeder extends Seeder
             'access-scan-attendance',       // web.php attendance.scan* (own class students only, controller scope)
             'access-my-salary-slips',       // web.php Only for Teacher this permission.
             'access-my-attendance',         // web.php my.attendance.index
+            'access-profile',               // web.php staff_profile.* (own profile)
             'access-home-works',
             'manage-home-works',
             'access-class-timetable',
