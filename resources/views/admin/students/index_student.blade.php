@@ -408,7 +408,7 @@
                 },
                 error: function(xhr) {
                     btn.prop('disabled', false);
-                    toastr.error("Update failed.");
+                    toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : "Update failed.");
                 }
             });
         }
@@ -443,7 +443,7 @@
                 },
                 error: function(xhr) {
                     btn.prop('disabled', false);
-                    toastr.error("Sync failed.");
+                    toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : "Sync failed.");
                 }
             });
         });

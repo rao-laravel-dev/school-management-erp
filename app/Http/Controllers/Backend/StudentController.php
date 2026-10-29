@@ -1114,6 +1114,17 @@ class StudentController extends Controller
             $student = Student::findOrFail($id);
             $action = $request->input('action');
 
+            // Live enrollment (history rows 2/3 kabhi nahi); Passed Out ya enrollment na mile to kuch write na ho
+            $enrollment = $this->liveEnrollment($student->id);
+            if (!$enrollment) {
+                DB::rollback();
+                return response()->json(['success' => false, 'message' => 'No enrollment found in the current session. Status not changed.'], 422);
+            }
+            if ((int) $enrollment->enroll_status === 5) {
+                DB::rollback();
+                return response()->json(['success' => false, 'message' => 'This student has Passed Out. Status cannot be changed here (use Student Promotion Undo if needed).'], 422);
+            }
+
             // 1. Student Status Update
             $student->status = ($action === 'approve') ? 1 : 0;
             $student->save();
@@ -1129,7 +1140,6 @@ class StudentController extends Controller
             }
 
             // 4. Enrollment Status Update
-            $enrollment = Enrollment::where('student_id', $student->id)->latest()->first();
             if ($enrollment) {
                 $enrollment->update(['enroll_status' => ($action === 'approve') ? 1 : 0]);
             }
@@ -1194,6 +1204,15 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
 
+        // Live enrollment (history rows 2/3 kabhi nahi); Passed Out ya enrollment na mile to kuch write na ho
+        $enrollment = $this->liveEnrollment($student->id);
+        if (!$enrollment) {
+            return response()->json(['success' => false, 'message' => 'No enrollment found in the current session. Status not changed.'], 422);
+        }
+        if ((int) $enrollment->enroll_status === 5) {
+            return response()->json(['success' => false, 'message' => 'This student has Passed Out. Status cannot be changed here (use Student Promotion Undo if needed).'], 422);
+        }
+
         // Toggle logic: 1 to 0, or 0 to 1
         $newStatus = $student->status == 1 ? 0 : 1;
 
@@ -1207,7 +1226,6 @@ class StudentController extends Controller
         }
 
         // 3. Update Enrollment Status (Optional but recommended for consistency)
-        $enrollment = Enrollment::where('student_id', $student->id)->latest()->first();
         if ($enrollment) {
             $enrollment->update(['enroll_status' => $newStatus]);
         }
@@ -1220,6 +1238,22 @@ class StudentController extends Controller
             'pendingCount' => \App\Models\User::where('status', 2)->whereHas('studentProfile')->count()
         ]);
     }
+    // Live enrollment: class ki session (gap = pichla) ya current/agla session; Promoted/Detained (2/3) history kabhi nahi
+    private function liveEnrollment(int $studentId): ?Enrollment
+    {
+        $current = AcademicYear::find(AcademicYear::getActiveSessionId());
+        if (!$current || !$current->start_date) {
+            return null;
+        }
+
+        return Enrollment::where('student_id', $studentId)
+            ->whereIn('enroll_status', [0, 1, 5])
+            ->where(fn($q) => $q->where(fn($q2) => AcademicYear::whereClassSession($q2))
+                ->orWhereIn('academic_year_id', AcademicYear::whereDate('start_date', '>=', $current->start_date->toDateString())->select('id')))
+            ->latest('id')
+            ->first();
+    }
+
     // 1. Trash List
     public function StudentTrash()
     {
