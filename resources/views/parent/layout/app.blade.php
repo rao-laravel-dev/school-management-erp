@@ -35,7 +35,7 @@
 </head>
 
 <body>
-    <div class="wrapper">
+    <div class="wrapper parent-portal">
 
         @include('parent.body.sidebar')
         @include('parent.body.header')

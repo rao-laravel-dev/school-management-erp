@@ -360,8 +360,19 @@
     <div class="tab-pane fade" id="pills-calendar" role="tabpanel">
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-body p-4">
-                <h6>Academic Calendar</h6>
-                <p class="text-muted small">Academic timeline & scheduled event details go here.</p>
+                <h6 class="text-dark dark-readable">Academic Calendar</h6>
+                @if($calendarEvents->isEmpty())
+                    <p class="text-muted small mb-0">No upcoming events.</p>
+                @else
+                    <ul class="list-group list-group-flush">
+                        @foreach($calendarEvents as $event)
+                        <li class="list-group-item bg-transparent">
+                            <div class="fw-semibold text-break text-dark dark-readable">{{ $event->title }}</div>
+                            <div class="font-13 text-secondary">{{ optional($event->eventType)->name ?: '-' }} &middot; {{ $event->start_date->format('d-m-Y') }}{{ $event->end_date && $event->end_date->format('d-m-Y') !== $event->start_date->format('d-m-Y') ? ' to ' . $event->end_date->format('d-m-Y') : '' }}</div>
+                        </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
         </div>
     </div>
@@ -371,7 +382,7 @@
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-body p-4">
                 <h6>Download Fee Voucher</h6>
-                <p class="text-muted small">Active printable fee challan vouchers are structured here.</p>
+                <p class="text-muted small">Fee vouchers will be available here soon.</p>
             </div>
         </div>
     </div>

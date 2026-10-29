@@ -80,7 +80,7 @@
                    class="btn {{ $btnClass }} shadow-sm text-white" 
                    style="display: flex; align-items: center; border-radius: 15px; padding: 12px; font-weight: 500; width: 100%;">
                     <i class='bx bx-user' style="margin-right: 8px;"></i>
-                    <span style="flex-grow: 1; text-align: center;">View Profile</span>
+                    <span style="flex-grow: 1; text-align: center;">View Dashboard</span>
                     <i class='bx bx-right-arrow-alt' style="margin-left: 8px;"></i>
                 </a>
             </div>
@@ -99,7 +99,7 @@
                     <div class="d-grid">
                         <a href="{{ route('parent.students.dashboard', $child->id) }}" 
                            class="btn {{ $btnClass }} text-white" style="border-radius: 50px;">
-                            <i class='bx bxs-dashboard'></i> View Dashboard
+                            <i class='bx bxs-dashboard'></i> Student Portal
                         </a>
                     </div>
                 </div>

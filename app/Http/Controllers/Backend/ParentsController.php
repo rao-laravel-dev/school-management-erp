@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
+use App\Models\AcademicCalendar;
+use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\ClassSubject;
 use App\Models\ClassTimetable;
@@ -123,8 +125,16 @@ if ($classId) {
             ->get();
     }
 
+// 7. Academic Calendar tab: aane wale active events, current session ke end_date tak (read-only)
+$sessionEnd = AcademicYear::where('is_current', 1)->value('end_date');
+$calendarEvents = AcademicCalendar::with('eventType')->where('status', true)
+    ->whereDate(DB::raw('COALESCE(end_date, start_date)'), '>=', now()->toDateString())
+    ->when($sessionEnd, fn ($q) => $q->whereDate('start_date', '<=', $sessionEnd))
+    ->orderBy('start_date')->take(10)->get();
+
 // 6. Saare variables aur $className ko view mein compact kar ke bhej diya
 return view('parent.student_details', compact(
+    'calendarEvents',
     'student',
     'attendanceRecords',
     'examResults',

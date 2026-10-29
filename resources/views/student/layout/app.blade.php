@@ -33,7 +33,7 @@
 </head>
 
 <body>
-    <div class="wrapper">
+    <div class="wrapper student-portal">
 
         @include('student.body.sidebar')
         @include('student.body.header')

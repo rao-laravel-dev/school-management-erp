@@ -2826,6 +2826,18 @@ html.dark-theme .custom-dashboard-card .text-label-custom { color: #aab0b6 !impo
 html.dark-theme .custom-dashboard-card .img-avatar-custom { border-color: rgb(255 255 255 / 15%) !important; }
 html.dark-theme .alert.bg-light-info.dark-readable h5 { color: #e4e5e6; }
 
+/* Dark theme: parent + student portal results badges (bg-*-subtle stays pastel; bright text on it was unreadable) */
+html.dark-theme .parent-portal .badge.bg-success-subtle,
+html.dark-theme .student-portal .badge.bg-success-subtle { background-color: rgb(21 202 32 / 18%) !important; }
+html.dark-theme .parent-portal .badge.bg-primary-subtle,
+html.dark-theme .student-portal .badge.bg-primary-subtle { background-color: rgb(0 140 255 / 18%) !important; }
+html.dark-theme .parent-portal .badge.bg-warning-subtle,
+html.dark-theme .student-portal .badge.bg-warning-subtle { background-color: rgb(255 193 7 / 18%) !important; }
+html.dark-theme .parent-portal .badge.bg-danger-subtle,
+html.dark-theme .student-portal .badge.bg-danger-subtle { background-color: rgb(253 53 80 / 18%) !important; }
+html.dark-theme .parent-portal .badge.bg-info-subtle,
+html.dark-theme .student-portal .badge.bg-info-subtle { background-color: rgb(13 202 240 / 18%) !important; }
+
 /* Weekly timetable grids on phones/tablets: same scroll pattern as Lesson Plan (lp-week-wrapper).
    Fixed-width day columns inside their own overflow-x container; desktop (>= 992px) unchanged.
    Extra .card prefix: the views' inline <style> loads after app.css. */

@@ -57,6 +57,7 @@
         </li>
         @endcanany
 
+        @can('access-parent-students')
         <li>
             <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-category"></i>
@@ -64,10 +65,11 @@
                 <div class="menu-title">Attendance</div>
             </a>
             <ul>
-                <li> <a href="#"><i class='bx bx-radio-circle'></i>Attendance</a>
+                <li> <a href="{{ $parentChildId ? route('parent.students.child-dashboard', $parentChildId) : route('parent.dashboard', ['select' => 1]) }}"><i class='bx bx-radio-circle'></i>Attendance</a>
                 </li>
             </ul>
         </li>
+        @endcan
 
         @can('access-parent-homework')
         @php $open = request()->routeIs('parent.students.homework.*'); @endphp
