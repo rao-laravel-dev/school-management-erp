@@ -226,6 +226,11 @@
         color: #aab0b6;
     }
 
+    /* Dark mode: info box white rehta hai, magar .table ka text light ho jata hai (values faint), isliye values dark karo */
+    html.dark-theme .kiosk-details tr td:last-child {
+        color: #1e293b;
+    }
+
     .kiosk-camera-btn {
         background: #ffffff !important;
         color: #1e0fb0 !important;
