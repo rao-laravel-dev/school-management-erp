@@ -33,7 +33,7 @@ class BillingGenerateMonthly extends Command
             if ($month) {
                 // Ek mahina: jis academic year mein ye mahina aata hai us ki setting
                 $settings = BillingSetting::with('academicYear')->get()
-                    ->filter(fn($s) => in_array($month, $billing->billingMonths($s->academicYear), true));
+                    ->filter(fn($s) => in_array($month, $t === 'fees' ? $billing->feeMonths($s->academicYear) : $billing->billingMonths($s->academicYear), true));
 
                 foreach ($settings as $setting) {
                     $rows[] = $billing->runMonth($setting, $t, $month);

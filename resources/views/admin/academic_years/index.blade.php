@@ -145,6 +145,14 @@
                         </div>
                     </div>
 
+                    {{-- Class Dates (optional): kuch classes ki alag start/end dates, baqi session ki dates par --}}
+                    <div class="col-md-12 class-dates-wrap" data-rows="[]">
+                        <label class="small fw-bold">Class Dates (optional)</label>
+                        <p class="small text-muted mb-2">Give some classes their own start and end dates (e.g. Class 9 and 10). All other classes use the session dates.</p>
+                        <div class="class-dates-list"></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm class-dates-add"><i class="bx bx-plus"></i> Add Class Group</button>
+                    </div>
+
                     <div class="col-md-12 mt-4 pt-2 border-top">
                         <div class="d-flex align-items-center gap-2 justify-content-end">
                             <button type="submit" class="btn btn-success btn-sm" id="submit-form-btn"><i class="bx bx-save"></i> Save</button>
@@ -190,6 +198,13 @@
                                     @else
                                     <span class="badge bg-light text-secondary">Not Configured</span>
                                     @endif
+                                    {{-- Class group ki alag dates (agar set hon) --}}
+                                    @foreach((array) $item->class_date_overrides as $group)
+                                    <div class="small text-muted">
+                                        {{ collect($group['class_ids'])->map(fn($cid) => $classes->firstWhere('id', $cid) ? $classes->firstWhere('id', $cid)->name : '#' . $cid)->implode(', ') }}:
+                                        {{ \Carbon\Carbon::parse($group['start_date'])->format('d-m-Y') }} - {{ \Carbon\Carbon::parse($group['end_date'])->format('d-m-Y') }}
+                                    </div>
+                                    @endforeach
                                 </td>
                                 <td>
                                     @if($item->is_current == 1)
@@ -287,6 +302,12 @@
                                 @endforeach
                             </div>
                         </div>
+                        <div class="col-md-12 class-dates-wrap" data-rows="{{ json_encode($item->class_date_overrides ?: []) }}">
+                            <label class="small fw-bold">Class Dates (optional)</label>
+                            <p class="small text-muted mb-2">Give some classes their own start and end dates (e.g. Class 9 and 10). All other classes use the session dates.</p>
+                            <div class="class-dates-list"></div>
+                            <button type="button" class="btn btn-outline-primary btn-sm class-dates-add"><i class="bx bx-plus"></i> Add Class Group</button>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -303,6 +324,8 @@
 @endsection
 
 @push('scripts')
+{{-- Select2 JS layout mein load nahi hota (sirf CSS), isliye local copy yahin (Class Dates rows) --}}
+<script src="{{ asset('backend/assets/plugins/select2/js/select2.min.js') }}"></script>
 <script>
     $(document).ready(function() {
         // Initialize Data Table safely
@@ -380,7 +403,7 @@
 
         // 4. Add + Edit form: AJAX submit, server 422 errors field ke neeche, toastr mein sirf pehla error
         function clearYearErrors($form) {
-            $form.find('.is-invalid').removeClass('is-invalid').next('.invalid-feedback').text('');
+            $form.find('.is-invalid').removeClass('is-invalid').nextAll('.invalid-feedback').first().text('');
         }
 
         function submitYearForm($form) {
@@ -403,7 +426,11 @@
                     let first = null;
                     $.each(xhr.responseJSON.errors, function(key, msgs) {
                         if (!first) first = msgs[0];
-                        $form.find('[name="' + key + '"]').addClass('is-invalid').next('.invalid-feedback').text(msgs[0]);
+                        let $field = $form.find('[name="' + key + '"]');
+                        if (!$field.length && key.indexOf('class_date_overrides.') === 0) {
+                            $field = $form.find('[name="' + yearErrorName(key) + '"]');
+                        }
+                        $field.addClass('is-invalid').nextAll('.invalid-feedback').first().text(msgs[0]);
                     });
                     toastr.clear();
                     toastr.error(first);
@@ -413,6 +440,82 @@
                     toastr.error('Something went wrong. Please try again.');
                 }
             });
+        }
+
+        // Class Dates (optional): repeatable rows (Select2 classes + Start + End), names class_date_overrides[i][...]
+        var classDateClasses = @json($classes);
+
+        function classDatesEsc(text) {
+            return $('<div>').text(text).html();
+        }
+
+        function addClassDatesRow($wrap, row) {
+            let idx = $wrap.data('nextIdx') || 0;
+            $wrap.data('nextIdx', idx + 1);
+            row = row || {};
+            let chosen = $.map(row.class_ids || [], function(v) { return parseInt(v, 10); });
+            let options = '';
+            $.each(classDateClasses, function(i, c) {
+                options += '<option value="' + c.id + '"' + ($.inArray(parseInt(c.id, 10), chosen) !== -1 ? ' selected' : '') + '>' + classDatesEsc(c.name) + '</option>';
+            });
+            let n = 'class_date_overrides[' + idx + ']';
+            let $row = $(
+                '<div class="class-dates-row border rounded p-2 mb-2"><div class="row g-2">' +
+                '<div class="col-12"><label class="small fw-bold">Classes</label>' +
+                '<select multiple name="' + n + '[class_ids][]" class="form-select form-select-sm class-dates-select">' + options + '</select>' +
+                '<div class="invalid-feedback"></div></div>' +
+                '<div class="col-5"><label class="small fw-bold">Start Date</label>' +
+                '<input type="date" name="' + n + '[start_date]" class="form-control form-control-sm" value="' + classDatesEsc(row.start_date || '') + '">' +
+                '<div class="invalid-feedback"></div></div>' +
+                '<div class="col-5"><label class="small fw-bold">End Date</label>' +
+                '<input type="date" name="' + n + '[end_date]" class="form-control form-control-sm" value="' + classDatesEsc(row.end_date || '') + '">' +
+                '<div class="invalid-feedback"></div></div>' +
+                '<div class="col-2 d-flex align-items-end"><button type="button" class="btn btn-danger btn-sm class-dates-remove" title="Remove group"><i class="bx bx-trash"></i></button></div>' +
+                '</div></div>'
+            );
+            $wrap.find('.class-dates-list').append($row);
+            let $modal = $wrap.closest('.modal');
+            $row.find('.class-dates-select').select2({
+                dropdownParent: $modal.length ? $modal : $wrap.closest('form'), // dark mode CSS ke scope ke liye (Add form ke andar)
+                width: '100%',
+                placeholder: 'Select classes'
+            });
+        }
+
+        // Rows ko server wali values (data-rows) par dobara banata hai (page load, modal open/close)
+        function renderClassDates($form) {
+            let $wrap = $form.find('.class-dates-wrap');
+            $wrap.data('nextIdx', 0);
+            $wrap.find('.class-dates-select').select2('destroy');
+            $wrap.find('.class-dates-list').empty();
+            $.each($wrap.data('rows') || [], function(i, r) {
+                addClassDatesRow($wrap, r);
+            });
+        }
+
+        $(document).on('click', '.class-dates-add', function() {
+            addClassDatesRow($(this).closest('.class-dates-wrap'), {});
+        });
+
+        $(document).on('click', '.class-dates-remove', function() {
+            let $row = $(this).closest('.class-dates-row');
+            $row.find('.class-dates-select').select2('destroy');
+            $row.remove();
+        });
+
+        renderClassDates($('#academic-year-form'));
+
+        // 422 key class_date_overrides.0.class_ids (ya .class_ids.1) ko form field name mein badalna
+        function yearErrorName(key) {
+            let parts = key.split('.');
+            if (parts.length > 3 && /^\d+$/.test(parts[parts.length - 1])) {
+                parts.pop();
+            }
+            let name = parts[0];
+            for (let i = 1; i < parts.length; i++) {
+                name += '[' + parts[i] + ']';
+            }
+            return parts[parts.length - 1] === 'class_ids' ? name + '[]' : name;
         }
 
         $(document).on('submit', '#academic-year-form, .academic-year-edit-form', function(e) {
@@ -429,6 +532,7 @@
         $(document).on('show.bs.modal hidden.bs.modal', '.academic-year-edit-modal', function() {
             let $form = $(this).find('form');
             $form[0].reset();
+            renderClassDates($form); // Class Dates rows bhi server wali values par
             clearYearErrors($form);
             $form.find('button[type="submit"]').prop('disabled', false);
         });

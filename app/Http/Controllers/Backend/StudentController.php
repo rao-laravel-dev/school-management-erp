@@ -71,7 +71,7 @@ class StudentController extends Controller
             'group'
         ])
             ->whereHas('student') // soft-deleted student wali enrollment skip (warna table_rows 500)
-            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // promote ke baad purane saal ki row dobara na aaye
+            ->when($sessionId, fn($q) => $q->where(fn($w) => AcademicYear::whereCurrentOrGap($w))) // promote ke baad purane saal ki row dobara na aaye (gap class ke Active students bhi)
             ->latest()
             ->get();
 
@@ -192,7 +192,7 @@ class StudentController extends Controller
         $sessionId = $this->getActiveSessionId();
         $query = Enrollment::with(['student.user', 'schoolClass', 'section', 'group'])
             ->whereHas('student') // soft-deleted student wali enrollment skip
-            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)); // sirf current session ki enrollment
+            ->when($sessionId, fn($q) => $q->where(fn($w) => AcademicYear::whereCurrentOrGap($w))); // sirf current session ki enrollment (+ gap class ke Active students)
 
         // 2. Dynamic Filtering (Condition checks)
         if ($request->filled('class_id')) {
@@ -270,7 +270,7 @@ class StudentController extends Controller
         $sessionId = $this->getActiveSessionId();
         $query = Enrollment::with(['student.user', 'student.parent', 'schoolClass', 'section', 'group'])
             ->whereHas('student') // soft-deleted student wali enrollment skip
-            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)); // sirf current session ki enrollment
+            ->when($sessionId, fn($q) => $q->where(fn($w) => AcademicYear::whereCurrentOrGap($w))); // sirf current session ki enrollment (+ gap class ke Active students)
 
         if ($request->filled('class_id')) {
             $query->where('class_id', $request->class_id);

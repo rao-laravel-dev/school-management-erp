@@ -16,7 +16,13 @@ return new class extends Migration
         $table->string('name')->unique(); // Misaal ke tor par: "2026-2027" ya "2026"
         $table->date('start_date')->nullable(); // Session kab shuru hua
         $table->date('end_date')->nullable();   // Session kab khatam hoga
-        
+
+        // Weekly off din (JSON array), e.g. ["Sunday"]
+        $table->json('weekly_off_days')->nullable();
+
+        // Class groups ki alag dates [{class_ids, start_date, end_date}]; NULL = sab classes session ki dates par
+        $table->json('class_date_overrides')->nullable();
+
         // 1 = Current Active Session, 0 = Past/Future Session
         // Poore table mein sirf AIK record hamesha 1 ho sakta hai
         $table->tinyInteger('is_current')->default(0); 

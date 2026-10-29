@@ -111,10 +111,12 @@ class StudentProfileController extends Controller
         $sessionAbsent = [];
         $sessionP = 0; $sessionL = 0; $sessionH = 0; $sessionA = 0;
         $year = $activeEnrollment ? $activeEnrollment->academicYear : null;
-        if ($canAtt && $year && $year->start_date && $year->end_date) {
-            $sFrom = Carbon::parse($year->start_date)->toDateString();
+        // Enrollment ki apni year row + class ki dates (class group override ho to us ki)
+        [$yearStart, $yearEnd] = $year ? $year->datesForClass((int) $activeEnrollment->class_id) : [null, null];
+        if ($canAtt && $year && $yearStart && $yearEnd) {
+            $sFrom = Carbon::parse($yearStart)->toDateString();
             // end_date mahine ki 1 tareekh ho to pichla mahina aakhri mahina; aaj ke baad ka data nahi
-            $sEnd = Carbon::parse($year->end_date);
+            $sEnd = Carbon::parse($yearEnd);
             if ($sEnd->day === 1) {
                 $sEnd = $sEnd->copy()->subDay();
             }
@@ -334,7 +336,7 @@ class StudentProfileController extends Controller
 
         // 1. Enrollment fetch karein (group_id ke saath)
         $enrollment = Enrollment::where('student_id', $studentId)
-            ->where('academic_year_id', $activeSessionId)
+            ->where(fn($q) => \App\Models\AcademicYear::whereCurrentOrGap($q)) // gap class = pichle session ki enrollment
             ->first();
 
         if (!$enrollment) {

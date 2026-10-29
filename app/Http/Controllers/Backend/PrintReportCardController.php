@@ -163,9 +163,16 @@ class PrintReportCardController extends Controller
  
         foreach ($request->enrollment_ids as $enrollmentId) {
  
-            $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section'])
+            $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section', 'academicYear'])
                 ->findOrFail($enrollmentId);
- 
+
+            // Attendance start: enrollment ki apni year row + class ki dates (class group override ho to us ki), warna exam ke year ki
+            $sheetFrom = $attendanceFrom;
+            if ($enrollment->academicYear) {
+                $classStart = $enrollment->academicYear->datesForClass((int) $enrollment->class_id)[0];
+                $sheetFrom  = $classStart ? Carbon::parse($classStart) : $attendanceFrom;
+            }
+
             // Marks & Grade -> ALWAYS current exam only (no cumulative logic here)
             $result = Result::with('grade')
                 ->where('enrollment_id', $enrollmentId)
@@ -179,7 +186,7 @@ class PrintReportCardController extends Controller
             // Attendance -> cumulative, session start to this exam's date
             $attendance = Attendance::where('enrollment_id', $enrollmentId)
                 ->whereBetween('attendance_date', [
-                    $attendanceFrom->toDateString(),
+                    $sheetFrom->toDateString(),
                     $attendanceTo->toDateString(),
                 ])
                 ->get();
@@ -201,7 +208,7 @@ class PrintReportCardController extends Controller
                 'result'     => $result,
                 'subjectMarks' => $subjectMarks,
                 'attendance' => [
-                    'from'       => $attendanceFrom,
+                    'from'       => $sheetFrom,
                     'to'         => $attendanceTo,
                     'total_days' => $totalDays,
                     'present'    => $presentDays,

@@ -92,7 +92,7 @@ class FeeAssignmentService
             $cap = $end;
         }
 
-        $months = $this->billing->billingMonths(AcademicYear::findOrFail($academicYearId));
+        $months = $this->billing->feeMonths(AcademicYear::findOrFail($academicYearId));
 
         return array_values(array_filter($months, fn($m) => $m >= $start && $m <= $cap));
     }

@@ -22,15 +22,18 @@ class BillingService
      * Academic year ke billing months ['Y-m', ...]. end_date mahine ki 1 tareekh ho to wo mahina nahi
      * ginte (pichla mahina aakhri hai). Dates na hon to khali.
      */
-    public function billingMonths(AcademicYear $year): array
+    public function billingMonths(AcademicYear $year, ?int $classId = null): array
     {
-        if (!$year->start_date || !$year->end_date) {
+        // Class kisi override group mein ho to us group ki dates, warna session ki (classId null = session)
+        [$start, $end] = $year->datesForClass($classId);
+
+        if (!$start || !$end) {
             return [];
         }
 
-        $first = $year->start_date->copy()->startOfMonth();
-        $last  = $year->end_date->copy()->startOfMonth();
-        if ($year->end_date->day === 1) {
+        $first = $start->copy()->startOfMonth();
+        $last  = $end->copy()->startOfMonth();
+        if ($end->day === 1) {
             $last->subMonthNoOverflow();
         }
 
@@ -38,6 +41,27 @@ class BillingService
         for ($m = $first->copy(); $m->lte($last); $m->addMonthNoOverflow()) {
             $months[] = $m->format('Y-m');
         }
+
+        return $months;
+    }
+
+    /**
+     * Fees ke months: session ke months + har class group (override) ke months, sorted, duplicate nahi.
+     * Overrides NULL ho to billingMonths($year) ke barabar.
+     */
+    public function feeMonths(AcademicYear $year): array
+    {
+        $months = $this->billingMonths($year);
+
+        foreach ((array) $year->class_date_overrides as $row) {
+            $classIds = isset($row['class_ids']) ? (array) $row['class_ids'] : [];
+            if ($classIds) {
+                $months = array_merge($months, $this->billingMonths($year, (int) reset($classIds)));
+            }
+        }
+
+        $months = array_values(array_unique($months));
+        sort($months);
 
         return $months;
     }
@@ -55,7 +79,9 @@ class BillingService
         }
 
         $due = [];
-        foreach ($this->billingMonths($setting->academicYear) as $month) {
+        // Fees: class groups ke months bhi; salary school-wide (session ke months)
+        $billingMonths = $type === 'fees' ? $this->feeMonths($setting->academicYear) : $this->billingMonths($setting->academicYear);
+        foreach ($billingMonths as $month) {
             if ($month < $from) {
                 continue;
             }
@@ -110,12 +136,12 @@ class BillingService
 
     /**
      * Mahine ki monthly/quarterly/half-yearly/annual fees student_fees mein banao.
-     * Period academic year ke pehle billing month se gina jata hai.
+     * Period academic year (ya class group) ke pehle billing month se gina jata hai.
      */
     public function generateFeesForMonth(BillingSetting $setting, string $month): array
     {
         $year   = $setting->academicYear;
-        $months = $this->billingMonths($year);
+        $months = $this->feeMonths($year);
         $index  = array_search($month, $months, true);
 
         if ($index === false) {
@@ -130,7 +156,15 @@ class BillingService
             ->where('academic_year_id', $year->id)
             ->whereNotNull('school_class_id')
             ->get()
-            ->filter(fn($fs) => $fs->feeType && !$fs->feeType->is_per_student && $this->appliesInMonth($fs->feeType->frequency, $index));
+            ->filter(function ($fs) use ($year, $month) {
+                if (!$fs->feeType || $fs->feeType->is_per_student) {
+                    return false;
+                }
+                // Period index class ke apne months se: class group ki dates alag ho to us ka pehla mahina 0 hai
+                $classIndex = array_search($month, $this->billingMonths($year, (int) $fs->school_class_id), true);
+
+                return $classIndex !== false && $this->appliesInMonth($fs->feeType->frequency, $classIndex);
+            });
 
         $created = 0;
         $skipped = 0;

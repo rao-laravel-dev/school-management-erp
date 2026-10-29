@@ -179,7 +179,7 @@ class AttendanceController extends Controller
             ->whereHas('student') // trashed student ki row nahi dikhani
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
-            ->where('academic_year_id', $this->getActiveSessionId()) // purane saal ki enrollment kabhi na dikhe
+            ->where(fn($q) => AcademicYear::whereClassSession($q)) // purane saal ki enrollment kabhi na dikhe (gap class = pichla session)
             ->where('enroll_status', 1) // sirf Active enrollment (scan attendance ki tarah)
             ->get();
 
@@ -239,7 +239,7 @@ class AttendanceController extends Controller
             $validEnrollmentIds = Enrollment::whereHas('student')
                 ->where('class_id', $request->class_id)
                 ->where('section_id', $request->section_id)
-                ->where('academic_year_id', $this->getActiveSessionId())
+                ->where(fn($q) => AcademicYear::whereClassSession($q))
                 ->where('enroll_status', 1)
                 ->pluck('id')
                 ->all();
@@ -311,7 +311,7 @@ class AttendanceController extends Controller
                 $enrollments = Enrollment::whereHas('student')
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
-                    ->where('academic_year_id', $activeSessionId)
+                    ->where(fn($q) => AcademicYear::whereClassSession($q))
                     ->where('enroll_status', 1) // Holiday rows bhi sirf Active students ki
                     ->get();
 
@@ -401,7 +401,7 @@ class AttendanceController extends Controller
         $students = Enrollment::whereHas('student')
             ->where('class_id', $id)
             ->where('section_id', $section_id)
-            ->where('academic_year_id', $activeSessionId) // FILTER ADDED
+            ->where(fn($q) => AcademicYear::whereClassSession($q)) // FILTER ADDED
             ->where('enroll_status', 1) // sirf Active enrollment
             ->with(['student', 'attendance' => function ($q) use ($date) {
                 $q->where('attendance_date', $date);
@@ -435,7 +435,7 @@ class AttendanceController extends Controller
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
             ->whereIn('status', [1, 2])
-            ->whereHas('enrollment', fn($q) => $q->where('academic_year_id', $activeSessionId)) // Session filter
+            ->whereHas('enrollment', fn($q) => AcademicYear::whereClassSession($q)) // Session filter (gap class = pichla session)
             ->update(['time_out' => $request->departure_time]);
 
         return response()->json(['success' => 'Departure time updated for the class!']);
@@ -461,7 +461,7 @@ class AttendanceController extends Controller
 
         // Active enrollment ka check (session wise)
         $enrollment = Enrollment::where('student_id', $student->id)
-            ->where('academic_year_id', $activeSessionId)
+            ->where(fn($q) => AcademicYear::whereCurrentOrGap($q))
             ->first();
 
         if (!$enrollment) {
@@ -471,11 +471,13 @@ class AttendanceController extends Controller
         // Academic year ki range: start se aaj tak (future mahine navigation mein nahi)
         $today = now()->startOfDay();
         $academicYear = AcademicYear::find($enrollment->academic_year_id);
-        $rangeStart = ($academicYear && $academicYear->start_date)
-            ? $academicYear->start_date->copy()->startOfDay()
+        // Enrollment ki apni year row + class ki dates (class group override ho to us ki)
+        [$yearStart, $yearEnd] = $academicYear ? $academicYear->datesForClass((int) $enrollment->class_id) : [null, null];
+        $rangeStart = ($academicYear && $yearStart)
+            ? $yearStart->copy()->startOfDay()
             : $today->copy()->startOfYear();
-        $rangeEnd = ($academicYear && $academicYear->end_date)
-            ? $academicYear->end_date->copy()->startOfDay()
+        $rangeEnd = ($academicYear && $yearEnd)
+            ? $yearEnd->copy()->startOfDay()
             : $today->copy()->endOfYear()->startOfDay();
         if ($rangeEnd->gt($today)) {
             $rangeEnd = $today->copy();
@@ -676,7 +678,7 @@ class AttendanceController extends Controller
 
         return TeacherAssignment::with(['schoolClass', 'section'])
             ->where('teacher_id', $teacher->id)
-            ->where('academic_year_id', $this->getActiveSessionId())
+            ->where(fn($q) => AcademicYear::whereClassSession($q))
             ->get();
     }
 
@@ -772,7 +774,7 @@ class AttendanceController extends Controller
         $activeSessionId = $this->getActiveSessionId();
         $enrollmentsByRoll = Enrollment::with('student')
             ->where('roll_no', $code)
-            ->where('academic_year_id', $activeSessionId)
+            ->where(fn($q) => AcademicYear::whereClassSession($q))
             ->where('enroll_status', 1) // sirf Active enrollment
             ->whereHas('student') // soft-deleted student skip
             ->when($scope !== null, function ($q) use ($scope) {
@@ -827,7 +829,7 @@ class AttendanceController extends Controller
 
         $enrollment = Enrollment::with(['schoolClass', 'section', 'group'])
             ->where('student_id', $student->id)
-            ->where('academic_year_id', $activeSessionId)
+            ->where(fn($q) => AcademicYear::whereCurrentOrGap($q))
             ->first();
 
         // Teacher scope: sirf apni class-section ka student; baqi reject, koi record save nahi (kisi write se pehle)
@@ -1078,7 +1080,7 @@ class AttendanceController extends Controller
 
         return TeacherAssignment::with(['schoolClass', 'section'])
             ->where('teacher_id', $teacher->id)
-            ->where('academic_year_id', $this->getActiveSessionId())
+            ->where(fn($q) => AcademicYear::whereClassSession($q))
             ->get();
     }
 
@@ -1143,7 +1145,7 @@ class AttendanceController extends Controller
             ->where('attendances.class_id', $classId)
             ->where('attendances.section_id', $sectionId)
             ->whereBetween('attendances.attendance_date', [$f['from'], $f['to']])
-            ->where('e.academic_year_id', $this->getActiveSessionId())
+            ->where(fn($q) => AcademicYear::whereClassSession($q, 'e.academic_year_id', 'e.class_id'))
             ->whereNull('e.deleted_at');
         $this->applyReportStatus($query, $f['status']);
 
@@ -1241,7 +1243,7 @@ class AttendanceController extends Controller
     public function studentReport(Request $request, Enrollment $enrollment)
     {
         $scope = $this->reportScope();
-        if ($scope !== null && ($enrollment->academic_year_id != $this->getActiveSessionId()
+        if ($scope !== null && (!AcademicYear::isClassSession($enrollment->academic_year_id, $enrollment->class_id)
             || !$this->inReportScope($scope, $enrollment->class_id, $enrollment->section_id))) {
             abort(403);
         }

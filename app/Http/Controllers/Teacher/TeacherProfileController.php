@@ -117,11 +117,13 @@ class TeacherProfileController extends Controller
         $sessionLabels = [];
         $sessionPresent = [];
         $sessionAbsent = [];
-        $session = $myClasses->isNotEmpty() && $sessionId ? AcademicYear::find($sessionId, ['start_date', 'end_date']) : null;
-        if ($session && $session->start_date && $session->end_date) {
-            $sFrom = Carbon::parse($session->start_date)->toDateString();
+        $session = $myClasses->isNotEmpty() && $sessionId ? AcademicYear::find($sessionId, ['start_date', 'end_date', 'class_date_overrides']) : null;
+        // Class teacher ki (pehli) class ki dates: class group override ho to us ki, warna session ki
+        [$sessionStart, $sessionEnd] = $session ? $session->datesForClass((int) $myClasses->first()->class_id) : [null, null];
+        if ($session && $sessionStart && $sessionEnd) {
+            $sFrom = Carbon::parse($sessionStart)->toDateString();
             // end_date mahine ki 1 tareekh ho (01 Jan 2026 -> 01 Jan 2027) to pichla mahina aakhri mahina; start se pehle na jaye
-            $sEnd = Carbon::parse($session->end_date);
+            $sEnd = Carbon::parse($sessionEnd);
             if ($sEnd->day === 1) {
                 $sEnd = $sEnd->copy()->subDay();
             }

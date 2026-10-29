@@ -39,7 +39,7 @@ class FeeAssignmentRequest extends FormRequest
                     function ($attribute, $value, $fail) use ($assignment) {
                         if ($value < $assignment->start_month) {
                             $fail('End Month cannot be before the Start Month.');
-                        } elseif (!in_array($value, app(BillingService::class)->billingMonths($assignment->academicYear), true)) {
+                        } elseif (!in_array($value, app(BillingService::class)->feeMonths($assignment->academicYear), true)) {
                             $fail('End Month must be inside the academic year.');
                         }
                     },
@@ -135,7 +135,7 @@ class FeeAssignmentRequest extends FormRequest
     {
         $year = AcademicYear::find($this->input('academic_year_id'));
 
-        return $year && in_array($month, app(BillingService::class)->billingMonths($year), true);
+        return $year && in_array($month, app(BillingService::class)->feeMonths($year), true);
     }
 
     /**

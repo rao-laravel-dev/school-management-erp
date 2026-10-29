@@ -46,9 +46,9 @@ class BillingSettingController extends Controller
         }
 
         $currentMonth   = now()->format('Y-m');
-        $feeMonths      = $academicYear ? $this->billing->billingMonths($academicYear) : [];
-        // Salary sirf poore hue mahine ki
-        $salaryMonths   = array_values(array_filter($feeMonths, fn($m) => $m < $currentMonth));
+        $feeMonths      = $academicYear ? $this->billing->feeMonths($academicYear) : [];
+        // Salary sirf poore hue mahine ki (school-wide: session ke months)
+        $salaryMonths   = array_values(array_filter($academicYear ? $this->billing->billingMonths($academicYear) : [], fn($m) => $m < $currentMonth));
         $feeMonthDefault    = in_array($currentMonth, $feeMonths, true) ? $currentMonth : end($feeMonths);
         $salaryMonthDefault = end($salaryMonths);
 
@@ -106,7 +106,8 @@ class BillingSettingController extends Controller
             return response()->json(['message' => 'Save the billing settings for this academic year first.'], 422);
         }
 
-        if (!in_array($request->month, $this->billing->billingMonths($billingSetting->academicYear), true)) {
+        $yearMonths = $request->type === 'fees' ? $this->billing->feeMonths($billingSetting->academicYear) : $this->billing->billingMonths($billingSetting->academicYear);
+        if (!in_array($request->month, $yearMonths, true)) {
             return response()->json(['message' => 'This month is outside the selected academic year.'], 422);
         }
 

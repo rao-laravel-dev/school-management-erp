@@ -53,7 +53,7 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
             'section',
             'group',
         ])->whereHas('student') // soft-deleted student wali enrollment skip
-            ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)); // sirf current session ki enrollment
+            ->when($sessionId, fn($q) => $q->where(fn($w) => AcademicYear::whereCurrentOrGap($w))); // sirf current session ki enrollment (+ gap class ke Active students)
 
         if ($this->classId) {
             $query->where('class_id', $this->classId);

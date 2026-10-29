@@ -40,14 +40,16 @@ class StudentHomework
                 ->pluck('subject_id');
 
             $year = $enrollment->academicYear;
+            // Enrollment ki apni year row + class ki dates (class group override ho to us ki)
+            [$yearStart, $yearEnd] = $year ? $year->datesForClass((int) $enrollment->class_id) : [null, null];
 
             $homeworks = HomeWork::with(['subject', 'createdBy'])
                 ->where('class_id', $enrollment->class_id)
                 ->where('section_id', $enrollment->section_id)
                 ->where('status', 1)
                 ->whereIn('subject_id', $subjectIds)
-                ->when($year && $year->start_date, fn ($q) => $q->whereDate('homework_date', '>=', $year->start_date))
-                ->when($year && $year->end_date, fn ($q) => $q->whereDate('homework_date', '<=', $year->end_date))
+                ->when($year && $yearStart, fn ($q) => $q->whereDate('homework_date', '>=', $yearStart))
+                ->when($year && $yearEnd, fn ($q) => $q->whereDate('homework_date', '<=', $yearEnd))
                 ->orderByDesc('due_date')
                 ->get();
         }

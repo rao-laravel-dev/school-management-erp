@@ -152,7 +152,7 @@ return view('parent.student_details', compact(
         $enrollment = Enrollment::with(['schoolClass', 'section', 'academicYear'])
             ->where('student_id', $student->id)
             ->where('enroll_status', 1)
-            ->when($sessionId, fn ($q) => $q->where('academic_year_id', $sessionId))
+            ->when($sessionId, fn ($q) => $q->where(fn ($w) => \App\Models\AcademicYear::whereCurrentOrGap($w))) // gap class = pichle session ki enrollment
             ->latest('id')
             ->first();
 
@@ -196,10 +196,12 @@ return view('parent.student_details', compact(
         $sessionAbsent = [];
         $sessionP = 0; $sessionL = 0; $sessionH = 0;
         $year = $enrollment ? $enrollment->academicYear : null;
-        if ($canStudents && $year && $year->start_date && $year->end_date) {
-            $sFrom = Carbon::parse($year->start_date)->toDateString();
+        // Enrollment ki apni year row + class ki dates (class group override ho to us ki)
+        [$yearStart, $yearEnd] = $year ? $year->datesForClass((int) $enrollment->class_id) : [null, null];
+        if ($canStudents && $year && $yearStart && $yearEnd) {
+            $sFrom = Carbon::parse($yearStart)->toDateString();
             // end_date mahine ki 1 tareekh ho to pichla mahina aakhri mahina; aaj ke baad ka data nahi
-            $sEnd = Carbon::parse($year->end_date);
+            $sEnd = Carbon::parse($yearEnd);
             if ($sEnd->day === 1) {
                 $sEnd = $sEnd->copy()->subDay();
             }
