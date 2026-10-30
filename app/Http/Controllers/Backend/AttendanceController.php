@@ -356,7 +356,7 @@ class AttendanceController extends Controller
             $first = Cache::add("att_summary:class:{$class_id}:{$section_id}:" . Carbon::parse($date)->toDateString(), true, now()->endOfDay());
             Notification::send(
                 AttendanceSummaryNotification::recipients($user->id),
-                AttendanceSummaryNotification::forClass($class_id, $section_id, $date, ($first ? 'Manual by ' : 'By ') . $user->name_with_role, !$first)
+                AttendanceSummaryNotification::forClass($class_id, $section_id, $date, ($first ? 'Manual by ' : 'By ') . $user->name_with_role, !$first, $user)
             );
         }
 

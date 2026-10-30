@@ -108,6 +108,8 @@
             $(this).find('.is-invalid').removeClass('is-invalid');
             $(this).find('.invalid-feedback').remove();
 
+            let $submitBtn = $(this).find('[type="submit"]').prop('disabled', true);
+
             $.ajax({
                 url: "{{ route('school_timing.store') }}",
                 method: 'POST',
@@ -115,9 +117,10 @@
                 success: function(res) {
                     $('#addTimingModal').modal('hide');
                     toastr.success(res.message);
-                    location.reload();
+                    setTimeout(function() { location.reload(); }, 2000);
                 },
                 error: function(xhr) {
+                    $submitBtn.prop('disabled', false);
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
                         let firstMessage = null;
@@ -144,6 +147,13 @@
             $(this).siblings('.invalid-feedback').remove();
         });
 
+        // Summary time error start/end time se judi hai, isliye start/end badalte hi wo bhi clear
+        $(document).on('input change', '#addTimingForm [name="start_time"], #addTimingForm [name="end_time"], #editTimingForm [name="start_time"], #editTimingForm [name="end_time"]', function() {
+            let $summary = $(this).closest('form').find('[name="attendance_summary_time"]');
+            $summary.removeClass('is-invalid');
+            $summary.siblings('.invalid-feedback').remove();
+        });
+
         // Edit Modal: open + prefill (from data attributes, no extra AJAX call)
         $(document).on('click', '.edit-btn', function() {
             $('#editTimingForm').find('.is-invalid').removeClass('is-invalid');
@@ -166,6 +176,8 @@
             let id = $('#edit_id').val();
             let url = "{{ route('school_timing.update', ':id') }}".replace(':id', id);
 
+            let $submitBtn = $(this).find('[type="submit"]').prop('disabled', true);
+
             $.ajax({
                 url: url,
                 method: 'POST',
@@ -173,9 +185,10 @@
                 success: function(res) {
                     $('#editTimingModal').modal('hide');
                     toastr.success(res.message);
-                    location.reload();
+                    setTimeout(function() { location.reload(); }, 2000);
                 },
                 error: function(xhr) {
+                    $submitBtn.prop('disabled', false);
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
                         let firstMessage = null;
@@ -200,6 +213,7 @@
         $(document).on('click', '.set-active-btn', function() {
             let id = $(this).data('id');
             let url = "{{ route('school_timing.set_active', ':id') }}".replace(':id', id);
+            let $btn = $(this).prop('disabled', true);
 
             $.ajax({
                 url: url,
@@ -207,9 +221,10 @@
                 data: { _token: '{{ csrf_token() }}' },
                 success: function(res) {
                     toastr.success(res.message);
-                    location.reload();
+                    setTimeout(function() { location.reload(); }, 2000);
                 },
                 error: function() {
+                    $btn.prop('disabled', false);
                     toastr.error('Failed to set active timing');
                 }
             });
@@ -219,10 +234,11 @@
         $(document).on('click', '.status-btn', function() {
             let id = $(this).data('id');
             let url = "{{ route('school_timing.status', ':id') }}".replace(':id', id);
+            let $btn = $(this);
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: "Ye School Timing ka status badal dega.",
+                text: "This will change the School Timing status.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -230,15 +246,17 @@
                 confirmButtonText: 'Yes, do it!'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    $btn.prop('disabled', true);
                     $.ajax({
                         url: url,
                         method: 'POST',
                         data: { _token: '{{ csrf_token() }}' },
                         success: function(res) {
                             toastr.success(res.message);
-                            location.reload();
+                            setTimeout(function() { location.reload(); }, 2000);
                         },
                         error: function() {
+                            $btn.prop('disabled', false);
                             toastr.error('Failed to update status');
                         }
                     });

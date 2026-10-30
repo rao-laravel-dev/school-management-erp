@@ -58,7 +58,9 @@
 				.attr('href', item.open_url)
 				.toggleClass('notification-bell-unread', item.unread)
 				.append($('<div class="d-flex align-items-center"></div>')
-					.append($('<img class="msg-avatar" alt="">').attr('src', item.image))
+					.append(item.image
+						? $('<img class="msg-avatar" alt="">').attr('src', item.image)
+						: $('<div class="notify bg-light-primary text-primary"><i class="bx bx-calendar-check"></i></div>'))
 					.append($('<div class="flex-grow-1"></div>')
 						.append($title)
 						.append($('<p class="msg-info"></p>').text(item.body))));

@@ -74,8 +74,8 @@ class NotificationController extends Controller
     // End Method
 
 
-    // Avatar URL: data['image'] public/ mein mojood ho to wo, warna project ka default no-image
-    private function notificationImage($path): string
+    // Avatar URL: data['image'] public/ mein mojood ho to wo, warna null (bell attendance icon dikhata hai)
+    private function notificationImage($path): ?string
     {
         // Sirf public/ ke andar relative path: "..", leading slash/backslash ya scheme (http:, data:) reject
         if (is_string($path) && $path !== '' && !str_contains($path, '..')
@@ -83,7 +83,7 @@ class NotificationController extends Controller
             return asset($path);
         }
 
-        return asset('uploads/no_image.jpg');
+        return null;
     }
     // End Method
 }

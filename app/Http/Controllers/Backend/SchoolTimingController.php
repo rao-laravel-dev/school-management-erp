@@ -7,6 +7,7 @@ use App\Models\SchoolTiming;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class SchoolTimingController extends Controller
 {
@@ -16,20 +17,29 @@ class SchoolTimingController extends Controller
         return view('admin.school_timing.index', compact('timings'));
     }
  
-    private function rules()
+    private function rules($id = null)
     {
         return [
-            'season_name'         => 'required|string|max:100',
+            'season_name'         => ['required', 'string', 'max:100', Rule::unique('school_timings', 'season_name')->ignore($id)],
             'start_time'          => 'required|date_format:H:i',
             'end_time'            => 'required|date_format:H:i|after:start_time',
             'late_grace_minutes'  => 'required|integer|min:0|max:120',
             'attendance_summary_time' => 'nullable|date_format:H:i|after:start_time|before:end_time',
         ];
     }
- 
+
+    private function messages()
+    {
+        return [
+            'season_name.unique'                => 'This season name already exists.',
+            'attendance_summary_time.after'     => 'Summary time must be after start time.',
+            'attendance_summary_time.before'    => 'Summary time must be before end time.',
+        ];
+    }
+
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), $this->rules());
+        $validator = Validator::make($request->all(), $this->rules(), $this->messages());
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
@@ -43,11 +53,11 @@ class SchoolTimingController extends Controller
     {
         $timing = SchoolTiming::findOrFail($id);
  
-        $validator = Validator::make($request->all(), $this->rules());
+        $validator = Validator::make($request->all(), $this->rules($id), $this->messages());
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
- 
+
         $timing->update($validator->validated());
  
         return response()->json(['message' => 'School timing updated successfully.']);

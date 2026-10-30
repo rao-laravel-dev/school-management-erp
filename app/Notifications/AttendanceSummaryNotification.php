@@ -10,6 +10,7 @@ use App\Models\Section;
 use App\Models\StaffAttendance;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 // Admin / superadmin ko class ya staff attendance ka ek summary (kabhi per-student nahi). Bell + push
 class AttendanceSummaryNotification extends AppNotification
@@ -21,14 +22,28 @@ class AttendanceSummaryNotification extends AppNotification
     protected string $titleText;
     protected string $bodyText;
     protected string $urlPath;
+    protected ?string $imagePath;
 
-    public function __construct(string $titleText, string $bodyText, string $urlPath)
+    public function __construct(string $titleText, string $bodyText, string $urlPath, ?string $imagePath = null)
     {
         parent::__construct();
 
         $this->titleText = $titleText;
         $this->bodyText = $bodyText;
         $this->urlPath = $urlPath;
+        $this->imagePath = $imagePath;
+    }
+
+    // Save karne wale (actor) ki photo ka public/ relative path; photo nahi (default no-image) = null, bell attendance icon dikhata hai
+    protected static function actorImage(?User $actor): ?string
+    {
+        if (!$actor) {
+            return null;
+        }
+
+        $path = Str::after($actor->photo_url, asset(''));
+
+        return $path === 'uploads/no_image.jpg' ? null : $path;
     }
 
     // Active admin + superadmin (superadmin lists se hidden hai magar notification leta hai); save karne wala khud nahi
@@ -41,7 +56,7 @@ class AttendanceSummaryNotification extends AppNotification
     }
 
     // $source: "Manual by Name (Role)" ya "Scan summary at 9:00 AM"; $updated = us din pehle summary ja chuka (chhota "updated" note)
-    public static function forClass($classId, $sectionId, string $date, string $source, bool $updated = false): self
+    public static function forClass($classId, $sectionId, string $date, string $source, bool $updated = false, ?User $actor = null): self
     {
         $class = SchoolClass::find($classId);
         $section = Section::find($sectionId);
@@ -75,16 +90,18 @@ class AttendanceSummaryNotification extends AppNotification
 
         if ($updated) {
             return new self(
-                "Class {$classSection} attendance updated",
+                "{$classSection} attendance updated",
                 "{$source} at " . now()->format('g:i A') . ". Now {$present} present, {$late} late, {$absent} absent, {$half} half day, {$leave} leave, {$notMarked} not marked.",
-                $url
+                $url,
+                self::actorImage($actor)
             );
         }
 
         return new self(
-            "Class {$classSection} attendance (" . Carbon::parse($date)->format('d-m-Y') . ')',
+            "{$classSection} attendance (" . Carbon::parse($date)->format('d-m-Y') . ')',
             "{$source}: {$present} present, {$late} late, {$absent} absent, {$half} half day, {$leave} leave, {$notMarked} not marked ({$total} students).",
-            $url
+            $url,
+            self::actorImage($actor)
         );
     }
 
@@ -123,5 +140,10 @@ class AttendanceSummaryNotification extends AppNotification
     protected function url(object $notifiable): string
     {
         return $this->urlPath;
+    }
+
+    protected function image(object $notifiable): ?string
+    {
+        return $this->imagePath;
     }
 }

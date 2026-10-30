@@ -136,7 +136,7 @@
                     departure_time: time
                 }).done(function(res) {
                     toastr.success(res.success);
-                    setTimeout(function() { location.reload(); }, 800);
+                    setTimeout(function() { location.reload(); }, 2000);
                 }).fail(function(xhr) {
                     let msg = 'Something went wrong!';
                     if (xhr.responseJSON && xhr.responseJSON.errors) {

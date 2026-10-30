@@ -26,12 +26,12 @@
                     <div class="mb-3">
                         <label for="addGraceMinutes" class="form-label">Late Grace Period (minutes)</label>
                         <input type="number" class="form-control form-control-sm" id="addGraceMinutes" name="late_grace_minutes" value="0" min="0" max="120">
-                        <small class="text-muted">Start time ke kitni der baad tak "Late" nahi maana jayega</small>
+                        <small class="text-muted">Minutes after start time during which a student is not marked late.</small>
                     </div>
                     <div class="mb-1">
                         <label for="addSummaryTime" class="form-label">Attendance Summary Time</label>
                         <input type="time" class="form-control form-control-sm" id="addSummaryTime" name="attendance_summary_time">
-                        <small class="text-muted">Scan attendance summary admin ko is waqt jata hai (khali = scan summary nahi)</small>
+                        <small class="text-muted">Time when the scan attendance summary is sent to admins (leave empty to disable).</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -72,11 +72,12 @@
                     <div class="mb-3">
                         <label for="editGraceMinutes" class="form-label">Late Grace Period (minutes)</label>
                         <input type="number" class="form-control form-control-sm" id="editGraceMinutes" name="late_grace_minutes" min="0" max="120">
+                        <small class="text-muted">Minutes after start time during which a student is not marked late.</small>
                     </div>
                     <div class="mb-1">
                         <label for="editSummaryTime" class="form-label">Attendance Summary Time</label>
                         <input type="time" class="form-control form-control-sm" id="editSummaryTime" name="attendance_summary_time">
-                        <small class="text-muted">Scan attendance summary admin ko is waqt jata hai (khali = scan summary nahi)</small>
+                        <small class="text-muted">Time when the scan attendance summary is sent to admins (leave empty to disable).</small>
                     </div>
                 </div>
                 <div class="modal-footer">
