@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Notifications\StudentAttendanceNotification;
+use Illuminate\Support\Carbon;
 
 class Attendance extends Model
 {
@@ -31,6 +33,35 @@ class Attendance extends Model
     const STATUS_LATE    = 2;
     const STATUS_HALF_DAY = 3;
     const STATUS_LEAVE   = 4; // 4 + remarks "Holiday" = Holiday
+
+    // Parent alert (bell + push): manual, bulk aur scan teeno save yahin se guzarte hain
+    protected static function booted(): void
+    {
+        static::saved(function (Attendance $attendance) {
+            // Status naya/badla, ya time_out pehli dafa laga (school se chutti); same values ka re-save = kuch nahi
+            $statusChanged = $attendance->wasRecentlyCreated || $attendance->wasChanged('status');
+            $leftSchool = filled($attendance->time_out)
+                && ($attendance->wasRecentlyCreated || blank($attendance->getOriginal('time_out')));
+            if (! $statusChanged && ! $leftSchool) {
+                return;
+            }
+
+            // Holiday (4 + remarks "Holiday") aur aaj ke ilawa koi date (back-dated edit) = alert nahi
+            $isHoliday = (int) $attendance->status === self::STATUS_LEAVE
+                && strcasecmp(trim((string) $attendance->remarks), 'Holiday') === 0;
+            if ($isHoliday || ! Carbon::parse($attendance->attendance_date)->isToday()) {
+                return;
+            }
+
+            $attendance->loadMissing(['enrollment.student.parent.user', 'enrollment.schoolClass', 'enrollment.section']);
+            $parentUser = $attendance->enrollment?->student?->parent?->user;
+            if (! $parentUser) {
+                return; // parent account nahi (ya student trashed): kisi ko nahi bhejna
+            }
+
+            $parentUser->notify(new StudentAttendanceNotification($attendance, $statusChanged, $leftSchool));
+        });
+    }
 
     // Relationship
 

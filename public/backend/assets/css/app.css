@@ -2973,3 +2973,12 @@ html.dark-theme .fee-assignment-swal .swal2-html-container { color: #e4e5e6; }
 .dash-stat .dash-stat-bottom { margin-top: auto; padding-top: .75rem; }
 .dash-stat .dash-stat-spark { min-height: 65px; position: relative; z-index: 2; }
 .dash-stat .widgets-icons { flex-shrink: 0; }
+
+/* Notification bell (partials/notification_bell) */
+.notification-bell-list { height: auto; max-height: 360px; }
+.notification-bell-unread { background-color: rgb(0 140 255 / 6%); }
+html.dark-theme .notification-bell-unread { background-color: rgb(0 140 255 / 14%); }
+.notification-bell-read { border: 0; background: none; color: #008cff; padding: 0 8px 0 0; line-height: 1; }
+.notification-bell-list .msg-info { white-space: normal; }
+.notification-bell-list .dropdown-item { white-space: normal; }
+.notification-bell-list .msg-avatar { object-fit: cover; flex-shrink: 0; }

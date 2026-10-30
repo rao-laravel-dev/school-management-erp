@@ -145,7 +145,8 @@ class RoleSeeder extends Seeder
             'view roles',
             'add roles',
             'edit roles',
-            'delete roles'
+            'delete roles',
+            'access-notifications',         // header bell (notifications.*)
         ]);
 
         // 5. Receptionist
@@ -197,6 +198,7 @@ class RoleSeeder extends Seeder
             'access-my-attendance',         // web.php my.attendance.index
             'access-profile',               // web.php staff_profile.* (own profile)
             'manage-print-report-card',     // web.php print_report_card.generate
+            'access-notifications',         // header bell (notifications.*)
 
         ]);
 
@@ -249,6 +251,7 @@ class RoleSeeder extends Seeder
             'manage-salary-slips',          // salary_slips generate / pay
             'manage-expenses',              // expenses add / pay
             'access-finance-report',        // finance_report.index
+            'access-notifications',         // header bell (notifications.*)
 
         ]);
 
@@ -269,6 +272,7 @@ class RoleSeeder extends Seeder
             'access-my-salary-slips',       // web.php my.salary_slips.*
             'access-my-attendance',         // web.php my.attendance.index
             'access-profile',               // web.php staff_profile.* (own profile)
+            'access-notifications',         // header bell (notifications.*)
         ]);
 
         // 7. Teacher
@@ -305,7 +309,8 @@ class RoleSeeder extends Seeder
             'access-marksheet-templates',
             'access-results',
             'access-leave-application',
-            'view school-notices'
+            'view school-notices',
+            'access-notifications'          // header bell (notifications.*)
         ]);
 
         // 8. Parent
@@ -316,6 +321,7 @@ class RoleSeeder extends Seeder
             'access-parent-results',   // parent portal: selected child's results (read-only)
             'access-parent-students',  // parent portal: selected child's dashboard / details (read-only)
             'access-profile',          // parent portal: own profile
+            'access-notifications',    // header bell (notifications.*)
         ]);
 
         // 9. Student
@@ -326,7 +332,8 @@ class RoleSeeder extends Seeder
             'access-profile',     // Nayi permission
             'access-student-timetable', // student portal: own class timetable (read-only)
             'access-assignments',  // Nayi permission
-            'access-student-homework' // student portal: own class homework (read-only)
+            'access-student-homework', // student portal: own class homework (read-only)
+            'access-notifications'    // header bell (notifications.*)
         ]);
 
         // 10. User (Default)

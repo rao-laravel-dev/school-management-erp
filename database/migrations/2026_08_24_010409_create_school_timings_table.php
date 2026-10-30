@@ -17,6 +17,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->unsignedInteger('late_grace_minutes')->default(0);
+            $table->time('attendance_summary_time')->nullable(); // scan attendance summary (admin notification) daily time
             $table->boolean('is_active')->default(false);
             $table->tinyInteger('status')->default(1);
             $table->timestamps();

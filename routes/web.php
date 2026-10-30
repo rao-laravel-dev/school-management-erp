@@ -13,6 +13,7 @@ use App\Http\Controllers\Backend\EventTypeController;
 use App\Http\Controllers\Backend\GroupController;
 use App\Http\Controllers\Backend\LibrarianController;
 use App\Http\Controllers\Backend\LibrariansController;
+use App\Http\Controllers\Backend\NotificationController;
 use App\Http\Controllers\Backend\ParentsController;
 use App\Http\Controllers\Backend\PrintReportCardController;
 use App\Http\Controllers\Backend\ReceptionController;
@@ -240,6 +241,15 @@ Route::middleware(['auth', 'role:teacher|receptionist|accountant|librarian', 'ca
     Route::get('/', [StaffProfileController::class, 'index'])->name('index');
     Route::post('/update', [StaffProfileController::class, 'update'])->name('update');
 });
+
+// NOTIFICATIONS (header bell, sab roles; har user sirf apni notifications)
+Route::middleware(['auth', 'can:access-notifications'])->prefix('notifications')->name('notifications.')
+    ->controller(NotificationController::class)->group(function () {
+        Route::get('/', 'index')->name('index');                                      // JSON: unread count + latest 10
+        Route::post('/read-all', 'markAllRead')->name('read_all');
+        Route::post('/{id}/read', 'markRead')->whereUuid('id')->name('read');
+        Route::get('/{id}/open', 'open')->whereUuid('id')->name('open');             // mark read + safe redirect
+    });
 
 
 // PARENTS ROUTES

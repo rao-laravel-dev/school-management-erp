@@ -151,6 +151,7 @@ class PermissionSeeder extends Seeder
             'access-parent-homework',       // parent portal: selected child's homework (read-only)
             'access-parent-results',        // parent portal: selected child's results (read-only)
             'access-parent-students',       // parent portal: selected child's dashboard / details (read-only)
+            'access-notifications',         // header bell (notifications.*), all roles
         ];
 
         foreach ($permissions as $permission) {

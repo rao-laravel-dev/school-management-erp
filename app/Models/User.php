@@ -273,6 +273,12 @@ class User extends Authenticatable
         return $this->hasMany(StaffAttendance::class, 'user_id');
     }
 
+    // Web push: is user ke saare browser/device subscriptions
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class, 'user_id');
+    }
+
     // User.php mein ye function add karein
     public function leaveSettings()
     {

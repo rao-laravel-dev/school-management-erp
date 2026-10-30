@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 @include('partials.theme_init')
 
     <link rel="icon" href="{{ asset('backend/assets/images/favicon-32x32.png') }}" type="image/png" />
@@ -94,6 +95,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
+        // AJAX ke liye CSRF token set kar rahe hain
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
         toastr.options = {
             closeButton: true,
             progressBar: true,
