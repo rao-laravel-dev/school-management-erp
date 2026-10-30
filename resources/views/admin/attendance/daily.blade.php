@@ -33,11 +33,22 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center att-card-header">
         <h5 class="mb-0">{{ $class->name }} - {{ $section->name }} Attendance — {{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}</h5>
-        @can('mark-attendance')
-        <a href="{{ route('attendance.mark', [$class->id, $section->id, $date]) }}" class="btn btn-sm btn-primary">
-            <i class='bx bx-edit'></i> Mark Attendance
-        </a>
-        @endcan
+        <div class="d-flex align-items-center gap-2">
+            {{-- Class departure: sirf aaj ki date aur jab present/late students hon --}}
+            @can('manage-attendance')
+            @if($date === now()->toDateString() && ($summary['P'] + $summary['L']) > 0)
+            <input type="time" id="departureTime" class="form-control form-control-sm w-auto" value="{{ now()->format('H:i') }}">
+            <button type="button" id="markDepartureBtn" class="btn btn-sm btn-warning">
+                <i class='bx bx-log-out'></i> Mark Departure
+            </button>
+            @endif
+            @endcan
+            @can('mark-attendance')
+            <a href="{{ route('attendance.mark', [$class->id, $section->id, $date]) }}" class="btn btn-sm btn-primary">
+                <i class='bx bx-edit'></i> Mark Attendance
+            </a>
+            @endcan
+        </div>
     </div>
 
     <div class="card-body">
@@ -100,6 +111,43 @@
 <script>
     $(document).ready(function() {
         $('#dailyAttendanceTable').DataTable();
+
+        // Class departure: present/late students (jin ka time_out nahi) ko time_out lagta hai aur parents ko alert jata hai
+        $('#markDepartureBtn').on('click', function() {
+            let time = $('#departureTime').val();
+            if (!time) {
+                toastr.error('Please select a departure time first!');
+                return;
+            }
+            Swal.fire({
+                title: 'Mark class departure?',
+                text: 'Present/late students without a time out will be set to ' + time + ' and their parents will be notified.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, mark departure'
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+                $.post(@json(route('attendance.markDeparture')), {
+                    class_id: @json($class->id),
+                    section_id: @json($section->id),
+                    attendance_date: @json($date),
+                    departure_time: time
+                }).done(function(res) {
+                    toastr.success(res.success);
+                    setTimeout(function() { location.reload(); }, 800);
+                }).fail(function(xhr) {
+                    let msg = 'Something went wrong!';
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        msg = Object.values(xhr.responseJSON.errors)[0][0];
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    toastr.error(msg);
+                });
+            });
+        });
     });
 </script>
 @endpush

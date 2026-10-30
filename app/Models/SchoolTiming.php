@@ -11,6 +11,7 @@ class SchoolTiming extends Model
         'start_time',
         'end_time',
         'late_grace_minutes',
+        'attendance_summary_time',
         'is_active',
         'status',
     ];

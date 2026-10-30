@@ -26,6 +26,7 @@
                         <th>Start Time</th>
                         <th>End Time</th>
                         <th>Late Grace (min)</th>
+                        <th>Summary Time</th>
                         <th>Status</th>
                         @can('manage-school-timing')
                         <th>Action</th>
@@ -40,6 +41,7 @@
                         <td>{{ \Carbon\Carbon::parse($timing->start_time)->format('g:i A') }}</td>
                         <td>{{ \Carbon\Carbon::parse($timing->end_time)->format('g:i A') }}</td>
                         <td>{{ $timing->late_grace_minutes }}</td>
+                        <td>{{ $timing->attendance_summary_time ? \Carbon\Carbon::parse($timing->attendance_summary_time)->format('g:i A') : '-' }}</td>
                         <td>
                             @if($timing->is_active)
                                 <span class="badge bg-success">Active</span>
@@ -59,7 +61,8 @@
                                 data-season_name="{{ $timing->season_name }}"
                                 data-start_time="{{ \Carbon\Carbon::parse($timing->start_time)->format('H:i') }}"
                                 data-end_time="{{ \Carbon\Carbon::parse($timing->end_time)->format('H:i') }}"
-                                data-late_grace_minutes="{{ $timing->late_grace_minutes }}">
+                                data-late_grace_minutes="{{ $timing->late_grace_minutes }}"
+                                data-attendance_summary_time="{{ $timing->attendance_summary_time ? \Carbon\Carbon::parse($timing->attendance_summary_time)->format('H:i') : '' }}">
                                 <i class='bx bx-edit'></i>
                             </button>
                             <button class="btn btn-sm btn-outline-danger status-btn px-3" data-id="{{ $timing->id }}">
@@ -86,7 +89,7 @@
             @can('manage-school-timing')
             columnDefs: [{
                 orderable: false,
-                targets: 6
+                targets: 7
             }],
             @endcan
             language: {
@@ -150,6 +153,7 @@
             $('#editStartTime').val($(this).data('start_time'));
             $('#editEndTime').val($(this).data('end_time'));
             $('#editGraceMinutes').val($(this).data('late_grace_minutes'));
+            $('#editSummaryTime').val($(this).data('attendance_summary_time'));
             $('#editTimingModal').modal('show');
         });
 

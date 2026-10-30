@@ -15,6 +15,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\TeacherAssignment;
 use App\Models\User;
+use App\Notifications\AttendanceSummaryNotification;
 use App\Services\OffDays;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class AttendanceController extends Controller
 {
@@ -348,6 +350,16 @@ class AttendanceController extends Controller
             }
         });
 
+        // Admin/superadmin summary (holiday aur back-dated save = nahi). Din ka pehla save = poori summary,
+        // us class-section ki summary pehle ja chuki ho (manual ya scan) to chhota "updated" note
+        if ($request->has('status') && !($request->has('is_holiday') && $request->is_holiday == 'on') && Carbon::parse($date)->isToday()) {
+            $first = Cache::add("att_summary:class:{$class_id}:{$section_id}:" . Carbon::parse($date)->toDateString(), true, now()->endOfDay());
+            Notification::send(
+                AttendanceSummaryNotification::recipients($user->id),
+                AttendanceSummaryNotification::forClass($class_id, $section_id, $date, ($first ? 'Manual by ' : 'By ') . $user->name_with_role, !$first)
+            );
+        }
+
         // Redirect path: teacher = apni class ka report (us date), admin/baqi = us class-section ka daily page (us date)
         $url = $isAdmin
             ? route('attendance.daily', ['class_id' => $class_id, 'section_id' => $section_id, 'date' => $date])
@@ -424,21 +436,30 @@ class AttendanceController extends Controller
         $request->validate([
             'class_id' => 'required',
             'section_id' => 'required',
-            'attendance_date' => 'required',
-            'departure_time' => 'required'
+            'attendance_date' => 'required|date',
+            'departure_time' => 'required|date_format:H:i'
         ]);
 
         $activeSessionId = $this->getActiveSessionId();
 
-        // Sirf current session ke students ka hi record update ho
-        $updated = Attendance::where('attendance_date', $request->attendance_date)
+        // Sirf current session ke students ka hi record update ho; jis ka time_out pehle se hai (scan) wo nahi badalta.
+        // Model save() se guzarta hai taake parent ko "left school" alert jaye (query-builder update mein event nahi chalta)
+        $rows = Attendance::with(['enrollment.student.parent.user', 'enrollment.schoolClass', 'enrollment.section'])
+            ->where('attendance_date', $request->attendance_date)
             ->where('class_id', $request->class_id)
             ->where('section_id', $request->section_id)
             ->whereIn('status', [1, 2])
+            ->whereNull('time_out')
             ->whereHas('enrollment', fn($q) => AcademicYear::whereClassSession($q)) // Session filter (gap class = pichla session)
-            ->update(['time_out' => $request->departure_time]);
+            ->get();
 
-        return response()->json(['success' => 'Departure time updated for the class!']);
+        DB::transaction(function () use ($rows, $request) {
+            foreach ($rows as $row) {
+                $row->update(['time_out' => $request->departure_time]);
+            }
+        });
+
+        return response()->json(['success' => "Departure time updated for {$rows->count()} student(s)!"]);
     }
 
     // --- ViewMyAttendance Method (Updated) ---

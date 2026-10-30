@@ -23,6 +23,7 @@ class SchoolTimingController extends Controller
             'start_time'          => 'required|date_format:H:i',
             'end_time'            => 'required|date_format:H:i|after:start_time',
             'late_grace_minutes'  => 'required|integer|min:0|max:120',
+            'attendance_summary_time' => 'nullable|date_format:H:i|after:start_time|before:end_time',
         ];
     }
  
