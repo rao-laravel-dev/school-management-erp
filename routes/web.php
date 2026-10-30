@@ -826,6 +826,7 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(AttendanceController::class)->group(function () {
                 Route::get('/class-report/{class_id?}/{section_id?}', 'classReport')->whereNumber(['class_id', 'section_id'])->name('class_report');
                 Route::get('/student-report/{enrollment}', 'studentReport')->whereNumber('enrollment')->name('student_report');
+                Route::get('/daily/{class_id}/{section_id}', 'dailyAttendance')->whereNumber(['class_id', 'section_id'])->name('daily');
             });
         });
     });

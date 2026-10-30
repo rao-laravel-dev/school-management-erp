@@ -120,7 +120,7 @@
     $(document).ready(function() {
         // 1. Blade se PHP variables uthayein (jo aapne method mein pass kiye hain)
         let editClass = "{{ $selected_class ?? '' }}";
-        let editSection = "{{ $section_id ?? '' }}";
+        let editSection = "{{ $section_id ?? ($selected_section ?? '') }}";
         let editDate = "{{ $selected_date ?? '' }}";
 
         // 2. Sirf tab chalein jab edit mode (yani data) majood ho

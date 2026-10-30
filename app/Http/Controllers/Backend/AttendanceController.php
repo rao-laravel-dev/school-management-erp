@@ -348,9 +348,9 @@ class AttendanceController extends Controller
             }
         });
 
-        // Redirect path: teacher = apni class ka report (us date), admin/baqi = attendance index (us date)
+        // Redirect path: teacher = apni class ka report (us date), admin/baqi = us class-section ka daily page (us date)
         $url = $isAdmin
-            ? route('attendance.index', ['date' => $date])
+            ? route('attendance.daily', ['class_id' => $class_id, 'section_id' => $section_id, 'date' => $date])
             : route('attendance.class_report', ['class_id' => $class_id, 'section_id' => $section_id, 'date' => $date]);
 
         // 4. Final Response
@@ -1239,6 +1239,40 @@ class AttendanceController extends Controller
         ]);
     }
     // End Method
+
+    // Daily page: ek class-section ki ek date ki attendance (read-only listing), save ke baad admin yahan aata hai
+    public function dailyAttendance(Request $request, $class_id, $section_id)
+    {
+        $class = SchoolClass::findOrFail($class_id);
+        $section = Section::findOrFail($section_id);
+        if (!$this->inReportScope($this->reportScope(), $class->id, $section->id)) {
+            abort(403);
+        }
+
+        $request->validate(['date' => 'nullable|date_format:Y-m-d']);
+        $date = $request->query('date', now()->toDateString());
+
+        $base = $this->classReportBase($class->id, $section->id, ['from' => $date, 'to' => $date, 'status' => null, 'q' => '']);
+
+        $rows = (clone $base)
+            ->select('attendances.*')
+            ->with(['enrollment.student' => fn($q) => $q->withTrashed(), 'markedBy.roles'])
+            ->orderByRaw('CAST(e.roll_no AS UNSIGNED), e.roll_no')
+            ->orderBy('attendances.id')
+            ->get();
+
+        $summary = $this->reportCounts($base);
+
+        // Total = is class-section ke Active students (GetStudents wali same query)
+        $total = Enrollment::whereHas('student')
+            ->where('class_id', $class->id)
+            ->where('section_id', $section->id)
+            ->where(fn($q) => AcademicYear::whereClassSession($q))
+            ->where('enroll_status', 1)
+            ->count();
+
+        return view('admin.attendance.daily', compact('class', 'section', 'date', 'rows', 'summary', 'total'));
+    }
 
     public function studentReport(Request $request, Enrollment $enrollment)
     {
