@@ -247,6 +247,8 @@ Route::middleware(['auth', 'can:access-notifications'])->prefix('notifications')
     ->controller(NotificationController::class)->group(function () {
         Route::get('/', 'index')->name('index');                                      // JSON: unread count + latest 10
         Route::post('/read-all', 'markAllRead')->name('read_all');
+        Route::post('/push/subscribe', 'pushSubscribe')->name('push_subscribe');      // browser push on
+        Route::post('/push/unsubscribe', 'pushUnsubscribe')->name('push_unsubscribe'); // browser push off
         Route::post('/{id}/read', 'markRead')->whereUuid('id')->name('read');
         Route::get('/{id}/open', 'open')->whereUuid('id')->name('open');             // mark read + safe redirect
     });

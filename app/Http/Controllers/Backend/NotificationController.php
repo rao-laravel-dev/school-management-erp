@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\PushSubscription;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 // Header bell: har user sirf apni (auth()->user()) notifications dekhta aur read karta hai
@@ -70,6 +72,43 @@ class NotificationController extends Controller
 
         // Warna role ka apna dashboard (/dashboard har role ko uske dashboard par bhejta hai)
         return redirect()->route('dashboard');
+    }
+    // End Method
+
+
+    // Browser push subscription save (endpoint unique: wahi browser dusre user se login ho to row usi user par move)
+    public function pushSubscribe(Request $request)
+    {
+        $data = $request->validate([
+            'endpoint'         => ['required', 'url', 'starts_with:https://', 'max:500'],
+            'keys.p256dh'      => ['required', 'string', 'max:255'],
+            'keys.auth'        => ['required', 'string', 'max:255'],
+            'content_encoding' => ['nullable', 'in:aesgcm,aes128gcm'],
+        ]);
+
+        PushSubscription::updateOrCreate(
+            ['endpoint' => $data['endpoint']],
+            [
+                'user_id'          => Auth::id(),
+                'public_key'       => $data['keys']['p256dh'],
+                'auth_token'       => $data['keys']['auth'],
+                'content_encoding' => $data['content_encoding'] ?? 'aes128gcm',
+            ]
+        );
+
+        return response()->json(['ok' => true]);
+    }
+    // End Method
+
+
+    // Push band: sirf apni subscription delete (user_id scope)
+    public function pushUnsubscribe(Request $request)
+    {
+        $data = $request->validate(['endpoint' => ['required', 'string', 'max:500']]);
+
+        Auth::user()->pushSubscriptions()->where('endpoint', $data['endpoint'])->delete();
+
+        return response()->json(['ok' => true]);
     }
     // End Method
 

@@ -59,9 +59,17 @@ abstract class AppNotification extends Notification implements ShouldQueue
         ];
     }
 
-    // Icon sirf push payload mein (absolute URL); bell row mein save nahi hota kyunke live local DB import karta hai
+    // Absolute URLs sirf push payload mein (image/icon/url); bell row mein save nahi hote kyunke live local DB import karta hai
     public function toWebPush(object $notifiable): array
     {
-        return array_merge($this->toArray($notifiable), ['icon' => asset('backend/assets/images/favicon-32x32.png')]);
+        $data  = $this->toArray($notifiable);
+        $image = !empty($data['image']) ? asset($data['image']) : null;
+
+        return array_merge($data, [
+            // Push click: bell ka open route (read mark + safe redirect); id database row wala hi hai
+            'url'   => $this->id ? route('notifications.open', $this->id) : url($data['url'] ?? '/'),
+            'image' => $image,
+            'icon'  => $image ?: asset('backend/assets/images/favicon-32x32.png'),
+        ]);
     }
 }
