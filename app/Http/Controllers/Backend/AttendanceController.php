@@ -925,6 +925,54 @@ class AttendanceController extends Controller
             return response()->json($data);
         }
 
+        // T309: Holiday row par scan = koi write nahi
+        if ((int) $existing->status === Attendance::STATUS_LEAVE && strcasecmp(trim((string) $existing->remarks), 'Holiday') === 0) {
+            $data = [
+                'status'    => 'info',
+                'scan_type' => 'already_done',
+                'message'   => "Today is a holiday for {$student->first_name}'s class. Attendance not changed.",
+                'student'   => $studentInfo,
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
+
+            return response()->json($data);
+        }
+
+        // T309: manual row (Absent/Leave, ya Present jisne abhi scan nahi kiya aur chutti ka waqt nahi hua) par pehla scan = arrival, checkout nahi
+        if (is_null($existing->time_out)) {
+            $timing   = SchoolTiming::active();
+            $afterEnd = $timing && now()->format('H:i:s') >= $timing->end_time; // chutti ke baad scan = asli checkout
+            $wasAbsent = in_array((int) $existing->status, [Attendance::STATUS_ABSENT, Attendance::STATUS_LEAVE], true);
+
+            if ($wasAbsent || (is_null($existing->scanned_at) && !$afterEnd)) {
+                $now = now();
+                $arrival = ['scanned_at' => $now, 'device_id' => $deviceId];
+                if ($wasAbsent) {
+                    // Absent/Leave se Present/Late: status badla to parent ko ek "Marked ..." alert (Attendance::booted())
+                    $arrival['status']    = $this->isLate($now) ? Attendance::STATUS_LATE : Attendance::STATUS_PRESENT;
+                    $arrival['marked_by'] = auth()->id();
+                    $studentInfo['marked_by'] = auth()->user()->name_with_role;
+                }
+                $existing->update($arrival);
+
+                $isLateRow = (int) $existing->status === Attendance::STATUS_LATE;
+                $data = [
+                    'status'    => 'success',
+                    'scan_type' => 'checkin',
+                    'message'   => $isLateRow
+                        ? "Welcome, {$student->first_name}! (Late)"
+                        : "Welcome, {$student->first_name}!",
+                    'is_late'   => $isLateRow,
+                    'student'   => $studentInfo,
+                ];
+                $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+                if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
+
+                return response()->json($data);
+            }
+        }
+
         if (is_null($existing->time_out)) {
             $existing->update(['time_out' => now()->format('H:i:s')]);
 
@@ -983,10 +1031,10 @@ class AttendanceController extends Controller
 
         if (!$existing) {
             $now = now();
-            $isLate = $this->isLate($now);
             // Late tracking baad mein: staff_attendances.status enum mein 'late' nahi (strict mode mein insert fail),
-            // isliye abhi Present save hota hai. marked_via/device_id/scanned_at columns table mein nahi hain.
+            // isliye abhi Present save hota hai. marked_via/device_id columns table mein nahi hain (scanned_at hai: T309).
             $status = 'present';
+            $isLate = $status === 'late'; // message/card saved row status se (students jaisa); abhi hamesha false
 
             StaffAttendance::create([
                 'user_id'    => $staffUser->id,
@@ -994,6 +1042,7 @@ class AttendanceController extends Controller
                 'status'     => $status,
                 'marked_by'  => auth()->id(),
                 'marked_at'  => $now,
+                'scanned_at' => $now,
             ]);
 
             $data = [
@@ -1009,6 +1058,41 @@ class AttendanceController extends Controller
             Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
 
             return response()->json($data);
+        }
+
+        // T309: manual row (Absent/Leave, ya Present jisne abhi scan nahi kiya aur chutti ka waqt nahi hua) par pehla scan = arrival, checkout nahi
+        if (is_null($existing->time_out)) {
+            $timing    = SchoolTiming::active();
+            $afterEnd  = $timing && now()->format('H:i:s') >= $timing->end_time; // chutti ke baad scan = asli checkout
+            $wasAbsent = in_array($existing->status, ['absent', 'leave'], true);
+
+            if ($wasAbsent || (is_null($existing->scanned_at) && !$afterEnd)) {
+                $now = now();
+                $arrival = ['scanned_at' => $now];
+                if ($wasAbsent) {
+                    // StaffAttendanceController ke $setMarkedAt jaisa: absent/leave se present par marked_at + marked_by naye
+                    $arrival['status']    = 'present';
+                    $arrival['marked_at'] = $now;
+                    $arrival['marked_by'] = auth()->id();
+                    $staffInfo['marked_by'] = auth()->user()->name_with_role;
+                }
+                $existing->update($arrival);
+
+                $isLate = $existing->status === 'late'; // saved row status se (students jaisa); enum mein 'late' nahi = abhi hamesha false
+                $data = [
+                    'status'    => 'success',
+                    'scan_type' => 'checkin',
+                    'message'   => $isLate
+                        ? "Welcome, {$staffUser->name}! (Late)"
+                        : "Welcome, {$staffUser->name}!",
+                    'is_late'   => $isLate,
+                    'student'   => $staffInfo,
+                ];
+                $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+                Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2));
+
+                return response()->json($data);
+            }
         }
 
         if (is_null($existing->time_out)) {

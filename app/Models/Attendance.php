@@ -40,7 +40,9 @@ class Attendance extends Model
         static::saved(function (Attendance $attendance) {
             // Status naya/badla, ya time_out pehli dafa laga (school se chutti); same values ka re-save = kuch nahi
             $statusChanged = $attendance->wasRecentlyCreated || $attendance->wasChanged('status');
+            // T309: "Left school" sirf Present/Late/Half day par (Absent/Leave row par time_out = alert nahi)
             $leftSchool = filled($attendance->time_out)
+                && in_array((int) $attendance->status, [self::STATUS_PRESENT, self::STATUS_LATE, self::STATUS_HALF_DAY], true)
                 && ($attendance->wasRecentlyCreated || blank($attendance->getOriginal('time_out')));
             if (! $statusChanged && ! $leftSchool) {
                 return;

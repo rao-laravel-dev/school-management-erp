@@ -50,7 +50,7 @@ Schedule::call(function () {
     }
     $today = today()->toDateString();
     // Aaj koi scan hi nahi hua (off day / scan use nahi hua) = kuch nahi bhejna
-    if (!Attendance::whereDate('attendance_date', $today)->where('marked_via', 'device')->exists()) {
+    if (!Attendance::whereDate('attendance_date', $today)->whereNotNull('scanned_at')->exists()) {
         return;
     }
     // Din mein ek hi run

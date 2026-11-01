@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('status', ['present', 'absent', 'half_day', 'leave'])->default('present');
             $table->time('time_out')->nullable();
             $table->timestamp('marked_at')->nullable();
+            $table->timestamp('scanned_at')->nullable(); // kiosk scan arrival time (manual row par pehla scan bhi)
             $table->string('remarks')->nullable();
             $table->foreignId('marked_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
