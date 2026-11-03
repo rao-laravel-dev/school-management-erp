@@ -103,10 +103,17 @@ class FeeStructureController extends Controller
 
             $studentIdsQuery = DB::table('enrollments')
                 ->join('students', 'enrollments.student_id', '=', 'students.id')
-                ->where('enrollments.class_id', $feeStructure->school_class_id);
+                ->where('enrollments.class_id', $feeStructure->school_class_id)
+                ->whereNull('enrollments.deleted_at') // trashed enrollment/student ko fee nahi
+                ->whereNull('students.deleted_at')
+                ->where('enrollments.enroll_status', 1) // sirf Active (promoted/detained/passed out nahi)
+                ->where('students.status', 1);
 
             if ($feeStructure->academic_year_id) {
                 $studentIdsQuery->where('enrollments.academic_year_id', $feeStructure->academic_year_id);
+            } elseif ($sessionId = $this->getActiveSessionId()) {
+                // structure par year nahi: sirf current session (purane saal ki row dobara match na ho)
+                $studentIdsQuery->where(fn($w) => AcademicYear::whereCurrentOrGap($w, 'enrollments.academic_year_id', 'enrollments.class_id', 'enrollments.enroll_status'));
             }
 
             $studentIds = $studentIdsQuery->pluck('students.id')->unique();

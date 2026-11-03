@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Exports\GenericTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\SchoolClassImport;
+use App\Models\AcademicYear;
 use App\Models\SchoolClass;
 use App\Traits\Exportable;
 use App\Traits\Importable;
@@ -62,9 +63,16 @@ class ClassController extends Controller
 
     public function AllClass()
     {
+        $sessionId = $this->getActiveSessionId();
         $classes = SchoolClass::with(['mappedSections'])
-            ->withCount(['enrollments' => function ($query) {
-                $query->where('enroll_status', 1);
+            ->withCount(['enrollments' => function ($query) use ($sessionId) {
+                if ($sessionId) {
+                    // current session ki students (promoted/detained/passed out bhi); purane saal ki row dobara count na ho
+                    $query->whereIn('enroll_status', [1, 2, 3, 5])
+                        ->where(fn($w) => AcademicYear::whereCurrentOrGap($w));
+                } else {
+                    $query->where('enroll_status', 1);
+                }
             }])
             ->orderBy('numeric_name', 'ASC')
             ->get();

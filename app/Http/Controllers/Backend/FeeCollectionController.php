@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use App\Models\BankAccount;
 use App\Models\FeeType;
 use App\Models\SchoolClass;
@@ -36,19 +37,27 @@ class FeeCollectionController extends Controller
 
         $students = collect();
 
+        // Promote ke baad purane saal ki row dobara na aaye (gap class = pichla session); current session nahi = purana behaviour
+        $sessionId = $this->getActiveSessionId();
+        $sessionScope = fn($q) => $q->when($sessionId, fn($q2) => $q2->where(fn($w) => AcademicYear::whereCurrentOrGap($w)));
+
         if ($keyword) {
             // Keyword search: poori school, class/section filter ignore
             $studentsQuery = Student::query()
                 ->where('status', 1) // 👈 sirf approved students
-                ->with(['enrollments.schoolClass', 'enrollments.section', 'parent'])
-                ->where(function ($q) use ($keyword) {
+                ->with(['enrollments' => function ($q) use ($sessionScope) {
+                    $sessionScope($q);
+                    $q->with(['schoolClass', 'section']);
+                }, 'parent'])
+                ->where(function ($q) use ($keyword, $sessionScope) {
                     $q->where('admission_no', 'like', "%{$keyword}%")
                         ->orWhere('first_name', 'like', "%{$keyword}%")
                         ->orWhere('last_name', 'like', "%{$keyword}%")
                         ->orWhereHas('parent', function ($q2) use ($keyword) {
                             $q2->where('father_phone', 'like', "%{$keyword}%");
                         })
-                        ->orWhereHas('enrollments', function ($q2) use ($keyword) {
+                        ->orWhereHas('enrollments', function ($q2) use ($keyword, $sessionScope) {
+                            $sessionScope($q2);
                             $q2->where('roll_no', 'like', "%{$keyword}%");
                         });
                 });
@@ -64,11 +73,13 @@ class FeeCollectionController extends Controller
             // Class/Section filter: sirf selected class pe
             $studentsQuery = Student::query()
                 ->where('status', 1) // 👈 sirf approved students
-                ->whereHas('enrollments', function ($q) use ($classId, $sectionId) {
+                ->whereHas('enrollments', function ($q) use ($classId, $sectionId, $sessionScope) {
+                    $sessionScope($q);
                     $q->where('class_id', $classId);
                     if ($sectionId) $q->where('section_id', $sectionId);
                 })
-                ->with(['enrollments' => function ($q) use ($classId, $sectionId) {
+                ->with(['enrollments' => function ($q) use ($classId, $sectionId, $sessionScope) {
+                    $sessionScope($q);
                     $q->where('class_id', $classId);
                     if ($sectionId) $q->where('section_id', $sectionId);
                 }, 'parent']);
