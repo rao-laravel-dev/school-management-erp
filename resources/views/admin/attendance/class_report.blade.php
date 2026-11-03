@@ -52,6 +52,19 @@
         </div>
         <div class="card-body">
             <form method="GET" action="{{ route('attendance.class_report', [$class->id, $section->id]) }}" class="row g-3">
+                @if($sessions->isNotEmpty())
+                    @php $currentSession = $sessions->firstWhere('is_current', 1); @endphp
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="session_id">Session</label>
+                        <select name="session_id" id="session_id" class="form-select form-select-sm">
+                            @foreach($sessions as $s)
+                                <option value="{{ $s->id }}" {{ ($filters['session_id'] ?: ($currentSession ? $currentSession->id : null)) == $s->id ? 'selected' : '' }}>
+                                    {{ $s->name }}{{ $s->is_current ? ' (Current)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
                 <div class="col-6 col-md-2">
                     <label class="form-label" for="from_date">From</label>
                     <input type="date" name="from_date" id="from_date" class="form-control form-control-sm" value="{{ $filters['from'] }}">
@@ -158,6 +171,12 @@
         if ($(this).val()) {
             window.location.href = $(this).val();
         }
+    });
+
+    // Session badalne par dates clear: server us session ki dates default karta hai
+    $('#session_id').on('change', function () {
+        $('#from_date, #to_date').val('');
+        $(this).closest('form').submit();
     });
 </script>
 @endpush

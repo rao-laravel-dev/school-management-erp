@@ -90,7 +90,7 @@
             </td>
             <td>
                 {{-- Ab yahan $section->id sahi tarah se pass hoga --}}
-                <a href="{{ route('attendance.class_report', [$class->id, $section->id]) . '?date=' . $date }}" 
+                <a href="{{ route('attendance.class_report', [$class->id, $section->id]) . '?date=' . $date . ($linkSessionId ? '&session_id=' . $linkSessionId : '') }}"
    class="btn btn-sm btn-outline-primary">
     <i class="bx bx-show"></i> View Details
 </a>

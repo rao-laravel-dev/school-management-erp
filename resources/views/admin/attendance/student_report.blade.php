@@ -33,6 +33,15 @@
                 Roll No {{ $enrollment->roll_no ?: '-' }}
             </small>
         </div>
+        @if($enrollments->count() > 1)
+            <select id="enrollmentSessionSelect" class="form-select form-select-sm" style="max-width: 260px;" aria-label="Session">
+                @foreach($enrollments as $e)
+                    <option value="{{ route('attendance.student_report', $e->id) }}" {{ $e->id == $enrollment->id ? 'selected' : '' }}>
+                        {{ optional($e->academicYear)->name }} - {{ optional($e->schoolClass)->name }} - {{ optional($e->section)->name }}
+                    </option>
+                @endforeach
+            </select>
+        @endif
         <a href="{{ $classUrl }}" class="btn btn-sm btn-outline-secondary"><i class="bx bx-arrow-back"></i> Back to class report</a>
     </div>
 </div>
@@ -152,6 +161,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script>
+    // Session switcher: us enrollment ki report par jao
+    $('#enrollmentSessionSelect').on('change', function () {
+        if ($(this).val()) {
+            window.location.href = $(this).val();
+        }
+    });
+
     const summary = @json($summary);
     const monthly = @json($monthly);
     const statusTotal = summary.P + summary.A + summary.L + summary.H + summary.F;

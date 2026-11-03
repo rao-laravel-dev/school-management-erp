@@ -76,7 +76,11 @@ class AttendanceController extends Controller
             ->groupBy(fn($r) => $r->class_id . '-' . $r->section_id)
             ->map(fn($rows) => $rows->pluck('markedBy.name_with_role')->filter()->unique()->implode(', '));
 
-        return view('admin.attendance.index_attendance', compact('totalClasses', 'attendanceDone', 'classes', 'date', 'markers', 'sectionCounts'));
+        // Date purane session ki ho to View Details link us session ke saath (warna current session filter sab chhupa deta hai)
+        $dateSessionId = AcademicYear::whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date)->orderByDesc('start_date')->value('id');
+        $linkSessionId = $dateSessionId && $dateSessionId != $this->getActiveSessionId() ? $dateSessionId : null;
+
+        return view('admin.attendance.index_attendance', compact('totalClasses', 'attendanceDone', 'classes', 'date', 'markers', 'sectionCounts', 'linkSessionId'));
     }
 
 
@@ -1195,23 +1199,25 @@ class AttendanceController extends Controller
     }
 
     // Query string validate karke filters banata hai. Return [filters, error message ya null]
-    private function reportFilters(Request $request): array
+    private function reportFilters(Request $request, ?array $defaultRange = null): array
     {
         $v = \Illuminate\Support\Facades\Validator::make($request->query(), [
-            'date'      => 'nullable|date_format:Y-m-d',
-            'from_date' => 'nullable|date_format:Y-m-d',
-            'to_date'   => 'nullable|date_format:Y-m-d',
-            'status'    => 'nullable|in:' . implode(',', array_keys(self::REPORT_STATUSES)),
-            'q'         => 'nullable|string|max:50',
-            'page'      => 'nullable|integer|min:1',
+            'date'       => 'nullable|date_format:Y-m-d',
+            'from_date'  => 'nullable|date_format:Y-m-d',
+            'to_date'    => 'nullable|date_format:Y-m-d',
+            'status'     => 'nullable|in:' . implode(',', array_keys(self::REPORT_STATUSES)),
+            'q'          => 'nullable|string|max:50',
+            'page'       => 'nullable|integer|min:1',
+            'session_id' => 'nullable|integer|exists:academic_years,id',
         ]);
         if ($v->fails()) {
             return [null, $v->errors()->first()];
         }
 
         $date = $request->query('date');
-        $from = $request->query('from_date') ?: ($date ?: now()->startOfMonth()->toDateString());
-        $to   = $request->query('to_date') ?: ($date ?: now()->toDateString());
+        // defaultRange (purana session): date / from / to na hon to current month ki jagah us session ki dates
+        $from = $request->query('from_date') ?: ($date ?: ($defaultRange ? $defaultRange[0] : now()->startOfMonth()->toDateString()));
+        $to   = $request->query('to_date') ?: ($date ?: ($defaultRange ? $defaultRange[1] : now()->toDateString()));
 
         if ($to < $from) {
             return [null, 'To date must be on or after From date.'];
@@ -1225,7 +1231,24 @@ class AttendanceController extends Controller
             'to'     => $to,
             'status' => $request->query('status') ?: null,
             'q'      => trim((string) $request->query('q')),
+            'session_id' => (int) $request->query('session_id') ?: null,
         ], null];
+    }
+
+    // Session ki dates (class ke group override ke saath), end aaj tak clip. Return [from, to] ya null
+    private function sessionDefaultRange(?AcademicYear $year, $classId): ?array
+    {
+        if (!$year) {
+            return null;
+        }
+        [$start, $end] = $year->datesForClass((int) $classId);
+        if (!$start || !$end) {
+            return null;
+        }
+        $from = $start->toDateString();
+        $to = min($end->toDateString(), now()->toDateString());
+
+        return [$from, max($from, $to)];
     }
 
     // leave = status 4 jo holiday nahi; baqi statuses 1:1. Holiday rows Leave mein nahi ginti jati
@@ -1250,7 +1273,12 @@ class AttendanceController extends Controller
             ->where('attendances.class_id', $classId)
             ->where('attendances.section_id', $sectionId)
             ->whereBetween('attendances.attendance_date', [$f['from'], $f['to']])
-            ->where(fn($q) => AcademicYear::whereClassSession($q, 'e.academic_year_id', 'e.class_id'))
+            // session_id (admin filter) = us session ki enrollments; nahi to class ka apna session (gap rule)
+            ->when(
+                !empty($f['session_id']),
+                fn($q) => $q->where('e.academic_year_id', $f['session_id']),
+                fn($q) => $q->where(fn($w) => AcademicYear::whereClassSession($w, 'e.academic_year_id', 'e.class_id'))
+            )
             ->whereNull('e.deleted_at');
         $this->applyReportStatus($query, $f['status']);
 
@@ -1317,11 +1345,18 @@ class AttendanceController extends Controller
             abort(403);
         }
 
-        [$filters, $error] = $this->reportFilters($request);
+        // Session filter sirf admin / receptionist / accountant (scope null); teacher hamesha current session
+        $pickedYear = $scope === null && (int) $request->query('session_id') > 0 ? AcademicYear::find((int) $request->query('session_id')) : null;
+        [$filters, $error] = $this->reportFilters($request, $pickedYear && $pickedYear->id != $this->getActiveSessionId() ? $this->sessionDefaultRange($pickedYear, $class->id) : null);
         if ($error) {
             return redirect()->route('attendance.class_report', ['class_id' => $class->id, 'section_id' => $section->id])
                 ->with(['message' => $error, 'alert-type' => 'error']);
         }
+        // Current session = default rule (gap classes ke liye bhi), is liye filter null
+        if ($scope !== null || $filters['session_id'] == $this->getActiveSessionId()) {
+            $filters['session_id'] = null;
+        }
+        $sessions = $scope === null ? AcademicYear::orderByDesc('start_date')->get(['id', 'name', 'is_current']) : collect();
 
         $base = $this->classReportBase($class->id, $section->id, $filters);
 
@@ -1341,6 +1376,7 @@ class AttendanceController extends Controller
         return view('admin.attendance.class_report', [
             'class' => $class, 'section' => $section, 'scope' => $scope, 'noClass' => false,
             'rows' => $rows, 'summary' => $summary, 'filters' => $filters, 'studentCount' => $studentCount,
+            'sessions' => $sessions,
         ]);
     }
     // End Method
@@ -1389,7 +1425,11 @@ class AttendanceController extends Controller
 
         $enrollment->load(['student' => fn($q) => $q->withTrashed(), 'schoolClass', 'section']);
 
-        [$filters, $error] = $this->reportFilters($request);
+        // Purani session ki enrollment: date na ho to us session ki dates (current enrollment = current month, purana behaviour)
+        $oldRange = AcademicYear::isClassSession($enrollment->academic_year_id, $enrollment->class_id)
+            ? null
+            : $this->sessionDefaultRange(AcademicYear::find($enrollment->academic_year_id), $enrollment->class_id);
+        [$filters, $error] = $this->reportFilters($request, $oldRange);
         if ($error) {
             return redirect()->route('attendance.student_report', $enrollment->id)
                 ->with(['message' => $error, 'alert-type' => 'error']);
@@ -1432,9 +1472,15 @@ class AttendanceController extends Controller
             }
         }
 
+        // Session switcher: is student ki sab enrollments (sirf admin / receptionist / accountant)
+        $enrollments = $scope === null
+            ? Enrollment::with(['academicYear', 'schoolClass', 'section'])->where('student_id', $enrollment->student_id)->orderByDesc('id')->get()
+            : collect();
+
         return view('admin.attendance.student_report', [
             'enrollment' => $enrollment, 'student' => $enrollment->student, 'history' => $history,
             'summary' => $summary, 'percent' => $percent, 'monthly' => array_values($monthly), 'filters' => $filters,
+            'enrollments' => $enrollments,
         ]);
     }
     // End Method
