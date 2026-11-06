@@ -302,7 +302,7 @@
 
                                 {{-- 👇 NAYA — Guardian Login Password --}}
                                 <div class="col-md-6">
-                                    <label class="form-label" for="guardian_password">Guardian System Password <span class="text-danger">*</span></label>
+                                    <label class="form-label" for="guardian_password">Guardian System Password <span class="text-danger guardian-pw-req">*</span></label>
                                     <div class="input-group">
                                         <input type="password" autocomplete="new-password" name="guardian_password" id="guardian_password" class="form-control form-control-sm @error('guardian_password') is-invalid @enderror" placeholder="••••••••">
                                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="guardian_password">
@@ -310,9 +310,10 @@
                                         </button>
                                     </div>
                                     @error('guardian_password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    <small class="text-muted d-none" id="guardian_pw_linked_hint">Existing parent linked — password will not change.</small>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label" for="guardian_password_confirmation">Confirm Guardian Password <span class="text-danger">*</span></label>
+                                    <label class="form-label" for="guardian_password_confirmation">Confirm Guardian Password <span class="text-danger guardian-pw-req">*</span></label>
                                     <div class="input-group">
                                         <input type="password" autocomplete="new-password" name="guardian_password_confirmation" id="guardian_password_confirmation" class="form-control form-control-sm @error('guardian_password_confirmation') is-invalid @enderror" placeholder="••••••••">
                                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="guardian_password_confirmation">
@@ -642,12 +643,19 @@ $validationErrorsJson = json_encode($errors->all());
                 gName.val(fatherName).attr('readonly', true);
                 gPhone.val(fatherPhone).attr('readonly', true);
                 gRelation.val('Father').attr('readonly', true);
+                // Server error load par wapas dikhna chahiye agar value ab bhi khali hai — isliye sirf non-empty fill par clear
+                if (fatherName) clearFieldError(gName);
+                if (fatherPhone) clearFieldError(gPhone);
+                clearFieldError(gRelation);
                 gPhoto.attr('disabled', true).val('');
                 gPhoto.closest('.col-md-4').css('opacity', '0.5');
             } else if (selection === 'mother') {
                 gName.val(motherName).attr('readonly', true);
                 gPhone.val(motherPhone).attr('readonly', true);
                 gRelation.val('Mother').attr('readonly', true);
+                if (motherName) clearFieldError(gName);
+                if (motherPhone) clearFieldError(gPhone);
+                clearFieldError(gRelation);
                 gPhoto.attr('disabled', true).val('');
                 gPhoto.closest('.col-md-4').css('opacity', '0.5');
             } else {
@@ -722,6 +730,17 @@ $validationErrorsJson = json_encode($errors->all());
             field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
         });
 
+        // JS se (.val()) fill/lock hone wale fields ka error + red border hata do (programmatic fill par input event fire nahi hota)
+        // Sirf wohi fields jin par .is-invalid hai — kisi aur field ka .invalid-feedback kabhi nahi hatta
+        function clearFieldError($fields) {
+            $fields.filter('.is-invalid').each(function() {
+                var f = $(this);
+                f.removeClass('is-invalid');
+                f.nextAll('.invalid-feedback').first().remove();
+                f.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+            });
+        }
+
         // --- 8. SIBLING AUTO-FETCH & FIELD LOCK ENGINE ---
         let lastCheckedCnic = ''; // same CNIC par blur + keyup se double AJAX / double toastr na ho
         $('#father_cnic').on('blur keyup', function() {
@@ -778,6 +797,12 @@ $validationErrorsJson = json_encode($errors->all());
                                 $(`.g-check[value="${response.parent_data.is_guardian}"]`).prop('checked', true).prop('disabled', false);
                             }
 
+                            // Existing parent linked — guardian password na required, na change hoga
+                            $('#guardian_password, #guardian_password_confirmation').val('').prop('disabled', true);
+                            $('.guardian-pw-req').addClass('d-none');
+                            $('#guardian_pw_linked_hint').removeClass('d-none');
+                            clearFieldError($('#father_name, #father_phone, #mother_name, #mother_phone, #mother_cnic, #guardian_name, #guardian_relation, #guardian_phone, #guardian_email, #guardian_address, #guardian_password, #guardian_password_confirmation'));
+
                             if ($('.locked-lbl').length === 0) {
                                 $('#father_photo, #mother_photo, #guardian_photo, #father_cnic_front, #father_cnic_back, #mother_cnic_front, #mother_cnic_back')
                                     .prop('disabled', true)
@@ -807,6 +832,7 @@ $validationErrorsJson = json_encode($errors->all());
                     lastCheckedCnic = ''; // fail ke baad dobara try ho sake
                     toastr.error('Verification Framework Latency Warning: Parent data stream check failed.');
                     console.error("AJAX Interface Stack Failure Logged: ", error);
+                    resetSiblingStructuralSync();
                 });
             } else {
                 lastCheckedCnic = '';
@@ -827,6 +853,11 @@ $validationErrorsJson = json_encode($errors->all());
                 .prop('disabled', false)
                 .closest('.col-md-4')
                 .css('opacity', '1');
+
+            // Guardian password wapas normal (new parent) state mein
+            $('#guardian_password, #guardian_password_confirmation').prop('disabled', false);
+            $('.guardian-pw-req').removeClass('d-none');
+            $('#guardian_pw_linked_hint').addClass('d-none');
 
             // 👇 NAYA — sibling discounts bhi uncheck karo agar reset ho raha hai
             $('.discount-policy-check[data-policy-type="sibling"]').prop('checked', false);
