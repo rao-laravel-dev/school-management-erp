@@ -993,6 +993,7 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(StudentPromotionController::class)->group(function () {
                 Route::post('/store', 'store')->name('store');
                 Route::post('/undo/{enrollment}', 'undo')->whereNumber('enrollment')->name('undo');
+                Route::post('/undo-bulk', 'undoBulk')->name('undo_bulk');
             });
         });
     }); // NEW 27-10-26

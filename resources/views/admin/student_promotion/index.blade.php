@@ -81,7 +81,10 @@
     <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
         <h5 class="mb-0 text-primary">Students</h5>
         @can('manage-student-promotion')
-        <button type="button" id="studentPromotionSaveBtn" class="btn btn-success btn-sm shadow-sm px-5">Save</button>
+        <div>
+            <button type="button" id="studentPromotionUndoSelectedBtn" class="btn btn-outline-danger btn-sm me-2" disabled>Undo Selected</button>
+            <button type="button" id="studentPromotionSaveBtn" class="btn btn-success btn-sm shadow-sm px-5">Save</button>
+        </div>
         @endcan
     </div>
     <div class="card-body">
@@ -89,6 +92,11 @@
             <table class="table table-striped table-bordered align-middle" id="studentPromotionTable">
                 <thead class="table-light">
                     <tr>
+                        <th style="width:40px;">
+                            @can('manage-student-promotion')
+                            <input type="checkbox" class="form-check-input" id="studentPromotionUndoAll" title="Select all (Undo)">
+                            @endcan
+                        </th>
                         <th>#</th>
                         <th>Admission No</th>
                         <th>Name</th>
@@ -117,6 +125,7 @@
         const studentPromotionStudentsUrl = "{{ route('student_promotion.students') }}";
         const studentPromotionStoreUrl = "{{ route('student_promotion.store') }}";
         const studentPromotionUndoUrl = "{{ route('student_promotion.undo', ':id') }}";
+        const studentPromotionUndoBulkUrl = "{{ route('student_promotion.undo_bulk') }}";
         @can('manage-student-promotion')
         const studentPromotionCanManage = true;
         @else
@@ -291,10 +300,21 @@
             return html + '</select>';
         }
 
+        // Bulk Undo: tick count ke hisab se button + Select All ki halat
+        function studentPromotionUpdateUndoState() {
+            const $checks = $('.studentPromotionUndoCheck');
+            const checked = $checks.filter(':checked').length;
+            $('#studentPromotionUndoSelectedBtn')
+                .prop('disabled', checked === 0)
+                .text(checked ? 'Undo Selected (' + checked + ')' : 'Undo Selected');
+            $('#studentPromotionUndoAll').prop('checked', $checks.length > 0 && checked === $checks.length);
+        }
+
         function studentPromotionRender(rows, isHighest) {
             const $body = $('#studentPromotionBody').empty();
             if (!rows.length) {
-                $body.append('<tr><td colspan="7" class="text-center text-muted">No students in this class and section</td></tr>');
+                $body.append('<tr><td colspan="8" class="text-center text-muted">No students in this class and section</td></tr>');
+                studentPromotionUpdateUndoState();
                 return;
             }
             $.each(rows, function(i, r) {
@@ -311,7 +331,11 @@
                         status += ' <button type="button" class="btn btn-outline-danger btn-sm ms-1 studentPromotionUndoBtn" data-id="' + r.enrollment_id + '">Undo</button>';
                     }
                 }
+                const undoCheck = (r.can_undo && studentPromotionCanManage)
+                    ? '<input type="checkbox" class="form-check-input studentPromotionUndoCheck" data-id="' + r.enrollment_id + '">'
+                    : '';
                 $body.append('<tr>' +
+                    '<td>' + undoCheck + '</td>' +
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + studentPromotionEsc(r.admission_no) + '</td>' +
                     '<td>' + studentPromotionEsc(r.name) + '</td>' +
@@ -321,6 +345,7 @@
                     '<td>' + status + '</td>' +
                     '</tr>');
             });
+            studentPromotionUpdateUndoState();
         }
 
         function studentPromotionLoad() {
@@ -493,6 +518,63 @@
                     $btn.prop('disabled', false);
                     toastr.clear();
                     toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Could not undo');
+                });
+            });
+        });
+
+        // Bulk Undo: Select All + row checkbox
+        $(document).on('change', '#studentPromotionUndoAll', function() {
+            $('.studentPromotionUndoCheck').prop('checked', $(this).is(':checked'));
+            studentPromotionUpdateUndoState();
+        });
+
+        $(document).on('change', '.studentPromotionUndoCheck', studentPromotionUpdateUndoState);
+
+        $('#studentPromotionUndoSelectedBtn').on('click', function() {
+            if (!studentPromotionLoaded) { return; }
+            const ids = [];
+            $('.studentPromotionUndoCheck:checked').each(function() {
+                ids.push($(this).data('id'));
+            });
+            if (!ids.length) { return; }
+            const $btn = $(this);
+            Swal.fire({
+                title: 'Undo ' + ids.length + ' promotion(s)?',
+                text: 'The new enrollments are removed and the students return to the old class. Students with attendance, marks, results or fees in the new session are skipped.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, undo',
+                buttonsStyling: false,
+                customClass: { popup: 'fee-assignment-swal', confirmButton: 'btn btn-danger btn-sm me-2', cancelButton: 'btn btn-secondary btn-sm' }
+            }).then(function(result) {
+                if (!result.isConfirmed) { return; }
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: studentPromotionUndoBulkUrl,
+                    type: 'POST',
+                    data: { to_year_id: studentPromotionLoaded.to_year_id, enrollment_ids: ids }
+                }).done(function(res) {
+                    toastr.clear();
+                    toastr.success(res.message);
+                    if (res.skipped && res.skipped.length) {
+                        let html = '<div class="text-start small">';
+                        $.each(res.skipped, function(i, s) {
+                            html += '<div class="mb-1"><b>' + studentPromotionEsc(s.name) + '</b>: ' + studentPromotionEsc(s.reason) + '</div>';
+                        });
+                        html += '</div>';
+                        Swal.fire({
+                            title: 'Skipped students (' + res.skipped.length + ')',
+                            html: html,
+                            icon: 'warning',
+                            confirmButtonText: 'OK',
+                            buttonsStyling: false,
+                            customClass: { popup: 'fee-assignment-swal', confirmButton: 'btn btn-secondary btn-sm' }
+                        });
+                    }
+                    studentPromotionLoad();
+                }).fail(function(xhr) {
+                    studentPromotionUpdateUndoState();
+                    studentPromotionShowServerErrors(xhr, 'Could not undo');
                 });
             });
         });

@@ -13,6 +13,7 @@ use App\Models\SchoolClass;
 use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -339,6 +340,49 @@ class StudentPromotionController extends Controller
         });
 
         return response()->json(['success' => true, 'message' => 'Promotion undone']);
+    } // End Method
+
+    // Bulk Undo: har student par wahi single undo() (same rules). Jo fail ho wo skipped list mein, baqi chalte rahein
+    public function undoBulk(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'to_year_id'       => ['required', Rule::exists('academic_years', 'id')],
+            'enrollment_ids'   => ['required', 'array', 'min:1', 'max:500'],
+            'enrollment_ids.*' => ['integer', 'distinct', Rule::exists('enrollments', 'id')],
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $enrollments = Enrollment::with('student')->whereIn('id', $request->enrollment_ids)->get();
+
+        $undone = 0;
+        $skipped = [];
+        foreach ($enrollments as $enrollment) {
+            $name = $enrollment->student
+                ? $enrollment->student->admission_no . ' ' . trim($enrollment->student->first_name . ' ' . $enrollment->student->last_name)
+                : 'Enrollment #' . $enrollment->id;
+
+            try {
+                $res = $this->undo($request, $enrollment);
+                $data = $res->getData(true);
+                if ($res->getStatusCode() === 200) {
+                    $undone++;
+                } else {
+                    $skipped[] = ['name' => $name, 'reason' => isset($data['message']) ? $data['message'] : 'Could not undo'];
+                }
+            } catch (\Throwable $e) {
+                Log::error('Student promotion bulk undo failed', ['enrollment_id' => $enrollment->id, 'error' => $e->getMessage()]);
+                $skipped[] = ['name' => $name, 'reason' => 'Could not undo (unexpected error)'];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Undone: ' . $undone . ', skipped: ' . count($skipped),
+            'undone'  => $undone,
+            'skipped' => $skipped,
+        ]);
     } // End Method
 
     // Un enrollment ids ki list jin par data mojood hai (attendance, marks, results, fees...)
