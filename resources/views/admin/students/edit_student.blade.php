@@ -769,6 +769,70 @@
         });
 
         // --- 5. SIBLING AUTO-FETCH ENGINE ---
+        // Student ke apne parent ka CNIC + data (page load par) — sibling CNIC se wapas aane par restore ke liye
+        var originalParentCnic = @json($student->parent ? $student->parent->father_cnic : '');
+        @php
+            $originalParentData = $student->parent ? $student->parent->only(['father_name', 'father_phone', 'mother_name', 'mother_phone', 'mother_cnic', 'guardian_name', 'guardian_relation', 'guardian_phone', 'guardian_email', 'guardian_address', 'is_guardian']) : [];
+        @endphp
+        var originalParentData = @json($originalParentData);
+        var siblingDataLoaded = false; // true jab doosre parent ka data form mein load ho chuka ho
+        var siblingLoadedCnic = ''; // jis sibling CNIC ka data load hua (toastr dobara na aaye)
+
+        // Sibling relink state mein "If Guardian is" radios lock — disabled nahi (disabled radio submit nahi hota)
+        $('.g-check').on('click', function(e) {
+            if (siblingDataLoaded) {
+                e.preventDefault();
+            }
+        });
+
+        var parentFileInputs = '#father_photo, #mother_photo, #father_cnic_front, #father_cnic_back, #mother_cnic_front, #mother_cnic_back';
+        var parentTextFields = ['father_name', 'father_phone', 'mother_name', 'mother_phone', 'mother_cnic', 'guardian_name', 'guardian_relation', 'guardian_phone', 'guardian_email', 'guardian_address'];
+
+        // Doosre (sibling) parent ka data locked fields mein dikhao — save par sirf student relink hota hai
+        function loadSiblingParentData(data, cnicValue) {
+            if (siblingLoadedCnic !== cnicValue) {
+                toastr.info('Student will be linked to existing parent: ' + $('<div>').text(data.father_name || '').html() + '. Parent details will not change.');
+                siblingLoadedCnic = cnicValue;
+            }
+            $.each(parentTextFields, function(i, name) {
+                $('#' + name).val(data[name] || '');
+            });
+            if (data.is_guardian) {
+                $('.g-check[value="' + data.is_guardian + '"]').prop('checked', true);
+            }
+            $('#guardian_password, #guardian_password_confirmation').val('').prop('disabled', true);
+            if ($('.locked-lbl').length === 0) {
+                $(parentFileInputs + ', #guardian_photo')
+                    .prop('disabled', true)
+                    .val('')
+                    .closest('.col-md-4')
+                    .css('opacity', '0.55')
+                    .find('label').append(' <span class="badge bg-secondary text-white locked-lbl" style="font-size:9px;">Linked</span>');
+            }
+            siblingDataLoaded = true;
+        }
+
+        // Apne parent ka original data wapas (CNIC original par ya naye/unknown CNIC par)
+        function restoreOriginalParentData() {
+            if (!siblingDataLoaded) {
+                return;
+            }
+            $.each(parentTextFields, function(i, name) {
+                $('#' + name).val(originalParentData[name] || '');
+            });
+            if (originalParentData.is_guardian) {
+                $('.g-check[value="' + originalParentData.is_guardian + '"]').prop('checked', true);
+            }
+            $('.locked-lbl').remove();
+            $(parentFileInputs).prop('disabled', false).closest('.col-md-4').css('opacity', '1');
+            // Guardian photo sirf tab enabled jab guardian "other" ho (page ki default state)
+            var guardianPhotoOff = originalParentData.is_guardian !== 'other';
+            $('#guardian_photo').prop('disabled', guardianPhotoOff).closest('.col-md-4').css('opacity', guardianPhotoOff ? '0.5' : '1');
+            $('#guardian_password,#guardian_password_confirmation').prop('disabled', false);
+            siblingDataLoaded = false;
+            siblingLoadedCnic = '';
+        }
+
         function checkParentSibling(cnicValue) {
             if (cnicValue.length >= 13) {
                 $.ajax({
@@ -777,16 +841,21 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success && response.sibling_detected) {
-                            if ($('#sibling-alert-banner').length === 0) {
-                                $('.parent-details-heading').after(`
-                                    <div id="sibling-alert-banner" class="alert alert-info d-flex align-items-center shadow-sm p-3 mb-4" role="alert">
-                                        <i class="bx bx-group me-2" style="font-size:24px;"></i>
-                                        <div>
-                                            <strong>Sibling Connection Matrix:</strong> Parent profile mapped with secondary database clusters.
-                                        </div>
-                                    </div>
-                                `);
+                            var isOtherParent = cnicValue !== originalParentCnic;
+                            if (isOtherParent) {
+                                loadSiblingParentData(response.parent_data, cnicValue);
+                            } else {
+                                restoreOriginalParentData();
                             }
+                            $('#sibling-alert-banner').remove();
+                            $('.parent-details-heading').after(`
+                                <div id="sibling-alert-banner" class="alert alert-info d-flex align-items-center shadow-sm p-3 mb-4" role="alert">
+                                    <i class="bx bx-group me-2" style="font-size:24px;"></i>
+                                    <div>
+                                        <strong>Sibling Connection Matrix:</strong> ${isOtherParent ? 'This student will be linked to the existing parent profile below. Parent details are not changed.' : 'Parent profile mapped with secondary database clusters.'}
+                                    </div>
+                                </div>
+                            `);
                             $('#father_name, #father_phone, #mother_name, #mother_phone, #mother_cnic, #guardian_name, #guardian_relation, #guardian_phone, #guardian_email, #guardian_address').prop('readonly', true);
                         } else {
                             resetSiblingStructuralSync();
@@ -801,6 +870,7 @@
         });
 
         function resetSiblingStructuralSync() {
+            restoreOriginalParentData();
             $('#sibling-alert-banner').remove();
             $('.locked-lbl').remove();
             $('#father_name, #father_phone, #mother_name, #mother_phone, #mother_cnic, #guardian_name, #guardian_relation, #guardian_phone, #guardian_email, #guardian_address').prop('readonly', false);

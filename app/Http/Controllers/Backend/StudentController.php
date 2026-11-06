@@ -926,6 +926,7 @@ class StudentController extends Controller
             // TRACK LAYER A: UPDATE PARENT / GUARDIAN STRUCTURAL PROFILE
             // =================================================================
             $fatherCnicClean = trim($request->father_cnic);
+            $relinkedToSibling = false;
 
             if (!empty($fatherCnicClean)) {
                 $cnicConflict = ParentProfile::where('father_cnic', $fatherCnicClean)
@@ -935,6 +936,8 @@ class StudentController extends Controller
                 if ($cnicConflict) {
                     // Sibling scenario — re-parent this student under the existing profile
                     $parentProfile = $cnicConflict;
+                    // Sirf student relink hoga — dusre parent ka profile/files touch nahi honge
+                    $relinkedToSibling = true;
                 } else {
                     $parentUser = User::find($parentProfile->user_id);
                     if ($parentUser) {
@@ -960,57 +963,67 @@ class StudentController extends Controller
             }
 
             // Purani files naya save hone ke BAAD delete hongi (commit ke baad, jo naye record mein use nahi ho rahi)
-            $oldParentPhotos = [$parentProfile->father_photo, $parentProfile->mother_photo, $parentProfile->guardian_photo];
-            $oldCnicFiles = [$parentProfile->father_cnic_front, $parentProfile->father_cnic_back, $parentProfile->mother_cnic_front, $parentProfile->mother_cnic_back];
+            // Sibling relink par parent files/profile touch nahi hote — in values se neeche delete loops no-op rahenge
+            $oldParentPhotos = [];
+            $oldCnicFiles = [];
+            $fatherPhoto = $motherPhoto = $guardianPhoto = null;
+            $fCnicFront = $fCnicBack = $mCnicFront = $mCnicBack = null;
+
+            if (!$relinkedToSibling) {
+                $oldParentPhotos = [$parentProfile->father_photo, $parentProfile->mother_photo, $parentProfile->guardian_photo];
+                $oldCnicFiles = [$parentProfile->father_cnic_front, $parentProfile->father_cnic_back, $parentProfile->mother_cnic_front, $parentProfile->mother_cnic_back];
+            }
             $oldStudentPhoto = $student->photo;
 
-            // Document Processing Streams with structural preservation layout
-            $fatherPhoto = $parentProfile->father_photo;
-            if ($request->hasFile('father_photo')) {
-                $fatherPhoto = $this->imageService->upload($request->file('father_photo'), 'uploads/parents');
+            if (!$relinkedToSibling) {
+                // Document Processing Streams with structural preservation layout
+                $fatherPhoto = $parentProfile->father_photo;
+                if ($request->hasFile('father_photo')) {
+                    $fatherPhoto = $this->imageService->upload($request->file('father_photo'), 'uploads/parents');
+                }
+
+                $motherPhoto = $parentProfile->mother_photo;
+                if ($request->hasFile('mother_photo')) {
+                    $motherPhoto = $this->imageService->upload($request->file('mother_photo'), 'uploads/parents');
+                }
+
+                if ($request->input('is_guardian') === 'father') {
+                    $guardianPhoto = $fatherPhoto;
+                } elseif ($request->input('is_guardian') === 'mother') {
+                    $guardianPhoto = $motherPhoto;
+                } else {
+                    $guardianPhoto = $request->hasFile('guardian_photo')
+                        ? $this->imageService->upload($request->file('guardian_photo'), 'uploads/parents')
+                        : $parentProfile->guardian_photo;
+                }
+
+                $fCnicFront = $request->hasFile('father_cnic_front') ? $this->imageService->upload($request->file('father_cnic_front'), 'uploads/documents') : $parentProfile->father_cnic_front;
+                $fCnicBack  = $request->hasFile('father_cnic_back')  ? $this->imageService->upload($request->file('father_cnic_back'), 'uploads/documents')  : $parentProfile->father_cnic_back;
+                $mCnicFront = $request->hasFile('mother_cnic_front') ? $this->imageService->upload($request->file('mother_cnic_front'), 'uploads/documents') : $parentProfile->mother_cnic_front;
+                $mCnicBack  = $request->hasFile('mother_cnic_back')  ? $this->imageService->upload($request->file('mother_cnic_back'), 'uploads/documents')  : $parentProfile->mother_cnic_back;
+
+                $parentProfile->update([
+                    'father_name'       => $request->father_name ?? $parentProfile->father_name,
+                    'father_phone'      => $request->father_phone ?? $parentProfile->father_phone,
+                    'father_photo'      => $fatherPhoto,
+                    'mother_name'       => $request->mother_name ?? $parentProfile->mother_name,
+                    'mother_phone'      => $request->mother_phone ?? $parentProfile->mother_phone,
+                    'mother_photo'      => $motherPhoto,
+                    'is_guardian'       => $request->is_guardian ?? $parentProfile->is_guardian,
+                    'guardian_name'     => $request->guardian_name ?? $parentProfile->guardian_name,
+                    'guardian_relation' => $request->guardian_relation ?? $parentProfile->guardian_relation,
+                    'guardian_phone'    => $request->guardian_phone ?? $parentProfile->guardian_phone,
+                    'guardian_email'    => $request->filled('guardian_email') ? $request->guardian_email : $parentProfile->guardian_email,
+                    'guardian_address'  => $request->guardian_address ?? $parentProfile->guardian_address,
+                    'guardian_photo'    => $guardianPhoto,
+                    'father_cnic'       => !empty($fatherCnicClean) ? $fatherCnicClean : $parentProfile->father_cnic,
+                    'father_cnic_front' => $fCnicFront,
+                    'father_cnic_back'  => $fCnicBack,
+                    'mother_cnic'       => $request->mother_cnic ?? $parentProfile->mother_cnic,
+                    'mother_cnic_front' => $mCnicFront,
+                    'mother_cnic_back'  => $mCnicBack,
+                ]);
             }
-
-            $motherPhoto = $parentProfile->mother_photo;
-            if ($request->hasFile('mother_photo')) {
-                $motherPhoto = $this->imageService->upload($request->file('mother_photo'), 'uploads/parents');
-            }
-
-            if ($request->input('is_guardian') === 'father') {
-                $guardianPhoto = $fatherPhoto;
-            } elseif ($request->input('is_guardian') === 'mother') {
-                $guardianPhoto = $motherPhoto;
-            } else {
-                $guardianPhoto = $request->hasFile('guardian_photo')
-                    ? $this->imageService->upload($request->file('guardian_photo'), 'uploads/parents')
-                    : $parentProfile->guardian_photo;
-            }
-
-            $fCnicFront = $request->hasFile('father_cnic_front') ? $this->imageService->upload($request->file('father_cnic_front'), 'uploads/documents') : $parentProfile->father_cnic_front;
-            $fCnicBack  = $request->hasFile('father_cnic_back')  ? $this->imageService->upload($request->file('father_cnic_back'), 'uploads/documents')  : $parentProfile->father_cnic_back;
-            $mCnicFront = $request->hasFile('mother_cnic_front') ? $this->imageService->upload($request->file('mother_cnic_front'), 'uploads/documents') : $parentProfile->mother_cnic_front;
-            $mCnicBack  = $request->hasFile('mother_cnic_back')  ? $this->imageService->upload($request->file('mother_cnic_back'), 'uploads/documents')  : $parentProfile->mother_cnic_back;
-
-            $parentProfile->update([
-                'father_name'       => $request->father_name ?? $parentProfile->father_name,
-                'father_phone'      => $request->father_phone ?? $parentProfile->father_phone,
-                'father_photo'      => $fatherPhoto,
-                'mother_name'       => $request->mother_name ?? $parentProfile->mother_name,
-                'mother_phone'      => $request->mother_phone ?? $parentProfile->mother_phone,
-                'mother_photo'      => $motherPhoto,
-                'is_guardian'       => $request->is_guardian ?? $parentProfile->is_guardian,
-                'guardian_name'     => $request->guardian_name ?? $parentProfile->guardian_name,
-                'guardian_relation' => $request->guardian_relation ?? $parentProfile->guardian_relation,
-                'guardian_phone'    => $request->guardian_phone ?? $parentProfile->guardian_phone,
-                'guardian_email'    => $request->filled('guardian_email') ? $request->guardian_email : $parentProfile->guardian_email,
-                'guardian_address'  => $request->guardian_address ?? $parentProfile->guardian_address,
-                'guardian_photo'    => $guardianPhoto,
-                'father_cnic'       => !empty($fatherCnicClean) ? $fatherCnicClean : $parentProfile->father_cnic,
-                'father_cnic_front' => $fCnicFront,
-                'father_cnic_back'  => $fCnicBack,
-                'mother_cnic'       => $request->mother_cnic ?? $parentProfile->mother_cnic,
-                'mother_cnic_front' => $mCnicFront,
-                'mother_cnic_back'  => $mCnicBack,
-            ]);
 
             // =================================================================
             // TRACK LAYER B: UPDATE STUDENT AUTH ACCOUNT
