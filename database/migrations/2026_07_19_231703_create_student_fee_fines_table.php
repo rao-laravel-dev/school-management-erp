@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('applied_fine', 10, 2);
             $table->string('reason')->nullable();
             $table->foreignId('applied_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('transaction_id')->nullable()->constrained('transactions')->nullOnDelete(); // late fee payment
             $table->timestamps();
         });
     }

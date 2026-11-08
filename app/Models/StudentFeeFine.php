@@ -13,6 +13,7 @@ class StudentFeeFine extends Model
         'applied_fine',
         'reason',
         'applied_by',
+        'transaction_id',
     ];
 
     protected $casts = [
@@ -28,6 +29,11 @@ class StudentFeeFine extends Model
     public function finePolicy()
     {
         return $this->belongsTo(FinePolicy::class);
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'transaction_id');
     }
 
     public function appliedBy()

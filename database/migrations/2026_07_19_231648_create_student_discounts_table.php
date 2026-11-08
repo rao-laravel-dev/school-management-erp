@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             $table->foreignId('discount_policy_id')->constrained('discount_policies')->onDelete('cascade');
+            $table->decimal('amount', 10, 2)->nullable(); // fixed policy ke liye per-student amount; NULL = policy value
             $table->string('remarks')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->boolean('status')->default(1);

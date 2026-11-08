@@ -22,6 +22,18 @@ return new class extends Migration
             $table->boolean('auto_salary')->default(false);
             $table->char('fees_from_month', 7)->nullable();   // Y-m, catch-up isse pehle nahi jata
             $table->char('salary_from_month', 7)->nullable(); // Y-m
+            // Fee Voucher
+            $table->decimal('late_fee_amount', 10, 2)->default(0); // 0 = late fee nahi
+            $table->foreignId('voucher_bank_account_id')->nullable()->constrained('bank_accounts')->nullOnDelete(); // null = 2 copies
+            $table->text('voucher_note')->nullable();
+            $table->foreignId('scholarship_category_id')->nullable()->constrained('student_categories')->nullOnDelete();
+            // 1Bill (sirf storage; credentials model mein encrypted cast)
+            $table->boolean('onebill_enabled')->default(false);
+            $table->string('onebill_bank')->nullable();
+            $table->string('onebill_biller_code')->nullable();
+            $table->text('onebill_username')->nullable();
+            $table->text('onebill_password')->nullable();
+            $table->text('onebill_api_key')->nullable();
             $table->timestamps();
         });
     }

@@ -9,6 +9,7 @@ class StudentDiscount extends Model
     protected $fillable = [
         'student_id',
         'discount_policy_id',
+        'amount',
         'remarks',
         'approved_by',
         'status',
@@ -16,6 +17,7 @@ class StudentDiscount extends Model
 
     protected $casts = [
         'status' => 'boolean',
+        'amount' => 'decimal:2',
     ];
 
     public function student()
