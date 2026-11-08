@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BillingSettingRequest;
 use App\Models\AcademicYear;
+use App\Models\BankAccount;
 use App\Models\BillingSetting;
+use App\Models\StudentCategory;
 use App\Services\BillingService;
 use App\Services\SalarySlipService;
 use Carbon\Carbon;
@@ -42,7 +44,16 @@ class BillingSettingController extends Controller
                 'fee_generate_day'    => 1,
                 'fee_due_day'         => 10,
                 'salary_generate_day' => 1,
+                'late_fee_amount'     => 0,
             ]);
+        }
+
+        $categories   = StudentCategory::where('status', 1)->orderBy('name')->get();
+        $bankAccounts = BankAccount::orderBy('bank_name')->get();
+        // 1Bill secrets kabhi form mein wapas nahi dikhte: sirf status (empty / saved / unreadable)
+        $onebillStatus = [];
+        foreach (BillingSetting::ONEBILL_SECRETS as $field) {
+            $onebillStatus[$field] = $billingSetting->credentialStatus($field);
         }
 
         $currentMonth   = now()->format('Y-m');
@@ -59,7 +70,10 @@ class BillingSettingController extends Controller
             'feeMonths',
             'salaryMonths',
             'feeMonthDefault',
-            'salaryMonthDefault'
+            'salaryMonthDefault',
+            'categories',
+            'bankAccounts',
+            'onebillStatus'
         ));
     }
 
@@ -69,6 +83,16 @@ class BillingSettingController extends Controller
 
         $data['auto_fees']   = $request->boolean('auto_fees');
         $data['auto_salary'] = $request->boolean('auto_salary');
+        $data['onebill_enabled'] = $request->boolean('onebill_enabled');
+
+        // Secrets fill() se bahar: blank = purani value rakho (khali string NULL ban kar mita deti)
+        $secrets = [];
+        foreach (BillingSetting::ONEBILL_SECRETS as $field) {
+            if (!empty($data[$field])) {
+                $secrets[$field] = $data[$field];
+            }
+            unset($data[$field]);
+        }
 
         // Auto on aur from-month khali ho to current month: catch-up isse pehle ke mahine nahi banata
         if ($data['auto_fees'] && empty($data['fees_from_month'])) {
@@ -79,7 +103,11 @@ class BillingSettingController extends Controller
         }
 
         $billingSetting = BillingSetting::firstOrNew(['academic_year_id' => $data['academic_year_id']]);
-        $billingSetting->fill($data)->save();
+        $billingSetting->fill($data);
+        foreach ($secrets as $field => $value) {
+            $billingSetting->replaceCredential($field, $value);
+        }
+        $billingSetting->save();
 
         return redirect()->route('billing_settings.index', ['academic_year_id' => $billingSetting->academic_year_id])
             ->with('success', 'Billing settings saved successfully.');

@@ -327,7 +327,7 @@ class BillingService
             $p = $sd->discountPolicy;
             return $p->discount_type === 'percentage'
                 ? round($fs->amount * $p->discount_value / 100, 2)
-                : $p->discount_value;
+                : min((float) ($sd->amount ?: $p->discount_value), (float) $fs->amount); // fixed: per-student amount ya policy value
         });
     }
 }

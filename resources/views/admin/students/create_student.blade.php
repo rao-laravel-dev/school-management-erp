@@ -741,6 +741,48 @@ $validationErrorsJson = json_encode($errors->all());
             });
         }
 
+        // --- SIBLING vs SCHOLARSHIP: dono discount ek saath nahi lag sakte ---
+        const scholarshipCategoryId = @json($scholarshipCategoryId);
+
+        function isScholarshipCheck($check) {
+            return scholarshipCategoryId && $check.data('policy-type') === 'category' && Number($check.data('category-id')) === Number(scholarshipCategoryId);
+        }
+
+        function siblingTicked() {
+            return $('.discount-policy-check[data-policy-type="sibling"]:checked').length > 0;
+        }
+
+        function scholarshipTicked() {
+            return $('.discount-policy-check:checked').filter(function() {
+                return isScholarshipCheck($(this));
+            }).length > 0;
+        }
+
+        function discountConflictAlert(text) {
+            Swal.fire({
+                title: 'Not allowed',
+                text: text,
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-primary btn-sm'
+                }
+            });
+        }
+
+        // Sibling banner ki doosri line: asli matched policies (hardcoded % nahi)
+        function siblingBannerText(response) {
+            if (!response.sibling_policies || response.sibling_policies.length === 0) {
+                return 'No sibling discount policy for child #' + response.child_number + '.';
+            }
+            let parts = response.sibling_policies.map(function(p) {
+                return $('<div>').text(p.name + ', ' + p.value + ' on ' + p.fee_type).html();
+            });
+            return 'Child #' + response.child_number + ': <strong>' + parts.join('; ') + '</strong>';
+        }
+
         // --- 8. SIBLING AUTO-FETCH & FIELD LOCK ENGINE ---
         let lastCheckedCnic = ''; // same CNIC par blur + keyup se double AJAX / double toastr na ho
         $('#father_cnic').on('blur keyup', function() {
@@ -767,7 +809,7 @@ $validationErrorsJson = json_encode($errors->all());
                                         <div>
                                             <strong>Sibling Connection Matrix:</strong> This parent profile is already mapped with 
                                             <span class="badge bg-primary font-weight-bold mx-1">${response.children_count}</span> registered student(s). 
-                                            <br><small class="text-muted">Dynamic Sibling Matrix Applied: <strong>${response.discount_percent}% Concession Template recommended.</strong></small>
+                                            <br><small class="text-muted">${siblingBannerText(response)}</small>
                                         </div>
                                     </div>
                                 `);
@@ -816,7 +858,9 @@ $validationErrorsJson = json_encode($errors->all());
                             let nextChildNumber = response.children_count + 1;
                             let siblingCheck = $('.discount-policy-check[data-policy-type="sibling"][data-trigger="' + nextChildNumber + '"]');
 
-                            if (siblingCheck.length > 0) {
+                            if (siblingCheck.length > 0 && scholarshipTicked()) {
+                                discountConflictAlert('Remove the scholarship first.');
+                            } else if (siblingCheck.length > 0) {
                                 siblingCheck.prop('checked', true);
                                 toastr.info('Sibling discount (Child #' + nextChildNumber + ') auto-selected.');
                                 if ($("select[name='class_id']").val()) {
@@ -921,6 +965,15 @@ $validationErrorsJson = json_encode($errors->all());
 
             if (selectedCategoryId) {
                 let matchingChecks = $('.discount-policy-check[data-policy-type="category"][data-category-id="' + selectedCategoryId + '"]');
+                if (siblingTicked()) {
+                    let blockedChecks = matchingChecks.filter(function() {
+                        return isScholarshipCheck($(this));
+                    });
+                    if (blockedChecks.length > 0) {
+                        matchingChecks = matchingChecks.not(blockedChecks);
+                        discountConflictAlert('Remove the sibling discount first.');
+                    }
+                }
                 matchingChecks.prop('checked', true);
                 if (matchingChecks.length > 0) {
                     toastr.info(matchingChecks.length + ' matching discount(s) auto-selected — deselect any you don\'t want.');
@@ -934,6 +987,19 @@ $validationErrorsJson = json_encode($errors->all());
 
         // --- 11. MANUAL CHECKBOX TOGGLE → RE-FETCH FEE STRUCTURE ---
         $(document).on('change', '.discount-policy-check', function() {
+            // Manual tick par sibling/scholarship conflict: tick wapas hata do + Swal
+            if ($(this).is(':checked')) {
+                if ($(this).data('policy-type') === 'sibling' && scholarshipTicked()) {
+                    $(this).prop('checked', false);
+                    discountConflictAlert('Remove the scholarship first.');
+                    return;
+                }
+                if (isScholarshipCheck($(this)) && siblingTicked()) {
+                    $(this).prop('checked', false);
+                    discountConflictAlert('Remove the sibling discount first.');
+                    return;
+                }
+            }
             if ($("select[name='class_id']").val()) {
                 fetchFeeStructure($("select[name='class_id']").val());
             }

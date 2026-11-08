@@ -207,7 +207,7 @@ class FeeStructureController extends Controller
             $p = $sd->discountPolicy;
             return $p->discount_type === 'percentage'
                 ? round($feeStructure->amount * $p->discount_value / 100, 2)
-                : $p->discount_value;
+                : min((float) ($sd->amount ?: $p->discount_value), (float) $feeStructure->amount); // fixed: per-student amount ya policy value
         });
     }
 

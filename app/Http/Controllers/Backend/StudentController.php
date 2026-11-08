@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Exports\StudentsExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreStudentDiscountRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\AcademicYear;
@@ -122,6 +123,9 @@ class StudentController extends Controller
         $categories = \App\Models\StudentCategory::where('status', 1)->orderBy('name')->get();
         $houses = \App\Models\StudentHouse::where('status', 1)->orderBy('name')->get();
 
+        // Sibling vs scholarship check ke liye (Billing Settings mein chuni hui category)
+        $scholarshipCategoryId = (new DiscountService())->scholarshipCategoryId();
+
         return view('admin.students.create_student', compact(
             'classes',
             'sections',
@@ -129,7 +133,8 @@ class StudentController extends Controller
             'selected_class',
             'discountPolicies',
             'categories',   // 👈 naya
-            'houses'        // 👈 naya
+            'houses',       // 👈 naya
+            'scholarshipCategoryId'
         ));
     }
 // End Method
@@ -673,19 +678,26 @@ class StudentController extends Controller
             // Count how many children this parent currently has active in system
             $childrenCount = Student::where('parent_id', $parent->id)->count();
 
-            // Evaluate Dynamic Fee Concession or Discount Band Matrix
-            $suggestedDiscountPercent = 0;
-            if ($childrenCount == 1) {
-                $suggestedDiscountPercent = 20;
-            } elseif ($childrenCount >= 2) {
-                $suggestedDiscountPercent = 50;
-            }
+            // Naya bacha is parent ka (childrenCount + 1)wan bacha hoga: uski real sibling policies
+            $childNumber     = $childrenCount + 1;
+            $siblingPolicies = DiscountPolicy::with('feeType')
+                ->where('policy_type', 'sibling')
+                ->where('trigger_value', $childNumber)
+                ->where('status', 1)
+                ->get()
+                ->map(fn($p) => [
+                    'name'      => $p->name,
+                    'fee_type'  => optional($p->feeType)->name ?: 'All Fees',
+                    'value'     => $this->discountValueLabel($p),
+                ])
+                ->values();
 
             return response()->json([
                 'success' => true,
                 'sibling_detected' => true,
                 'children_count' => $childrenCount,
-                'discount_percent' => $suggestedDiscountPercent,
+                'child_number' => $childNumber,
+                'sibling_policies' => $siblingPolicies,
                 'parent_data' => [
                     'father_name'       => $parent->father_name,
                     'father_phone'      => $parent->father_phone,
@@ -855,6 +867,10 @@ class StudentController extends Controller
         $discounts = StudentDiscount::with('discountPolicy.feeType')->where('student_id', $student->id)->get();
         $studentFees = StudentFees::with('feeType')->where('student_id', $student->id)->orderBy('due_date')->get();
 
+        // Editable discount card: add dropdown + sibling/scholarship check
+        $discountPolicies = DiscountPolicy::with(['feeType', 'category'])->where('status', 1)->orderBy('policy_type')->orderBy('name')->get();
+        $scholarshipCategoryId = (new DiscountService())->scholarshipCategoryId();
+
         return view('admin.students.edit_student', compact(
             'student',
             'classes',
@@ -864,8 +880,68 @@ class StudentController extends Controller
             'categories',
             'houses',
             'discounts',
-            'studentFees'
+            'studentFees',
+            'discountPolicies',
+            'scholarshipCategoryId'
         ));
+    }
+
+    /**
+     * Edit Student: discount add (AJAX). Validation + sibling/scholarship rule StoreStudentDiscountRequest mein
+     */
+    public function StoreStudentDiscount(StoreStudentDiscountRequest $request, $id)
+    {
+        $student = Student::findOrFail($id);
+        $policy  = DiscountPolicy::with(['feeType', 'category'])->findOrFail($request->discount_policy_id);
+
+        $discount = StudentDiscount::create([
+            'student_id'         => $student->id,
+            'discount_policy_id' => $policy->id,
+            // per-student amount sirf fixed policy ke liye
+            'amount'             => $policy->discount_type === 'fixed' ? $request->input('amount') : null,
+            'remarks'            => $request->input('remarks'),
+            'approved_by'        => auth()->id(),
+            'status'             => 1,
+        ]);
+
+        $catId = (new DiscountService())->scholarshipCategoryId();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Discount added successfully.',
+            'discount' => [
+                'id'             => $discount->id,
+                'policy'         => $policy->name,
+                'type'           => $policy->policy_type,
+                'fee_type'       => optional($policy->feeType)->name ?: 'All Fees',
+                'value_label'    => $this->discountValueLabel($policy, $discount->amount),
+                'remarks'        => $discount->remarks,
+                'is_sibling'     => $policy->policy_type === 'sibling',
+                'is_scholarship' => (new DiscountService())->isScholarship($policy, $catId),
+            ],
+        ]);
+    }
+    // End Method
+
+    /**
+     * Edit Student: discount remove (AJAX). Bani hui fee rows apna stored discount rakhti hain
+     */
+    public function DeleteStudentDiscount($id, $discount)
+    {
+        $row = StudentDiscount::where('student_id', $id)->where('id', $discount)->firstOrFail();
+        $row->delete();
+
+        return response()->json(['success' => true, 'message' => 'Discount removed successfully.']);
+    }
+    // End Method
+
+    private function discountValueLabel(DiscountPolicy $policy, $studentAmount = null): string
+    {
+        if ($policy->discount_type === 'percentage') {
+            return rtrim(rtrim(number_format($policy->discount_value, 2), '0'), '.') . '%';
+        }
+
+        return 'Rs ' . number_format($studentAmount ?: $policy->discount_value);
     }
 
     /**
@@ -1181,7 +1257,8 @@ class StudentController extends Controller
                     $discountAmt = $discountService->calculateDiscount(
                         (float) $fs->amount,
                         $fs->fee_type_id,
-                        $studentPolicyIds
+                        $studentPolicyIds,
+                        $student->id
                     );
 
                     StudentFees::create([

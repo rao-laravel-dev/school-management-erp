@@ -42,8 +42,8 @@
 
                     <div class="row mb-3">
                         <div class="col-12 col-md-4 mb-3 mb-md-0">
-                            <label class="form-label">Fee Generate Day <span class="text-danger">*</span></label>
-                            <input type="number" min="1" max="28" name="fee_generate_day"
+                            <label class="form-label" for="fee_generate_day">Fee Generate Day <span class="text-danger">*</span></label>
+                            <input type="number" min="1" max="28" name="fee_generate_day" id="fee_generate_day"
                                 class="form-control form-control-sm @error('fee_generate_day') is-invalid @enderror"
                                 value="{{ old('fee_generate_day', $billingSetting->fee_generate_day) }}" required>
                             @error('fee_generate_day')
@@ -52,8 +52,8 @@
                             <div class="billing-setting-help">Monthly fees of a month are created from this day.</div>
                         </div>
                         <div class="col-12 col-md-4 mb-3 mb-md-0">
-                            <label class="form-label">Fee Due Day <span class="text-danger">*</span></label>
-                            <input type="number" min="1" max="28" name="fee_due_day"
+                            <label class="form-label" for="fee_due_day">Fee Due Day <span class="text-danger">*</span></label>
+                            <input type="number" min="1" max="28" name="fee_due_day" id="fee_due_day"
                                 class="form-control form-control-sm @error('fee_due_day') is-invalid @enderror"
                                 value="{{ old('fee_due_day', $billingSetting->fee_due_day) }}" required>
                             @error('fee_due_day')
@@ -62,8 +62,8 @@
                             <div class="billing-setting-help">Due date of each generated fee (day of that month).</div>
                         </div>
                         <div class="col-12 col-md-4">
-                            <label class="form-label">Salary Generate Day <span class="text-danger">*</span></label>
-                            <input type="number" min="1" max="28" name="salary_generate_day"
+                            <label class="form-label" for="salary_generate_day">Salary Generate Day <span class="text-danger">*</span></label>
+                            <input type="number" min="1" max="28" name="salary_generate_day" id="salary_generate_day"
                                 class="form-control form-control-sm @error('salary_generate_day') is-invalid @enderror"
                                 value="{{ old('salary_generate_day', $billingSetting->salary_generate_day) }}" required>
                             @error('salary_generate_day')
@@ -80,8 +80,8 @@
                                     name="auto_fees" value="1" {{ old('auto_fees', $billingSetting->auto_fees) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="billingSettingAutoFees">Auto generate student fees</label>
                             </div>
-                            <label class="form-label">Fees From Month</label>
-                            <input type="month" name="fees_from_month"
+                            <label class="form-label" for="fees_from_month">Fees From Month</label>
+                            <input type="month" name="fees_from_month" id="fees_from_month"
                                 class="form-control form-control-sm @error('fees_from_month') is-invalid @enderror"
                                 value="{{ old('fees_from_month', $billingSetting->fees_from_month) }}">
                             @error('fees_from_month')
@@ -95,8 +95,8 @@
                                     name="auto_salary" value="1" {{ old('auto_salary', $billingSetting->auto_salary) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="billingSettingAutoSalary">Auto generate salary slips</label>
                             </div>
-                            <label class="form-label">Salary From Month</label>
-                            <input type="month" name="salary_from_month"
+                            <label class="form-label" for="salary_from_month">Salary From Month</label>
+                            <input type="month" name="salary_from_month" id="salary_from_month"
                                 class="form-control form-control-sm @error('salary_from_month') is-invalid @enderror"
                                 value="{{ old('salary_from_month', $billingSetting->salary_from_month) }}">
                             @error('salary_from_month')
@@ -104,6 +104,107 @@
                             @enderror
                             <div class="billing-setting-help">Only completed months are generated, for active staff.</div>
                         </div>
+                    </div>
+
+                    <h6 class="text-primary mb-3">Vouchers</h6>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-4 mb-3 mb-md-0">
+                            <label class="form-label" for="late_fee_amount">Late Fee (Rs.) <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="0.01" name="late_fee_amount" id="late_fee_amount"
+                                class="form-control form-control-sm @error('late_fee_amount') is-invalid @enderror"
+                                value="{{ old('late_fee_amount', $billingSetting->late_fee_amount) }}" required>
+                            @error('late_fee_amount')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="billing-setting-help">One fixed fine per student per month after the due date. 0 = no late fee.</div>
+                        </div>
+                        <div class="col-12 col-md-4 mb-3 mb-md-0">
+                            <label class="form-label" for="scholarship_category_id">Scholarship Category</label>
+                            <select name="scholarship_category_id" id="scholarship_category_id" class="form-select form-select-sm @error('scholarship_category_id') is-invalid @enderror">
+                                <option value="">None</option>
+                                @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ old('scholarship_category_id', $billingSetting->scholarship_category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('scholarship_category_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="billing-setting-help">Discounts of this category cannot be combined with a sibling discount.</div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="voucher_bank_account_id">Voucher Bank</label>
+                            <select name="voucher_bank_account_id" id="voucher_bank_account_id" class="form-select form-select-sm @error('voucher_bank_account_id') is-invalid @enderror">
+                                <option value="">No bank (2 copies, pay at school office)</option>
+                                @foreach($bankAccounts as $bank)
+                                <option value="{{ $bank->id }}" {{ old('voucher_bank_account_id', $billingSetting->voucher_bank_account_id) == $bank->id ? 'selected' : '' }}>{{ $bank->bank_name }} - {{ $bank->account_title }}</option>
+                                @endforeach
+                            </select>
+                            @error('voucher_bank_account_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="billing-setting-help">Bank selected = 3 copies (Student / School / Bank).</div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label" for="voucher_note">Voucher Note</label>
+                            <textarea name="voucher_note" id="voucher_note" rows="2" maxlength="1000"
+                                class="form-control form-control-sm @error('voucher_note') is-invalid @enderror">{{ old('voucher_note', $billingSetting->voucher_note) }}</textarea>
+                            @error('voucher_note')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary mb-3">1Bill</h6>
+                    <div class="row mb-3">
+                        <div class="col-12 mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="billingSettingOnebill"
+                                    name="onebill_enabled" value="1" {{ old('onebill_enabled', $billingSetting->onebill_enabled) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="billingSettingOnebill">Enable 1Bill</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label" for="onebill_bank">Bank</label>
+                            <input type="text" name="onebill_bank" id="onebill_bank" maxlength="100"
+                                class="form-control form-control-sm @error('onebill_bank') is-invalid @enderror"
+                                value="{{ old('onebill_bank', $billingSetting->onebill_bank) }}">
+                            @error('onebill_bank')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label" for="onebill_biller_code">Biller Code</label>
+                            <input type="text" name="onebill_biller_code" id="onebill_biller_code" maxlength="100"
+                                class="form-control form-control-sm @error('onebill_biller_code') is-invalid @enderror"
+                                value="{{ old('onebill_biller_code', $billingSetting->onebill_biller_code) }}">
+                            @error('onebill_biller_code')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        @foreach(['onebill_username' => 'Username', 'onebill_password' => 'Password', 'onebill_api_key' => 'API Key'] as $secretField => $secretLabel)
+                        <div class="col-12 col-md-4 mb-3 mb-md-0">
+                            <label class="form-label" for="{{ $secretField }}">{{ $secretLabel }}</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" name="{{ $secretField }}" id="{{ $secretField }}" maxlength="255" autocomplete="new-password"
+                                    class="form-control form-control-sm @error($secretField) is-invalid @enderror" value="">
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="{{ $secretField }}">
+                                    <i class="bx bx-hide" id="{{ $secretField }}_icon"></i>
+                                </button>
+                            </div>
+                            @error($secretField)
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                            @if($onebillStatus[$secretField] === 'saved')
+                            <div class="billing-setting-help">Saved. Leave blank to keep it.</div>
+                            @elseif($onebillStatus[$secretField] === 'unreadable')
+                            <div class="billing-setting-help text-danger">Saved value cannot be read on this site (different app key). Enter it again.</div>
+                            @else
+                            <div class="billing-setting-help">Not set.</div>
+                            @endif
+                        </div>
+                        @endforeach
                     </div>
 
                     @can('manage-billing-settings')
@@ -125,7 +226,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-12 col-md-6 mb-4 mb-md-0 billing-setting-block">
-                        <h6>Student Fees</h6>
+                        <h6><label for="billingSettingFeesMonth" class="mb-0">Student Fees</label></h6>
                         <div class="d-flex gap-2 mb-2">
                             <select id="billingSettingFeesMonth" class="form-select form-select-sm">
                                 @foreach($feeMonths as $m)
@@ -137,7 +238,7 @@
                         <button type="button" class="btn btn-outline-secondary btn-sm billing-setting-catch-up" data-type="fees">Catch up missed months</button>
                     </div>
                     <div class="col-12 col-md-6 billing-setting-block">
-                        <h6>Salary Slips</h6>
+                        <h6><label for="billingSettingSalaryMonth" class="mb-0">Salary Slips</label></h6>
                         <div class="d-flex gap-2 mb-2">
                             <select id="billingSettingSalaryMonth" class="form-select form-select-sm">
                                 @foreach($salaryMonths as $m)
@@ -186,6 +287,21 @@
         // Field edit hote hi uski validation state hata do
         $('#billingSettingForm').on('input change', '.is-invalid', function() {
             $(this).removeClass('is-invalid').siblings('.invalid-feedback').hide();
+            $(this).closest('.input-group').siblings('.invalid-feedback').hide(); // eye toggle wale input-group ke bahar ka error
+        });
+
+        // Password show/hide eye toggle (student edit page jaisa): sirf us input ka type badalta hai
+        $('.toggle-password').on('click', function() {
+            var target = $('#' + $(this).data('target'));
+            var icon = $(this).find('i');
+
+            if (target.attr('type') === 'password') {
+                target.attr('type', 'text');
+                icon.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                target.attr('type', 'password');
+                icon.removeClass('bx-show').addClass('bx-hide');
+            }
         });
 
         $('#billingSettingYear').on('change', function() {

@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class BillingSetting extends Model
 {
@@ -27,6 +29,11 @@ class BillingSetting extends Model
         'onebill_api_key',
     ];
 
+    // 1Bill secrets APP_KEY se encrypted hain: kabhi toArray()/JSON mein decrypt na hon
+    public const ONEBILL_SECRETS = ['onebill_username', 'onebill_password', 'onebill_api_key'];
+
+    protected $hidden = self::ONEBILL_SECRETS;
+
     protected $casts = [
         'auto_fees'        => 'boolean',
         'auto_salary'      => 'boolean',
@@ -36,6 +43,38 @@ class BillingSetting extends Model
         'onebill_password' => 'encrypted',
         'onebill_api_key'  => 'encrypted',
     ];
+
+    /**
+     * 1Bill secret ki halat: empty / saved / unreadable (dusri site ki APP_KEY se likhi value).
+     * Sirf DecryptException pakri jati hai: local aur live keys alag hone par ye expected hai.
+     */
+    public function credentialStatus(string $field): string
+    {
+        $raw = $this->getRawOriginal($field);
+        if ($raw === null || $raw === '') {
+            return 'empty';
+        }
+
+        try {
+            Crypt::decryptString($raw);
+            return 'saved';
+        } catch (DecryptException $e) {
+            return 'unreadable';
+        }
+    }
+
+    /**
+     * Nayi secret value set karo. Purani value unreadable ho to original null kar do,
+     * warna Eloquent dirty check purani value decrypt karte hue crash karta hai.
+     */
+    public function replaceCredential(string $field, string $value): void
+    {
+        if ($this->credentialStatus($field) === 'unreadable') {
+            $this->original[$field] = null;
+        }
+
+        $this->{$field} = $value;
+    }
 
     public function academicYear()
     {

@@ -424,49 +424,93 @@
 
             </div> {{-- /accordion --}}
 
-            {{-- FEE CONCESSION / DISCOUNT (read-only on edit; own ids so the legacy create-page JS above can never touch it) --}}
+            {{-- FEE CONCESSION / DISCOUNT (add / remove via AJAX with manage-discount-policies; own ids so the legacy create-page JS above can never touch it) --}}
             <div class="card mt-3" id="edit_fee_concession_card">
                 <div class="card-header">
-                    <i class="bx bx-discount me-2"></i> Fee Concession / Discount <span class="badge bg-secondary-subtle text-secondary ms-1">Read only</span>
+                    <i class="bx bx-discount me-2"></i> Fee Concession / Discount
+                    @cannot('manage-discount-policies')
+                    <span class="badge bg-secondary-subtle text-secondary ms-1">Read only</span>
+                    @endcannot
                 </div>
                 <div class="card-body">
-                    @if($discounts->isEmpty())
-                        <p class="text-muted mb-0">No discount applied.</p>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Policy</th>
-                                        <th>Type</th>
-                                        <th>Fee Type</th>
-                                        <th class="text-end">Value</th>
-                                        <th>Remarks</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($discounts as $discount)
-                                    @php $policy = $discount->discountPolicy; @endphp
-                                    <tr>
-                                        <td>{{ optional($policy)->name ?: '-' }}</td>
-                                        <td><span class="badge bg-secondary-subtle text-secondary text-uppercase">{{ optional($policy)->policy_type ?: '-' }}</span></td>
-                                        <td>{{ optional(optional($policy)->feeType)->name ?: 'All Fees' }}</td>
-                                        <td class="text-end">
-                                            @if($policy)
-                                                {{ $policy->discount_type === 'percentage' ? rtrim(rtrim(number_format($policy->discount_value, 2), '0'), '.') . '%' : 'Rs ' . number_format($policy->discount_value) }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        <td>{{ $discount->remarks ?: '-' }}</td>
-                                        <td><span class="badge {{ $discount->status ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }}">{{ $discount->status ? 'Active' : 'Inactive' }}</span></td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Policy</th>
+                                    <th>Type</th>
+                                    <th>Fee Type</th>
+                                    <th class="text-end">Value</th>
+                                    <th>Remarks</th>
+                                    <th>Status</th>
+                                    @can('manage-discount-policies')
+                                    <th class="text-center">Action</th>
+                                    @endcan
+                                </tr>
+                            </thead>
+                            <tbody id="editDiscountRows">
+                                <tr id="editDiscountEmptyRow" class="{{ $discounts->isEmpty() ? '' : 'd-none' }}">
+                                    <td colspan="7" class="text-muted">No discount applied.</td>
+                                </tr>
+                                @foreach($discounts as $discount)
+                                @php
+                                    $policy = $discount->discountPolicy;
+                                    $isScholarshipRow = $policy && $scholarshipCategoryId && $policy->policy_type === 'category' && (int) $policy->category_id === (int) $scholarshipCategoryId;
+                                @endphp
+                                <tr class="edit-discount-row" data-id="{{ $discount->id }}" data-sibling="{{ optional($policy)->policy_type === 'sibling' ? 1 : 0 }}" data-scholarship="{{ $isScholarshipRow ? 1 : 0 }}">
+                                    <td>{{ optional($policy)->name ?: '-' }}</td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary text-uppercase">{{ optional($policy)->policy_type ?: '-' }}</span></td>
+                                    <td>{{ optional(optional($policy)->feeType)->name ?: 'All Fees' }}</td>
+                                    <td class="text-end">
+                                        @if($policy)
+                                            {{ $policy->discount_type === 'percentage' ? rtrim(rtrim(number_format($policy->discount_value, 2), '0'), '.') . '%' : 'Rs ' . number_format($discount->amount ?: $policy->discount_value) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>{{ $discount->remarks ?: '-' }}</td>
+                                    <td><span class="badge {{ $discount->status ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }}">{{ $discount->status ? 'Active' : 'Inactive' }}</span></td>
+                                    @can('manage-discount-policies')
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm edit-discount-remove" data-id="{{ $discount->id }}">Remove</button>
+                                    </td>
+                                    @endcan
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @can('manage-discount-policies')
+                    {{-- Add discount: inputs bina name ke (main update form ke saath submit nahi hote) --}}
+                    <div class="row g-2 mt-2 align-items-end" id="editDiscountAddRow">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small" for="editDiscountPolicy">Add Discount</label>
+                            <select id="editDiscountPolicy" class="form-select form-select-sm">
+                                <option value="">Select policy</option>
+                                @foreach($discountPolicies as $dp)
+                                <option value="{{ $dp->id }}"
+                                    data-policy-type="{{ $dp->policy_type }}"
+                                    data-category-id="{{ $dp->category_id }}"
+                                    data-discount-type="{{ $dp->discount_type }}">
+                                    {{ $dp->name }} ({{ optional($dp->feeType)->name ?: 'All Fees' }}, {{ $dp->discount_type === 'percentage' ? rtrim(rtrim(number_format($dp->discount_value, 2), '0'), '.') . '%' : 'Rs ' . number_format($dp->discount_value) }})
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
-                    @endif
+                        <div class="col-6 col-md-2 d-none" id="editDiscountAmountWrap">
+                            <label class="form-label small" for="editDiscountAmount">Amount (Rs.) <span class="text-danger d-none" id="editDiscountAmountReq">*</span></label>
+                            <input type="number" min="0.01" step="0.01" id="editDiscountAmount" class="form-control form-control-sm" placeholder="Policy value">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small" for="editDiscountRemarks">Remarks (optional)</label>
+                            <input type="text" id="editDiscountRemarks" maxlength="500" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <button type="button" class="btn btn-primary btn-sm w-100" id="editDiscountAddBtn"><i class="bx bx-plus"></i> Add</button>
+                        </div>
+                    </div>
+                    @endcan
                 </div>
             </div>
 
@@ -950,6 +994,176 @@
             field.removeClass('is-invalid');
             field.nextAll('.invalid-feedback').first().remove();
             field.closest('.input-group').nextAll('.invalid-feedback').first().remove();
+        });
+
+        // --- DISCOUNT CARD: add / remove via AJAX (main update form ko touch nahi karta) ---
+        const editDiscountStoreUrl = @json(route('students.discounts.store', $student->id));
+        const editDiscountDestroyUrl = @json(route('students.discounts.destroy', [$student->id, 0]));
+        const editScholarshipCategoryId = @json($scholarshipCategoryId);
+
+        function editDiscountAlert(text) {
+            Swal.fire({
+                title: 'Not allowed',
+                text: text,
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-primary btn-sm'
+                }
+            });
+        }
+
+        function editDiscountIsScholarship($opt) {
+            return editScholarshipCategoryId && $opt.data('policy-type') === 'category' && Number($opt.data('category-id')) === Number(editScholarshipCategoryId);
+        }
+
+        function editDiscountConflict($opt) {
+            if ($opt.data('policy-type') === 'sibling' && $('.edit-discount-row[data-scholarship="1"]').length > 0) {
+                return 'Remove the scholarship first.';
+            }
+            if (editDiscountIsScholarship($opt) && $('.edit-discount-row[data-sibling="1"]').length > 0) {
+                return 'Remove the sibling discount first.';
+            }
+            return '';
+        }
+
+        // Add ke 422 error ka field-level red border + text hatao
+        function editDiscountClearErrors() {
+            $('#editDiscountPolicy, #editDiscountAmount, #editDiscountRemarks').removeClass('is-invalid').nextAll('.invalid-feedback').remove();
+        }
+
+        function editDiscountSyncEmptyRow() {
+            $('#editDiscountEmptyRow').toggleClass('d-none', $('.edit-discount-row').length > 0);
+        }
+
+        $('#editDiscountPolicy').on('change', function() {
+            editDiscountClearErrors(); // doosri policy chunne par purane errors hat jayen
+            let $opt = $(this).find('option:selected');
+            if (!$(this).val()) {
+                $('#editDiscountAmountWrap').addClass('d-none');
+                $('#editDiscountAmount').val('');
+                return;
+            }
+
+            let conflict = editDiscountConflict($opt);
+            if (conflict) {
+                $(this).val('');
+                $('#editDiscountAmountWrap').addClass('d-none');
+                editDiscountAlert(conflict);
+                return;
+            }
+
+            // Amount sirf fixed policy ke liye; scholarship (fixed) mein zaroori
+            let isFixed = $opt.data('discount-type') === 'fixed';
+            $('#editDiscountAmountWrap').toggleClass('d-none', !isFixed);
+            $('#editDiscountAmountReq').toggleClass('d-none', !(isFixed && editDiscountIsScholarship($opt)));
+            if (!isFixed) {
+                $('#editDiscountAmount').val('');
+            }
+        });
+
+        // Enter dabane se main form submit na ho: Add button chale
+        $('#editDiscountAmount, #editDiscountRemarks').on('keydown', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $('#editDiscountAddBtn').trigger('click');
+            }
+        });
+
+        $('#editDiscountAddBtn').on('click', function() {
+            let $btn = $(this);
+            let policyId = $('#editDiscountPolicy').val();
+            if (!policyId) {
+                toastr.error('Please select a discount policy.');
+                return;
+            }
+
+            editDiscountClearErrors();
+            $btn.prop('disabled', true);
+            $.post(editDiscountStoreUrl, {
+                discount_policy_id: policyId,
+                amount: $('#editDiscountAmountWrap').hasClass('d-none') ? '' : $('#editDiscountAmount').val(),
+                remarks: $('#editDiscountRemarks').val()
+            }).done(function(res) {
+                let d = res.discount;
+                let $tr = $('<tr class="edit-discount-row">')
+                    .attr('data-id', d.id)
+                    .attr('data-sibling', d.is_sibling ? 1 : 0)
+                    .attr('data-scholarship', d.is_scholarship ? 1 : 0);
+                $tr.append($('<td>').text(d.policy));
+                $tr.append($('<td>').append($('<span class="badge bg-secondary-subtle text-secondary text-uppercase">').text(d.type)));
+                $tr.append($('<td>').text(d.fee_type));
+                $tr.append($('<td class="text-end">').text(d.value_label));
+                $tr.append($('<td>').text(d.remarks || '-'));
+                $tr.append($('<td>').append($('<span class="badge bg-success-subtle text-success">').text('Active')));
+                $tr.append($('<td class="text-center">').append($('<button type="button" class="btn btn-danger btn-sm edit-discount-remove">').attr('data-id', d.id).text('Remove')));
+                $('#editDiscountRows').append($tr);
+
+                $('#editDiscountPolicy').val('');
+                $('#editDiscountAmount, #editDiscountRemarks').val('');
+                $('#editDiscountAmountWrap').addClass('d-none');
+                editDiscountSyncEmptyRow();
+                toastr.success(res.message);
+            }).fail(function(xhr) {
+                let message = 'Something went wrong.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    message = Object.values(xhr.responseJSON.errors)[0][0];
+
+                    // Error key ke hisab se related field ko is-invalid + text (toastr bhi dikhta hai)
+                    let editDiscountFieldMap = {
+                        discount_policy_id: '#editDiscountPolicy',
+                        amount: '#editDiscountAmount',
+                        remarks: '#editDiscountRemarks'
+                    };
+                    $.each(xhr.responseJSON.errors, function(key, messages) {
+                        let $field = $(editDiscountFieldMap[key] || '');
+                        if ($field.length) {
+                            $field.addClass('is-invalid').after($('<div class="invalid-feedback">').text(messages[0]));
+                        }
+                    });
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+            }).always(function() {
+                $btn.prop('disabled', false);
+            });
+        });
+
+        $(document).on('click', '.edit-discount-remove', function() {
+            let id = $(this).data('id');
+            let $row = $(this).closest('tr');
+
+            Swal.fire({
+                title: 'Remove this discount?',
+                text: 'Fees already generated keep their stored discount.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                }
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+                $.ajax({
+                    url: editDiscountDestroyUrl.replace(/\/0$/, '/' + id),
+                    type: 'DELETE'
+                }).done(function(res) {
+                    $row.remove();
+                    editDiscountSyncEmptyRow();
+                    toastr.success(res.message);
+                }).fail(function(xhr) {
+                    toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Something went wrong.');
+                });
+            });
         });
     });
 </script>

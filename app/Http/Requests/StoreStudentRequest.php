@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\DiscountPolicy;
 use App\Models\ParentProfile;
+use App\Services\DiscountService;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -90,8 +93,30 @@ class StoreStudentRequest extends FormRequest
 
             // 💸 Discounts
             'discount_policy_ids'   => 'nullable|array',
-            'discount_policy_ids.*' => 'integer',
+            'discount_policy_ids.*' => 'integer|exists:discount_policies,id',
             'discount_remarks'      => 'nullable|string|max:500',
+        ];
+    }
+
+    /**
+     * Sibling aur scholarship discount ek saath nahi lag sakte
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                $ids = array_filter((array) $this->input('discount_policy_ids', []));
+                if (empty($ids) || $validator->errors()->has('discount_policy_ids.*')) {
+                    return;
+                }
+
+                $service  = new DiscountService();
+                $policies = DiscountPolicy::whereIn('id', $ids)->where('status', 1)->get();
+                $message  = $service->conflictMessage($policies, $service->scholarshipCategoryId());
+                if ($message) {
+                    $validator->errors()->add('discount_policy_ids', $message);
+                }
+            },
         ];
     }
 

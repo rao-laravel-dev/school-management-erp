@@ -570,6 +570,12 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/students/update/{id}', 'UpdateStudent')->name('students.update');
         });
 
+        // Edit Student discount card: add / remove (AJAX)
+        Route::middleware(['can:manage-discount-policies'])->group(function () {
+            Route::post('/students/{id}/discounts', 'StoreStudentDiscount')->whereNumber('id')->name('students.discounts.store'); // NEW 08-11-26
+            Route::delete('/students/{id}/discounts/{discount}', 'DeleteStudentDiscount')->whereNumber(['id', 'discount'])->name('students.discounts.destroy'); // NEW 08-11-26
+        });
+
         // Sirf Admin ya specific permission wale (Status & Delete)
         Route::middleware(['can:manage-students'])->group(function () {
             Route::post('/students/approve/{id}', 'ApproveAdmission')->name('students.approve');
