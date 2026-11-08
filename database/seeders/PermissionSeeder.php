@@ -101,6 +101,7 @@ class PermissionSeeder extends Seeder
             'manage-fee-structures',
             'access-fee-collections',
             'manage-fee-collections',
+            'manage-fee-due-dates',         // fees.collect.extend_due_date (admin + accountant)
             'access-fee-types',
             'manage-fee-types',
             'access-bank-accounts',

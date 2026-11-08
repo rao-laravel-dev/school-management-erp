@@ -110,6 +110,11 @@
 <div class="card radius-10">
     <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
         <h5 class="mb-0 text-primary">Fee Records</h5>
+        @if($arrears['total'] > 0)
+        <span class="badge bg-danger fs-6">
+            Arrears: Rs {{ number_format($arrears['total'], 2) }}@if($arrears['late_fee'] > 0) (incl. late fee Rs {{ number_format($arrears['late_fee'], 2) }})@endif
+        </span>
+        @endif
         <button type="button" class="btn btn-success btn-sm" id="btnCollectSelected" disabled>
             <i class="bx bx-money"></i> Collect Selected (<span id="selectedCount">0</span>)
         </button>
@@ -136,11 +141,12 @@
                     @php
                     $payable = $fee->amount - $fee->discount;
                     $balance = $payable - $fee->paid_amount;
+                    $feeMonth = $fee->period ?: \Carbon\Carbon::parse($fee->due_date)->format('Y-m');
                     @endphp
                     <tr id="feeRow{{ $fee->id }}">
                         <td>
                             @if($fee->status !== 'paid')
-                            <input type="checkbox" class="feeCheckbox" value="{{ $fee->id }}" data-balance="{{ $balance }}">
+                            <input type="checkbox" class="feeCheckbox" value="{{ $fee->id }}" data-balance="{{ $balance }}" data-month="{{ $feeMonth }}">
                             @endif
                         </td>
                         <td>{{ $loop->iteration }}</td>
@@ -165,7 +171,7 @@
                         <td class="text-nowrap">
                             @if($fee->status !== 'paid')
                             <button type="button" class="btn btn-success btn-sm btnPay"
-                                data-id="{{ $fee->id }}" data-balance="{{ $balance }}">
+                                data-id="{{ $fee->id }}" data-balance="{{ $balance }}" data-month="{{ $feeMonth }}">
                                 <i class="bx bx-money"></i> Collect
                             </button>
 
@@ -194,6 +200,28 @@
                         <td colspan="10" class="text-center">No fee records found for this student.</td>
                     </tr>
                     @endforelse
+
+                    {{-- Pending late fee: one row per month, paid together with that month's fee --}}
+                    @foreach($lateFees as $late)
+                    <tr class="table-danger late-fee-row">
+                        <td></td>
+                        <td>—</td>
+                        <td>Late fee<small class="d-block">{{ \Carbon\Carbon::parse($late->month . '-01')->format('M Y') }}</small></td>
+                        <td>{{ \Carbon\Carbon::parse($late->due_date)->format('d-m-Y') }}</td>
+                        <td>{{ number_format($late->amount, 2) }}</td>
+                        <td>0.00</td>
+                        <td>0.00</td>
+                        <td>{{ number_format($late->amount, 2) }}</td>
+                        <td><span class="badge bg-danger">Pending</span></td>
+                        <td class="text-nowrap">
+                            @can('manage-fee-due-dates')
+                            <button type="button" class="btn btn-warning text-dark btn-sm btnExtend" data-month="{{ $late->month }}">
+                                <i class="bx bx-calendar-plus"></i> Extend Due Date
+                            </button>
+                            @endcan
+                        </td>
+                    </tr>
+                    @endforeach
 
                     {{-- Excluded fees — history ke liye dabi hui row me --}}
                     @foreach($excludedFees as $fee)
@@ -310,11 +338,41 @@
     </div>
 </div>
 
+@can('manage-fee-due-dates')
+{{-- Extend Due Date Modal --}}
+<div class="modal fade" id="extendModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="extendForm">
+                @csrf
+                <input type="hidden" id="extend_month" name="month">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">Extend Due Date</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Unpaid fees of <strong id="extend_month_label"></strong> get the new due date and the late fee of that month is removed.</p>
+                    <label class="form-label" for="extend_due_date">New Due Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control form-control-sm" id="extend_due_date" name="due_date">
+                    <div class="invalid-feedback" id="error-extend_due_date"></div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Extend</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
+
 @push('scripts')
 <script>
     $(function() {
         let currentFeeId = null;
         let isBulkMode = false;
+        // month (Y-m) => pending late fee amount
+        const lateFees = @json($lateFees->mapWithKeys(fn($l) => [$l->month => (float) $l->amount]));
 
         // ------------------------------------------------------------
         // Single row "Collect" button (existing behaviour)
@@ -323,7 +381,7 @@
             isBulkMode = false;
             currentFeeId = $(this).data('id');
             const balance = parseFloat($(this).data('balance'));
-            openPayModal([currentFeeId], balance, 'Collect Payment');
+            openPayModal([currentFeeId], balance, 'Collect Payment', [$(this).data('month')]);
         });
 
         // ------------------------------------------------------------
@@ -363,25 +421,39 @@
                 return $(this).val();
             }).get();
             let totalBalance = 0;
+            const months = [];
             $checked.each(function() {
                 totalBalance += parseFloat($(this).data('balance'));
+                months.push($(this).data('month'));
             });
 
-            openPayModal(ids, totalBalance, 'Collect Payment (' + ids.length + ' fees)');
+            openPayModal(ids, totalBalance, 'Collect Payment (' + ids.length + ' fees)', months);
         });
 
         // ------------------------------------------------------------
         // Shared modal opener
         // ------------------------------------------------------------
-        function openPayModal(ids, balance, title) {
+        function openPayModal(ids, balance, title, months) {
             $('#payForm')[0].reset();
             $('#payForm').find('.is-invalid').removeClass('is-invalid');
+            $('#payForm').find('.invalid-feedback').text('');
+
+            // Pending late fee of each distinct month is added once
+            let lateTotal = 0;
+            const seenMonths = {};
+            $.each(months || [], function(_, m) {
+                if (!seenMonths[m] && lateFees[m]) {
+                    seenMonths[m] = true;
+                    lateTotal += lateFees[m];
+                }
+            });
+            const payable = balance + lateTotal;
 
             $('#payModalTitle').text(title);
             $('#pay_fee_id').val(ids.length === 1 ? ids[0] : '');
             $('#pay_fee_ids').val(ids.join(','));
-            $('#pay_balance_display').text(balance.toFixed(2));
-            $('#amount').attr('max', balance);
+            $('#pay_balance_display').text(payable.toFixed(2) + (lateTotal > 0 ? ' (incl. late fee ' + lateTotal.toFixed(2) + ')' : ''));
+            $('#amount').attr('max', payable);
             $('#pay_date').val(new Date().toISOString().split('T')[0]); // aaj ki date default
             $('input[value=cash]').prop('checked', true);
             $('#bankAccountWrap').addClass('d-none');
@@ -401,6 +473,13 @@
         // Konsa button dabaya (Collect Fees ya Collect & Print) track karo
         $('#btnCollectFees, #btnCollectPrint').on('click', function() {
             $('#pay_action').val(this.id === 'btnCollectPrint' ? 'print' : 'collect');
+        });
+
+        // Field edit karte hi uska red border + error message clear
+        $('#payForm').on('input change', 'input, select, textarea', function() {
+            const name = $(this).attr('name');
+            $(this).removeClass('is-invalid');
+            $('#error-' + name).text('');
         });
 
         $('#payForm').on('submit', function(e) {
@@ -443,6 +522,13 @@
                         // fees ek group ke tor pe list hoti hain (backend receipt_id se group detect karta hai)
                         window.open("{{ url('fees/collect/receipt') }}/" + res.receipt_id, '_blank');
                     }
+
+                    // Late fee was charged: page data (late fee row, arrears) changed, so reload
+                    if (parseFloat(res.late_fee) > 0) {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1200);
+                    }
                 },
                 error: function(xhr) {
                     if (xhr.status === 422) {
@@ -450,6 +536,7 @@
                         $.each(errors, function(field, messages) {
                             $('#' + field).addClass('is-invalid');
                             $('#error-' + field).text(messages[0]);
+                            toastr.error(messages[0]);
                         });
                     } else {
                         toastr.error('Something went wrong.');
@@ -494,6 +581,56 @@
                 $row.find('.feeCheckbox').replaceWith('');
             }
         }
+
+        // ------------------------------------------------------------
+        // Extend Due Date (late fee row)
+        // ------------------------------------------------------------
+        $(document).on('click', '.btnExtend', function() {
+            const month = $(this).data('month');
+            $('#extendForm')[0].reset();
+            $('#extendForm').find('.is-invalid').removeClass('is-invalid');
+            $('#extendForm').find('.invalid-feedback').text('');
+            $('#extend_month').val(month);
+            $('#extend_month_label').text(month);
+            $('#extend_due_date').attr('min', new Date().toISOString().split('T')[0]);
+            $('#extendModal').modal('show');
+        });
+
+        // Date edit karte hi red border + error message clear
+        $('#extendForm').on('input change', '#extend_due_date', function() {
+            $(this).removeClass('is-invalid');
+            $('#error-extend_due_date').text('');
+        });
+
+        $('#extendForm').on('submit', function(e) {
+            e.preventDefault();
+            $(this).find('.is-invalid').removeClass('is-invalid');
+
+            $.ajax({
+                url: "{{ route('fees.collect.extend_due_date', $student->id) }}",
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(res) {
+                    $('#extendModal').modal('hide');
+                    toastr.success(res.message);
+                    setTimeout(function() {
+                        location.reload();
+                    }, 800);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        const msg = xhr.responseJSON.errors.due_date || xhr.responseJSON.errors.month;
+                        $('#extend_due_date').addClass('is-invalid');
+                        $('#error-extend_due_date').text(msg ? msg[0] : 'Invalid data.');
+                        toastr.error(msg ? msg[0] : 'Invalid data.');
+                    } else if (xhr.status === 422 && xhr.responseJSON) {
+                        toastr.error(xhr.responseJSON.message);
+                    } else {
+                        toastr.error('Something went wrong.');
+                    }
+                }
+            });
+        });
 
         $(document).on('click', '.na-btn', function() {
             const feeId = $(this).data('id');

@@ -347,6 +347,11 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/collect-report', 'report')->name('collect.report');
             });
         });
+        Route::middleware(['can:manage-fee-due-dates'])->group(function () {
+            Route::controller(FeeCollectionController::class)->group(function () {
+                Route::post('/collect/{student}/extend-due-date', 'extendDueDate')->name('collect.extend_due_date');
+            });
+        });
     });
     // ==========================================
     // DISCOUNT POLICIES CRUD (Fee Settings)

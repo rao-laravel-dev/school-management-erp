@@ -141,7 +141,7 @@
     $feeAmount = $txn->studentFee->amount ?? 0;
     $feeDiscount = $txn->studentFee->discount ?? 0;
     $proportion = $feeAmount > 0 ? ($txn->amount / $feeAmount) : 0;
-    $txnDiscount = $feeDiscount * $proportion;
+    $txnDiscount = $txn->fine > 0 ? 0 : $feeDiscount * $proportion; // late fee row has no discount
 
     $rowDiscounts[$txn->id] = $txnDiscount;
     $totalDiscount += $txnDiscount;
@@ -203,17 +203,18 @@
                         <tbody>
                             @foreach($transactions as $txn)
                             @php
-                            $feeTotal = $txn->studentFee->amount ?? 0;
+                            $isLateFee = $txn->fine > 0;
+                            $feeTotal = $isLateFee ? $txn->amount : ($txn->studentFee->amount ?? 0);
                             $feeBalance = $balanceAsOf[$txn->id] ?? 0;
                             @endphp
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($txn->transaction_date)->format('d/m') }}</td>
-                                <td>{{ $txn->studentFee->feeType->name ?? '-' }}@if($txn->studentFee->feeAssignment) - {{ $txn->studentFee->feeAssignment->title }}@endif</td>
+                                <td>@if($isLateFee)Late fee @else{{ $txn->studentFee->feeType->name ?? '-' }}@if($txn->studentFee->feeAssignment) - {{ $txn->studentFee->feeAssignment->title }}@endif @endif</td>
                                 <td>{{ ucfirst(str_replace('_', ' ', $txn->payment_method)) }}</td>
                                 <td>{{ number_format($feeTotal, 0) }}</td>
                                 <td>{{ number_format($txn->amount, 0) }}</td>
                                 <td>{{ number_format($rowDiscounts[$txn->id], 0) }}</td>
-                                <td>0</td>
+                                <td>{{ number_format($txn->fine, 0) }}</td>
                                 <td>{{ number_format(max($feeBalance, 0), 0) }}</td>
                             </tr>
                             @endforeach
@@ -222,21 +223,22 @@
                         <tfoot>
                             <tr>
                                 <td colspan="3">Total</td>
-                                <td>{{ number_format($transactions->sum(fn($t) => $t->studentFee->amount ?? 0), 0) }}</td>
+                                <td>{{ number_format($transactions->sum(fn($t) => $t->fine > 0 ? $t->amount : ($t->studentFee->amount ?? 0)), 0) }}</td>
                                 <td>{{ number_format($totalAmount, 0) }}</td>
                                 <td>{{ number_format($totalDiscount, 0) }}</td>
-                                <td>0</td>
+                                <td>{{ number_format($transactions->sum('fine'), 0) }}</td>
                                 <td>{{ number_format($totalBalance ?? 0, 0) }}</td>
                             </tr>
                         </tfoot>
                         @endif
                     </table>
 
-                    @if($first->reference_no)
-                    <div class="note">Ref: {{ $first->reference_no }}</div>
+                    @php $mainTxn = $transactions->first(fn($t) => $t->fine <= 0) ?: $first; @endphp
+                    @if($mainTxn->reference_no)
+                    <div class="note">Ref: {{ $mainTxn->reference_no }}</div>
                     @endif
-                    @if($first->note)
-                    <div class="note">Note: {{ $first->note }}</div>
+                    @if($mainTxn->note && $mainTxn->fine <= 0)
+                    <div class="note">Note: {{ $mainTxn->note }}</div>
                     @endif
                     <div class="note">Computer generated — no signature required.</div>
                 </div>

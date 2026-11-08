@@ -24,6 +24,10 @@ class StudentFeeResource extends JsonResource
             'balance'     => (float) ($this->amount - $this->discount - $this->paid_amount),
             'status'      => $this->status,
             'due_date'    => $this->due_date,
+            // Late fee (runtime): repeats on every row of the same month; total from the top-level late_fees
+            'month'       => $this->fee_month,
+            'late_fee'    => (float) $this->pending_late_fee,
+            'max_payable' => (float) ($this->amount - $this->discount - $this->paid_amount + $this->pending_late_fee),
 
             // Sirf show() mein transactions load hote hain (index() mein nahi)
             'transactions' => $this->whenLoaded('transactions', function () {
@@ -33,6 +37,7 @@ class StudentFeeResource extends JsonResource
                     'payment_method'   => $t->payment_method,
                     'transaction_date' => $t->transaction_date,
                     'reference_no'     => $t->reference_no,
+                    'fine'             => (float) $t->fine, // > 0 = late fee payment
                 ]);
             }),
         ];

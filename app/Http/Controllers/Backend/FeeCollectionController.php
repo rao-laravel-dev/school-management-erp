@@ -11,10 +11,13 @@ use App\Models\Student;
 use App\Models\StudentFees;
 use App\Models\TeacherAssignment;
 use App\Models\Transaction;
+use App\Http\Requests\ExtendFeeDueDateRequest;
+use App\Services\FeeVoucherService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class FeeCollectionController extends Controller
 {
@@ -147,7 +150,12 @@ class FeeCollectionController extends Controller
 
         $bankAccounts = BankAccount::all();
 
-        return view('admin.fee_collection.show', compact('student', 'fees', 'bankAccounts', 'excludedFees', 'classTeacher'));
+        // Late fee (runtime) + arrears of earlier months
+        $feeService = app(FeeVoucherService::class);
+        $lateFees   = $feeService->pendingLateFees($student->id)->get($student->id, collect())->values();
+        $arrears    = $feeService->arrears($student->id, now()->format('Y-m'));
+
+        return view('admin.fee_collection.show', compact('student', 'fees', 'bankAccounts', 'excludedFees', 'classTeacher', 'lateFees', 'arrears'));
     }
 
     // Collect payment against one fee record
@@ -156,13 +164,21 @@ class FeeCollectionController extends Controller
         $fee     = StudentFees::findOrFail($studentFeeId);
         $balance = $fee->amount - $fee->discount - $fee->paid_amount;
 
+        // Pending late fee of this fee's month is paid first (part of the max amount)
+        $feeService = app(FeeVoucherService::class);
+        $month      = $feeService->monthOf($fee);
+        $late       = $feeService->pendingLateFees($fee->student_id)->get($fee->student_id, collect())->get($month);
+        $lateFee    = $late ? (float) $late->amount : 0.0;
+        $maxAmount  = $balance + $lateFee;
+        $minAmount  = $lateFee > 0 ? $lateFee : 0.01;
+
         $validator = Validator::make($request->all(), [
-            'amount'          => "required|numeric|min:0.01|max:{$balance}",
+            'amount'          => "required|numeric|min:{$minAmount}|max:{$maxAmount}",
             'payment_method'  => 'required|in:cash,cheque,bank_transfer,easypaisa,jazzcash,card',
             'bank_account_id' => 'required_unless:payment_method,cash|nullable|exists:bank_accounts,id',
             'reference_no'    => 'nullable|string|max:100',
             'note'            => 'nullable|string',
-        ]);
+        ], $lateFee > 0 ? ['amount.min' => "Amount must cover the late fee Rs {$lateFee} first."] : []);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -170,9 +186,23 @@ class FeeCollectionController extends Controller
 
         /** @var \App\Models\Transaction $transaction */
         $transaction = null; // 👈 bahar declare kiya
+        $groupId     = null;
+        $lateCharged = 0.0;
 
-        DB::transaction(function () use ($fee, $request, &$transaction) {
-            $fee->paid_amount += $request->amount;
+        DB::transaction(function () use ($fee, $request, &$transaction, $feeService, $month, $lateFee, &$groupId, &$lateCharged) {
+            if ($lateFee > 0) {
+                $lateCharged = $feeService->collectLateFees($fee->student_id, [$month], $request->only(['payment_method', 'bank_account_id', 'reference_no']), $groupId);
+                if (abs($lateCharged - $lateFee) > 0.001) {
+                    throw ValidationException::withMessages(['amount' => 'Late fee has changed, please reload the page.']);
+                }
+            }
+
+            $payAmount = $request->amount - $lateCharged;
+            if ($payAmount <= 0) {
+                return; // only the late fee was paid
+            }
+
+            $fee->paid_amount += $payAmount;
 
             $payable = $fee->amount - $fee->discount;
             $fee->status = $fee->paid_amount >= $payable
@@ -188,12 +218,13 @@ class FeeCollectionController extends Controller
                 : $request->bank_account_id;
 
             $transaction = Transaction::create([
+                'payment_group_id' => $groupId, // late fee ke saath ek receipt (null = pehle jaisa)
                 'bank_account_id'  => $bankAccountId,
                 'user_id'          => auth()->id(),
                 'student_fee_id'   => $fee->id,
                 'type'             => 'income',
                 'category'         => 'fee',
-                'amount'           => $request->amount,
+                'amount'           => $payAmount,
                 'payment_method'   => $request->payment_method,
                 'reference_no'     => $request->reference_no,
                 'transaction_date' => now(),
@@ -202,7 +233,7 @@ class FeeCollectionController extends Controller
 
             if ($bankAccountId) {
                 BankAccount::where('id', $bankAccountId)
-                    ->increment('current_balance', $request->amount);
+                    ->increment('current_balance', $payAmount);
             }
         });
 
@@ -211,7 +242,8 @@ class FeeCollectionController extends Controller
             'paid_amount'    => number_format($fee->paid_amount, 2),
             'balance'        => number_format($fee->amount - $fee->discount - $fee->paid_amount, 2),
             'status'         => $fee->status,
-            'transaction_id' => $transaction->id, // 👈 sirf ye add karna kaafi hai
+            'late_fee'       => $lateCharged,
+            'transaction_id' => $groupId ?: $transaction->id, // 👈 sirf ye add karna kaafi hai
         ]);
     }
     // End Method
@@ -228,14 +260,31 @@ class FeeCollectionController extends Controller
 
         $totalBalance = $fees->sum(fn($fee) => $fee->amount - $fee->discount - $fee->paid_amount);
 
+        // Pending late fee of every month in the selection (once per month) is paid first
+        $feeService  = app(FeeVoucherService::class);
+        $pendingAll  = $feeService->pendingLateFees($fees->pluck('student_id')->unique()->all());
+        $lateMonths  = []; // student_id => [month, ...]
+        $lateTotal   = 0.0;
+        foreach ($fees->filter(fn($fee) => $fee->amount - $fee->discount - $fee->paid_amount > 0)->groupBy('student_id') as $studentId => $group) {
+            $pending = $pendingAll->get($studentId, collect());
+            foreach ($group->map(fn($fee) => $feeService->monthOf($fee))->unique() as $month) {
+                if ($pending->has($month)) {
+                    $lateMonths[$studentId][] = $month;
+                    $lateTotal += (float) $pending[$month]->amount;
+                }
+            }
+        }
+        $maxAmount = $totalBalance + $lateTotal;
+        $minAmount = $lateTotal > 0 ? $lateTotal : 0.01;
+
         $validator = Validator::make($request->all(), [
             'fee_ids'         => 'required|string',
-            'amount'          => "required|numeric|min:0.01|max:{$totalBalance}",
+            'amount'          => "required|numeric|min:{$minAmount}|max:{$maxAmount}",
             'payment_method'  => 'required|in:cash,cheque,bank_transfer,easypaisa,jazzcash,card',
             'bank_account_id' => 'required_unless:payment_method,cash|nullable|exists:bank_accounts,id',
             'reference_no'    => 'nullable|string|max:100',
             'note'            => 'nullable|string',
-        ]);
+        ], $lateTotal > 0 ? ['amount.min' => "Amount must cover the late fee Rs {$lateTotal} first."] : []);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -245,8 +294,18 @@ class FeeCollectionController extends Controller
         $remaining   = (float) $request->amount;
         $updatedFees = [];
         $groupId     = null;
+        $lateCharged = 0.0;
 
-        DB::transaction(function () use ($fees, $request, $isCash, &$remaining, &$updatedFees, &$groupId) {
+        DB::transaction(function () use ($fees, $request, $isCash, &$remaining, &$updatedFees, &$groupId, $feeService, $lateMonths, $lateTotal, &$lateCharged) {
+            // Late fee pehle: ek group id ban jata hai, fee transactions usi group mein jate hain
+            foreach ($lateMonths as $studentId => $months) {
+                $lateCharged += $feeService->collectLateFees($studentId, $months, $request->only(['payment_method', 'bank_account_id', 'reference_no']), $groupId);
+            }
+            if (abs($lateCharged - $lateTotal) > 0.001) {
+                throw ValidationException::withMessages(['amount' => 'Late fee has changed, please reload the page.']);
+            }
+            $remaining -= $lateCharged;
+
             // 🔥 Cash account ID ek hi baar nikal lo (loop se pehle)
             $cashAccountId = BankAccount::where('bank_type', 'cash')->value('id');
 
@@ -322,6 +381,7 @@ class FeeCollectionController extends Controller
         return response()->json([
             'message'    => 'Payment collected successfully.',
             'fees'       => $updatedFees,
+            'late_fee'   => $lateCharged,
             'receipt_id' => $groupId,
         ]);
     }
@@ -338,6 +398,10 @@ class FeeCollectionController extends Controller
 
         if ($fee->paid_amount > 0) {
             return response()->json(['error' => 'Partial payment already made, please adjust/refund first.'], 422);
+        }
+
+        if ($fee->fines()->exists()) {
+            return response()->json(['error' => 'Late fee already paid on this fee.'], 422);
         }
 
         $fee->update([
@@ -390,14 +454,16 @@ class FeeCollectionController extends Controller
         // 👇 NAYA — har transaction ke waqt ka sahi (snapshot) balance
         $balanceAsOf = [];
         foreach ($transactions as $txn) {
+            // Late fee transactions (fine > 0) are not part of the fee balance
             $paidUpToThis = Transaction::where('student_fee_id', $txn->studentFee->id)
                 ->where('id', '<=', $txn->id)
+                ->where('fine', 0)
                 ->sum('amount');
 
             $feeAmount   = $txn->studentFee->amount ?? 0;
             $feeDiscount = $txn->studentFee->discount ?? 0;
 
-            $balanceAsOf[$txn->id] = max($feeAmount - $feeDiscount - $paidUpToThis, 0);
+            $balanceAsOf[$txn->id] = $txn->fine > 0 ? 0 : max($feeAmount - $feeDiscount - $paidUpToThis, 0);
         }
 
         $rowCount   = $transactions->count();
@@ -412,6 +478,21 @@ class FeeCollectionController extends Controller
         ])->setPaper([0, 0, 842, $pdfHeight]);
 
         return $pdf->stream('receipt-' . $transaction->id . '.pdf');
+    }
+    // End Method
+
+    // Extend due date of a student's unpaid fees of one month (late fee of that month goes away)
+    public function extendDueDate(ExtendFeeDueDateRequest $request, $studentId)
+    {
+        $student = Student::findOrFail($studentId);
+
+        $updated = app(FeeVoucherService::class)->extendDueDate($student->id, $request->month, $request->due_date);
+
+        if ($updated === 0) {
+            return response()->json(['message' => 'No unpaid fees in this month with an earlier due date.'], 422);
+        }
+
+        return response()->json(['message' => 'Due date extended successfully.']);
     }
     // End Method
 

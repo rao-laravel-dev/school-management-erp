@@ -110,6 +110,7 @@ class RoleSeeder extends Seeder
             'manage-fee-structures',
             'access-fee-collections',
             'manage-fee-collections',
+            'manage-fee-due-dates',
             'access-fee-types',
             'manage-fee-types',
             'access-bank-accounts',
@@ -252,6 +253,7 @@ class RoleSeeder extends Seeder
             'access-my-attendance',         // web.php my.attendance.index
             'access-profile',               // web.php staff_profile.* (own profile)
             'manage-fee-collections',       // fees.collect pay / report
+            'manage-fee-due-dates',         // fees.collect.extend_due_date
             'manage-salary-slips',          // salary_slips generate / pay
             'manage-expenses',              // expenses add / pay
             'access-finance-report',        // finance_report.index
