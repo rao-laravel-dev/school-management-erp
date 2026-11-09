@@ -8,6 +8,7 @@ use App\Models\BankAccount;
 use App\Models\FeeType;
 use App\Models\FeeVoucher;
 use App\Models\SchoolClass;
+use App\Models\SiteSetting;
 use App\Models\Student;
 use App\Models\StudentFees;
 use App\Models\TeacherAssignment;
@@ -486,15 +487,19 @@ class FeeCollectionController extends Controller
         }
 
         $rowCount   = $transactions->count();
-        $baseHeight = 230;
+        $baseHeight = 260;
         $rowHeight  = 16;
         $pdfHeight  = $baseHeight + ($rowCount * $rowHeight);
+
+        $school = SiteSetting::current();
 
         $pdf = Pdf::loadView('admin.fee_collection.receipt_pdf', [
             'transactions' => $transactions,
             'student'      => $transaction->studentFee->student,
             'balanceAsOf'  => $balanceAsOf, // 👈 naya
-        ])->setPaper([0, 0, 842, $pdfHeight]);
+            'school'       => $school,
+            'logo'         => app(FeeVoucherService::class)->logoDataUri($school),
+        ])->setPaper([0, 0, 842, $pdfHeight])->setOption(['enable_font_subsetting' => true]);
 
         return $pdf->stream('receipt-' . $transaction->id . '.pdf');
     }

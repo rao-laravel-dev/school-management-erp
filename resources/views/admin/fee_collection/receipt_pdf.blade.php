@@ -44,6 +44,43 @@
             font-size: 12px;
         }
 
+        .head-wrap {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .head-wrap td {
+            vertical-align: top;
+            padding-bottom: 4px;
+        }
+
+        .head-wrap img.logo {
+            height: 28px;
+        }
+
+        .head-wrap .school-name {
+            font-size: 10px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .head-wrap .school-sub {
+            font-size: 6.5px;
+            color: #000;
+            margin: 1px 0 0;
+        }
+
+        .head-wrap .qr {
+            text-align: center;
+        }
+
+        .head-wrap .qr img {
+            width: 40px;
+            height: 40px;
+        }
+
         .copy-label {
             text-align: center;
             font-weight: bold;
@@ -118,7 +155,7 @@
         .note {
             margin-top: 5px;
             font-size: 7px;
-            color: #555;
+            color: #000;
         }
     </style>
 </head>
@@ -151,6 +188,7 @@
     }
 
     $copies = ['Student Copy', 'School Copy', 'Bank Copy'];
+    $qr = DNS2D::getBarcodePNG((string) $receiptNo, 'QRCODE', 4, 4);
     @endphp
 
     <table class="wrapper-table">
@@ -159,15 +197,21 @@
             <td>
                 <div class="copy-box">
 
-                    <div class="school-header">
-                        @if(!empty($school->logo))
-                        <img src="{{ public_path('uploads/school/' . $school->logo) }}" alt="{{ $school->name }}">
-                        @endif
-                        <h2>{{ $school->name ?? config('app.name') }}</h2>
-                        @if(!empty($school->address))
-                        <p>{{ $school->address }}</p>
-                        @endif
-                    </div>
+                    <table class="head-wrap">
+                        <tr>
+                            @if($logo)
+                            <td style="width: 80px;"><img class="logo" src="{{ $logo }}" alt=""></td>
+                            @endif
+                            <td>
+                                <p class="school-name">{{ $school->school_name ?: config('app.name') }}</p>
+                                @if($school->address)<p class="school-sub">{{ $school->address }}</p>@endif
+                                @if($school->phone)<p class="school-sub">Phone: {{ $school->phone }}</p>@endif
+                            </td>
+                            <td style="width: 44px;" class="qr">
+                                <img src="data:image/png;base64,{{ $qr }}" alt="">
+                            </td>
+                        </tr>
+                    </table>
 
                     <div class="copy-label">{{ $copyLabel }}</div>
 
@@ -182,7 +226,7 @@
                             <td class="right">
                                 <div>Date: {{ \Carbon\Carbon::parse($first->transaction_date)->format('d/m/Y') }}</div>
                                 <div>Receipt No: {{ $receiptNo }}</div>
-                                <div>By: {{ $collectedBy }}</div>
+                                <div>Received by: {{ $collectedBy }}</div>
                             </td>
                         </tr>
                     </table>
