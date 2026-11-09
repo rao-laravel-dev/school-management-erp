@@ -290,6 +290,12 @@ Route::middleware(['auth', 'role:parent'])->prefix('parent')->name('parent.')->g
         Route::middleware('can:access-parent-homework')->group(function () {
             Route::get('/student/{id}/homework', 'childHomework')->whereNumber('id')->name('students.homework.index');
         });
+
+        // Selected child's fee voucher PDF + receipt (child, voucher and receipt ownership checked in the controller) // NEW 09-11-26
+        Route::middleware('can:access-parent-fees')->group(function () {
+            Route::get('/student/{id}/fees/voucher/{voucher}', 'childFeeVoucher')->whereNumber(['id', 'voucher'])->name('students.fees.voucher');
+            Route::get('/student/{id}/fees/receipt/{transaction}', 'childFeeReceipt')->whereNumber(['id', 'transaction'])->name('students.fees.receipt');
+        });
     });
 });
 // PARENTS LOGIN
@@ -325,6 +331,13 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
 
         Route::middleware('can:access-student-homework')->group(function () {
             Route::get('/homework', 'myHomework')->name('homework.index');
+        });
+
+        // Own fee vouchers, ledger and receipts (own data only, 404 otherwise) // NEW 09-11-26
+        Route::middleware('can:access-student-fees')->group(function () {
+            Route::get('/fees', 'myFees')->name('fees.index');
+            Route::get('/fees/voucher/{voucher}', 'myFeeVoucher')->whereNumber('voucher')->name('fees.voucher');
+            Route::get('/fees/receipt/{transaction}', 'myFeeReceipt')->whereNumber('transaction')->name('fees.receipt');
         });
 
         Route::middleware('can:access-profile')->group(function () {

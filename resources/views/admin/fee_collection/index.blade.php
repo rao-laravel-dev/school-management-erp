@@ -69,8 +69,19 @@
 </div>
 
 <div class="card radius-10">
-    <div class="card-header bg-transparent">
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="mb-0 text-primary">Student List</h5>
+        @can('manage-fee-vouchers')
+        @if($classId && !$keyword)
+        {{-- Bulk vouchers for the selected class / section --}}
+        <div class="d-flex align-items-center gap-2">
+            <input type="month" class="form-control form-control-sm" id="bulk_voucher_month" aria-label="Voucher month">
+            <button type="button" class="btn btn-primary btn-sm text-nowrap" id="btnBulkVouchers">
+                <i class="bx bx-printer"></i> Print Vouchers
+            </button>
+        </div>
+        @endif
+        @endcan
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -150,4 +161,89 @@
         });
     });
 </script>
+@can('manage-fee-vouchers')
+<script>
+    $(function() {
+        const bulkVoucherUrl = "{{ route('fees.voucher.bulk') }}";
+        const bulkClassId = @json($classId);
+        const bulkSectionId = @json($sectionId);
+
+        function twoDigits(n) {
+            return ('0' + n).slice(-2);
+        }
+
+        const now = new Date();
+        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        $('#bulk_voucher_month')
+            .val(now.getFullYear() + '-' + twoDigits(now.getMonth() + 1))
+            .attr('max', next.getFullYear() + '-' + twoDigits(next.getMonth() + 1));
+
+        $('#btnBulkVouchers').on('click', function() {
+            const $btn = $(this);
+            const month = $('#bulk_voucher_month').val();
+
+            if (!month) {
+                toastr.clear();
+                toastr.error('Please select the voucher month.');
+                $('#bulk_voucher_month').trigger('focus');
+                return;
+            }
+
+            $btn.prop('disabled', true); // double click guard
+
+            $.ajax({
+                url: bulkVoucherUrl,
+                type: 'POST',
+                data: {
+                    class_id: bulkClassId,
+                    section_id: bulkSectionId,
+                    month: month
+                },
+                success: function(res) {
+                    $btn.prop('disabled', false);
+                    toastr.clear();
+                    toastr.success(res.message);
+
+                    if (res.pdf_url) {
+                        window.open(res.pdf_url, '_blank');
+                    }
+
+                    // Students that did not get a voucher (already paid, nothing payable)
+                    if (res.skipped && res.skipped.length) {
+                        let html = '<ul class="text-start mb-0">';
+                        $.each(res.skipped, function(_, s) {
+                            html += '<li>' + $('<div>').text(s.name + ': ' + s.reason).html() + '</li>';
+                        });
+                        html += '</ul>';
+
+                        Swal.fire({
+                            title: res.skipped.length + ' student(s) skipped',
+                            html: html,
+                            icon: 'info',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'fee-assignment-swal',
+                                confirmButton: 'btn btn-primary btn-sm'
+                            }
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    $btn.prop('disabled', false);
+                    toastr.clear();
+                    if (xhr.status === 422 && xhr.responseJSON) {
+                        let msg = xhr.responseJSON.message;
+                        if (xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)[0][0];
+                        }
+                        toastr.error(msg);
+                    } else {
+                        toastr.error('Something went wrong.');
+                    }
+                }
+            });
+        });
+    });
+</script>
+@endcan
 @endpush

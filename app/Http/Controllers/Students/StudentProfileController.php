@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Students;
 
+use App\Http\Controllers\Backend\FeeCollectionController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StaffPasswordUpdateRequest;
@@ -13,11 +14,13 @@ use App\Services\TimetableDayStatus;
 use Carbon\Carbon;
 use App\Models\Enrollment;
 use App\Models\ExamSchedule;
+use App\Models\FeeVoucher;
 use App\Models\HomeWork;
 use App\Models\MarkSheet;
 use App\Models\Result;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\FeeVoucherService;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
 use App\Services\StudentClassSchedule;
@@ -442,6 +445,44 @@ class StudentProfileController extends Controller
             'homeworkTitle' => 'My Homework',
             'dashboardUrl'  => route('student.dashboard'),
         ]);
+    }
+    // End Method
+
+    // My Fees page (read-only): own vouchers, fee records and payment history
+    public function myFees()
+    {
+        $student = Auth::user()->studentProfile;
+        abort_if(!$student, 404);
+
+        return view('student.fee_vouchers.index', [
+            'student'     => $student,
+            'feeVouchers' => FeeVoucher::where('student_id', $student->id)->where('status', '!=', 'cancelled')->orderByDesc('period')->get(),
+            'feeLedger'   => app(FeeVoucherService::class)->ledger($student->id),
+        ]);
+    }
+    // End Method
+
+    // Own fee voucher PDF (404 for another student's voucher or a cancelled one)
+    public function myFeeVoucher($voucher)
+    {
+        $student = Auth::user()->studentProfile;
+        abort_if(!$student, 404);
+
+        $voucher = FeeVoucher::where('student_id', $student->id)->where('status', '!=', 'cancelled')->findOrFail($voucher);
+
+        return app(FeeVoucherService::class)->pdf(collect([$voucher]))->stream('fee-voucher-' . $voucher->voucher_no . '.pdf');
+    }
+    // End Method
+
+    // Own fee receipt: the receipt PDF has no owner check of its own, so ownership is checked here (404 otherwise)
+    public function myFeeReceipt($transaction)
+    {
+        $student = Auth::user()->studentProfile;
+        abort_if(!$student, 404);
+
+        abort_unless(app(FeeVoucherService::class)->ownsReceipt($student->id, (int) $transaction), 404);
+
+        return app(FeeCollectionController::class)->receipt($transaction);
     }
     // End Method
 

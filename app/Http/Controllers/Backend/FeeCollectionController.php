@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use App\Models\BankAccount;
 use App\Models\FeeType;
+use App\Models\FeeVoucher;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\StudentFees;
@@ -155,7 +156,12 @@ class FeeCollectionController extends Controller
         $lateFees   = $feeService->pendingLateFees($student->id)->get($student->id, collect())->values();
         $arrears    = $feeService->arrears($student->id, now()->format('Y-m'));
 
-        return view('admin.fee_collection.show', compact('student', 'fees', 'bankAccounts', 'excludedFees', 'classTeacher', 'lateFees', 'arrears'));
+        // Vouchers card (only for users who can generate / print them)
+        $vouchers = auth()->user()->can('manage-fee-vouchers')
+            ? FeeVoucher::where('student_id', $student->id)->orderByDesc('period')->get()
+            : collect();
+
+        return view('admin.fee_collection.show', compact('student', 'fees', 'bankAccounts', 'excludedFees', 'classTeacher', 'lateFees', 'arrears', 'vouchers'));
     }
 
     // Collect payment against one fee record
@@ -199,6 +205,7 @@ class FeeCollectionController extends Controller
 
             $payAmount = $request->amount - $lateCharged;
             if ($payAmount <= 0) {
+                $feeService->refreshUnpaid($fee->student_id); // late fee paid: unpaid voucher drops it
                 return; // only the late fee was paid
             }
 
@@ -235,6 +242,8 @@ class FeeCollectionController extends Controller
                 BankAccount::where('id', $bankAccountId)
                     ->increment('current_balance', $payAmount);
             }
+
+            $feeService->refreshUnpaid($fee->student_id); // unpaid voucher follows the new balance
         });
 
         return response()->json([
@@ -376,6 +385,8 @@ class FeeCollectionController extends Controller
                     'receipt_id'     => $groupId, // 👈 ye add karo — bulk case mein group id hi receipt id hai
                 ];
             }
+
+            $feeService->refreshUnpaid($fees->pluck('student_id')->unique()->all()); // unpaid vouchers follow the new balances
         });
 
         return response()->json([
@@ -404,11 +415,15 @@ class FeeCollectionController extends Controller
             return response()->json(['error' => 'Late fee already paid on this fee.'], 422);
         }
 
-        $fee->update([
-            'status'          => 'excluded',
-            'excluded_by'     => auth()->id(),
-            'excluded_reason' => $request->input('reason'),
-        ]);
+        DB::transaction(function () use ($fee, $request) {
+            $fee->update([
+                'status'          => 'excluded',
+                'excluded_by'     => auth()->id(),
+                'excluded_reason' => $request->input('reason'),
+            ]);
+
+            app(FeeVoucherService::class)->refreshUnpaid($fee->student_id); // voucher drops this row (all rows excluded = cancelled)
+        });
 
         return response()->json(['message' => 'Fee marked as N/A successfully.']);
     }
@@ -423,11 +438,15 @@ class FeeCollectionController extends Controller
             return response()->json(['error' => 'This fee is not excluded.'], 422);
         }
 
-        $fee->update([
-            'status'          => 'unpaid',
-            'excluded_by'     => null,
-            'excluded_reason' => null,
-        ]);
+        DB::transaction(function () use ($fee) {
+            $fee->update([
+                'status'          => 'unpaid',
+                'excluded_by'     => null,
+                'excluded_reason' => null,
+            ]);
+
+            app(FeeVoucherService::class)->refreshUnpaid($fee->student_id); // unpaid voucher picks this row up again
+        });
 
         return response()->json(['message' => 'Fee reassigned successfully.']);
     }

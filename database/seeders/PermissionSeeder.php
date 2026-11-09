@@ -102,6 +102,7 @@ class PermissionSeeder extends Seeder
             'access-fee-collections',
             'manage-fee-collections',
             'manage-fee-due-dates',         // fees.collect.extend_due_date (admin + accountant)
+            'manage-fee-vouchers',          // fees.voucher.* generate / print / cancel (admin + accountant)
             'access-fee-types',
             'manage-fee-types',
             'access-bank-accounts',
@@ -152,6 +153,8 @@ class PermissionSeeder extends Seeder
             'access-parent-homework',       // parent portal: selected child's homework (read-only)
             'access-parent-results',        // parent portal: selected child's results (read-only)
             'access-parent-students',       // parent portal: selected child's dashboard / details (read-only)
+            'access-parent-fees',           // parent portal: selected child's fee vouchers + ledger (read-only)
+            'access-student-fees',          // student portal: own fee vouchers + ledger (read-only)
             'access-notifications',         // header bell (notifications.*), all roles
         ];
 

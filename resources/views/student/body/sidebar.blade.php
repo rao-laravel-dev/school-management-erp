@@ -96,12 +96,16 @@
         </li>
         @endcanany
 
-        @can('access-fee')
-        <li>
-            <a href="javascript:;">
+        @can('access-student-fees')
+        @php $open = request()->routeIs('student.fees.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
+            <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bx bx-wallet"></i></div>
-                <div class="menu-title">Fee Details</div>
+                <div class="menu-title">Fees</div>
             </a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li class="{{ request()->routeIs('student.fees.*') ? 'mm-active' : '' }}"><a href="{{ route('student.fees.index') }}"><i class='bx bx-radio-circle'></i>My Fees</a></li>
+            </ul>
         </li>
         @endcan
 

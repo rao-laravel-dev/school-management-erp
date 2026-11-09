@@ -77,6 +77,7 @@ class FeeApiController extends Controller
 
             $payAmount = $request->amount - $lateCharged;
             if ($payAmount <= 0) {
+                $feeService->refreshUnpaid($fee->student_id); // late fee paid: unpaid voucher drops it
                 return; // only the late fee was paid
             }
 
@@ -112,6 +113,8 @@ class FeeApiController extends Controller
                 BankAccount::where('id', $bankAccountId)
                     ->increment('current_balance', $payAmount);
             }
+
+            $feeService->refreshUnpaid($fee->student_id); // unpaid voucher follows the new balance
         });
 
         if (! $transaction && ! $groupId) {

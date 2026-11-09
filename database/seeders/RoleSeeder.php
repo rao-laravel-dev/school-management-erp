@@ -111,6 +111,7 @@ class RoleSeeder extends Seeder
             'access-fee-collections',
             'manage-fee-collections',
             'manage-fee-due-dates',
+            'manage-fee-vouchers',
             'access-fee-types',
             'manage-fee-types',
             'access-bank-accounts',
@@ -254,6 +255,7 @@ class RoleSeeder extends Seeder
             'access-profile',               // web.php staff_profile.* (own profile)
             'manage-fee-collections',       // fees.collect pay / report
             'manage-fee-due-dates',         // fees.collect.extend_due_date
+            'manage-fee-vouchers',          // fees.voucher.* generate / print / cancel
             'manage-salary-slips',          // salary_slips generate / pay
             'manage-expenses',              // expenses add / pay
             'access-finance-report',        // finance_report.index
@@ -326,6 +328,7 @@ class RoleSeeder extends Seeder
             'access-parent-homework',  // parent portal: selected child's homework (read-only)
             'access-parent-results',   // parent portal: selected child's results (read-only)
             'access-parent-students',  // parent portal: selected child's dashboard / details (read-only)
+            'access-parent-fees',      // parent portal: selected child's fee vouchers + ledger (read-only)
             'access-profile',          // parent portal: own profile
             'access-notifications',    // header bell (notifications.*)
         ]);
@@ -339,6 +342,7 @@ class RoleSeeder extends Seeder
             'access-student-timetable', // student portal: own class timetable (read-only)
             'access-assignments',  // Nayi permission
             'access-student-homework', // student portal: own class homework (read-only)
+            'access-student-fees',     // student portal: own fee vouchers + ledger (read-only)
             'access-notifications'    // header bell (notifications.*)
         ]);
 

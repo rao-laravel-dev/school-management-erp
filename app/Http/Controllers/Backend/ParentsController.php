@@ -11,8 +11,10 @@ use App\Models\Attendance;
 use App\Models\ClassSubject;
 use App\Models\ClassTimetable;
 use App\Models\Enrollment;
+use App\Models\FeeVoucher;
 use App\Models\Room;
 use App\Models\User;
+use App\Services\FeeVoucherService;
 use App\Services\ImageService;
 use App\Services\StaffSelfProfileService;
 use App\Services\StudentClassSchedule;
@@ -109,7 +111,13 @@ class ParentsController extends Controller
 
     // 4. Exam and Fees
     $examResults = class_exists('App\Models\ExamResult') ? $student->examResults : collect([]);
-    $fees = class_exists('App\Models\Fee') ? $student->fees : collect([]);
+    // Fee Voucher + Fee Ledger tabs: own child's data, only with the parent fees permission
+    $feeVouchers = collect([]);
+    $feeLedger = ['fees' => collect([]), 'payments' => collect([])];
+    if (auth()->user()->can('access-parent-fees')) {
+        $feeVouchers = FeeVoucher::where('student_id', $student->id)->where('status', '!=', 'cancelled')->orderByDesc('period')->get();
+        $feeLedger = app(FeeVoucherService::class)->ledger($student->id);
+    }
 
     // 5. 📚 DYNAMIC BOOK LIST LOGIC (Merged & Bulletproof Version)
 $currentEnrollment = $student->currentEnrollment ?? null;
@@ -138,7 +146,8 @@ return view('parent.student_details', compact(
     'student',
     'attendanceRecords',
     'examResults',
-    'fees',
+    'feeVouchers',
+    'feeLedger',
     'bookList',
     'className', // 👈 View mein 'Class 8 - A' ya real class dikhane ke liye lazmi hai
     'presentCount',
@@ -361,6 +370,28 @@ return view('parent.student_details', compact(
             'homeworkTitle' => $student->full_name . "'s Homework",
             'dashboardUrl'  => route('parent.students.dashboard', $student->id),
         ] + $this->childHeader($student, 'parent.students.homework.index'));
+    }
+    // End Method
+
+    // Fee voucher PDF of one child (404 for another parent's child, another child's voucher or a cancelled one)
+    public function childFeeVoucher($id, $voucher)
+    {
+        $student = $this->findOwnChild($id);
+
+        $voucher = FeeVoucher::where('student_id', $student->id)->where('status', '!=', 'cancelled')->findOrFail($voucher);
+
+        return app(FeeVoucherService::class)->pdf(collect([$voucher]))->stream('fee-voucher-' . $voucher->voucher_no . '.pdf');
+    }
+    // End Method
+
+    // Fee receipt of one child: the receipt PDF has no owner check of its own, so ownership is checked here (404 otherwise)
+    public function childFeeReceipt($id, $transaction)
+    {
+        $student = $this->findOwnChild($id);
+
+        abort_unless(app(FeeVoucherService::class)->ownsReceipt($student->id, (int) $transaction), 404);
+
+        return app(FeeCollectionController::class)->receipt($transaction);
     }
     // End Method
 

@@ -115,9 +115,16 @@
             Arrears: Rs {{ number_format($arrears['total'], 2) }}@if($arrears['late_fee'] > 0) (incl. late fee Rs {{ number_format($arrears['late_fee'], 2) }})@endif
         </span>
         @endif
-        <button type="button" class="btn btn-success btn-sm" id="btnCollectSelected" disabled>
-            <i class="bx bx-money"></i> Collect Selected (<span id="selectedCount">0</span>)
-        </button>
+        <div class="d-flex gap-2">
+            @can('manage-fee-vouchers')
+            <button type="button" class="btn btn-primary btn-sm" id="btnGenerateVoucher">
+                <i class="bx bx-file"></i> Generate Voucher
+            </button>
+            @endcan
+            <button type="button" class="btn btn-success btn-sm" id="btnCollectSelected" disabled>
+                <i class="bx bx-money"></i> Collect Selected (<span id="selectedCount">0</span>)
+            </button>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -248,6 +255,95 @@
     </div>
 </div>
 
+@can('manage-fee-vouchers')
+{{-- Vouchers of this student (one per month) --}}
+<div class="card radius-10 mt-3">
+    <div class="card-header bg-transparent">
+        <h5 class="mb-0 text-primary">Vouchers</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Voucher No</th>
+                        <th>Month</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Payable by Due Date</th>
+                        <th>Payable After Due Date</th>
+                        <th>Status</th>
+                        <th width="220">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($vouchers as $voucher)
+                    @php
+                    $voucherBadge = ['paid' => 'bg-success', 'unpaid' => 'bg-danger', 'cancelled' => 'bg-secondary'][$voucher->status] ?? 'bg-secondary';
+                    @endphp
+                    <tr>
+                        <td>{{ $voucher->voucher_no }}</td>
+                        <td>{{ \Carbon\Carbon::parse($voucher->period . '-01')->format('M Y') }}</td>
+                        <td>{{ $voucher->issue_date->format('d-m-Y') }}</td>
+                        <td>{{ $voucher->due_date->format('d-m-Y') }}</td>
+                        <td>{{ number_format($voucher->amount_before_due, 2) }}</td>
+                        <td>{{ number_format($voucher->amount_after_due, 2) }}</td>
+                        <td><span class="badge {{ $voucherBadge }}">{{ ucfirst($voucher->status) }}</span></td>
+                        <td class="text-nowrap">
+                            @if($voucher->status !== 'cancelled')
+                            <a href="{{ route('fees.voucher.pdf', $voucher->id) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bx bx-printer"></i> Print
+                            </a>
+                            @endif
+                            @if($voucher->status !== 'paid')
+                            <button type="button" class="btn btn-outline-success btn-sm btnRegenerate" data-month="{{ $voucher->period }}">
+                                <i class="bx bx-refresh"></i> {{ $voucher->status === 'cancelled' ? 'Reactivate' : 'Regenerate' }}
+                            </button>
+                            @endif
+                            @if($voucher->status === 'unpaid')
+                            <button type="button" class="btn btn-outline-danger btn-sm btnCancelVoucher" data-id="{{ $voucher->id }}" data-no="{{ $voucher->voucher_no }}">
+                                <i class="bx bx-x-circle"></i> Cancel
+                            </button>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center">No vouchers generated yet.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{-- Generate Voucher Modal --}}
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="voucherForm" novalidate>
+                @csrf
+                <div class="modal-header bg-success">
+                    <h5 class="modal-title text-white">Generate Voucher</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">One voucher per month. An unpaid voucher of the same month is regenerated (same voucher number).</p>
+                    <label class="form-label" for="voucher_month">Month <span class="text-danger">*</span></label>
+                    <input type="month" class="form-control form-control-sm" id="voucher_month" name="month">
+                    <div class="invalid-feedback" id="error-voucher_month"></div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm" id="btnVoucherSubmit">Generate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
+
 {{-- Payment Modal --}}
 <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -368,7 +464,29 @@
 
 @push('scripts')
 <script>
+    // Is page par toastr zyada der dikhe (global default 3s hai)
+    toastr.options.timeOut = 6000;
+    toastr.options.extendedTimeOut = 2000;
+
+    // Reload ke baad toast gayab ho jata hai: message save karo, naye page par dikhao
+    function reloadWithToast(msg, delay) {
+        try {
+            sessionStorage.setItem('feeCollectToast', msg || '');
+        } catch (e) {}
+        setTimeout(function() {
+            location.reload();
+        }, delay || 800);
+    }
+
     $(function() {
+        try {
+            const savedToast = sessionStorage.getItem('feeCollectToast');
+            if (savedToast) {
+                sessionStorage.removeItem('feeCollectToast');
+                toastr.success(savedToast);
+            }
+        } catch (e) {}
+
         let currentFeeId = null;
         let isBulkMode = false;
         // month (Y-m) => pending late fee amount
@@ -498,7 +616,6 @@
                 data: $(this).serialize(),
                 success: function(res) {
                     $('#payModal').modal('hide');
-                    toastr.success(res.message);
 
                     if (isBulkMode && res.fees) {
                         // Backend should return an array of updated fees: [{id, paid_amount, balance, status}, ...]
@@ -523,12 +640,8 @@
                         window.open("{{ url('fees/collect/receipt') }}/" + res.receipt_id, '_blank');
                     }
 
-                    // Late fee was charged: page data (late fee row, arrears) changed, so reload
-                    if (parseFloat(res.late_fee) > 0) {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1200);
-                    }
+                    // Payment changes late fee row, arrears badge and Vouchers card: reload (toast shown after reload)
+                    reloadWithToast(res.message, 1200);
                 },
                 error: function(xhr) {
                     if (xhr.status === 422) {
@@ -612,10 +725,7 @@
                 data: $(this).serialize(),
                 success: function(res) {
                     $('#extendModal').modal('hide');
-                    toastr.success(res.message);
-                    setTimeout(function() {
-                        location.reload();
-                    }, 800);
+                    reloadWithToast(res.message, 800);
                 },
                 error: function(xhr) {
                     if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
@@ -653,8 +763,7 @@
                             reason: result.value
                         },
                         success: function(res) {
-                            toastr.success(res.message);
-                            location.reload();
+                            reloadWithToast(res.message, 300);
                         },
                         error: function(xhr) {
                             toastr.error(xhr.responseJSON.error ?? 'Something went wrong');
@@ -681,8 +790,7 @@
                             _token: '{{ csrf_token() }}'
                         },
                         success: function(res) {
-                            toastr.success(res.message);
-                            location.reload();
+                            reloadWithToast(res.message, 300);
                         }
                     });
                 }
@@ -691,5 +799,125 @@
     });
 </script>
 @endpush
+
+@can('manage-fee-vouchers')
+@push('scripts')
+<script>
+    $(function() {
+        const voucherGenerateUrl = "{{ route('fees.voucher.generate', $student->id) }}";
+        const voucherCancelUrl = "{{ route('fees.voucher.cancel', ':id') }}";
+
+        function twoDigits(n) {
+            return ('0' + n).slice(-2);
+        }
+
+        // Month input limits: up to next month (same rule as the server)
+        const now = new Date();
+        const thisMonth = now.getFullYear() + '-' + twoDigits(now.getMonth() + 1);
+        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const nextMonth = next.getFullYear() + '-' + twoDigits(next.getMonth() + 1);
+        $('#voucher_month').attr('max', nextMonth);
+
+        function openVoucherModal(month) {
+            $('#voucherForm').find('.is-invalid').removeClass('is-invalid');
+            $('#error-voucher_month').text('');
+            $('#voucher_month').val(month || thisMonth);
+            $('#btnVoucherSubmit').prop('disabled', false);
+            $('#voucherModal').modal('show');
+        }
+
+        $('#btnGenerateVoucher').on('click', function() {
+            openVoucherModal(thisMonth);
+        });
+
+        $(document).on('click', '.btnRegenerate', function() {
+            openVoucherModal($(this).data('month'));
+        });
+
+        // Field edit karte hi red border + error message clear
+        $('#voucherForm').on('input change', '#voucher_month', function() {
+            $(this).removeClass('is-invalid');
+            $('#error-voucher_month').text('');
+        });
+
+        $('#voucherForm').on('submit', function(e) {
+            e.preventDefault();
+            const $btn = $('#btnVoucherSubmit');
+
+            if (!$('#voucher_month').val()) {
+                $('#voucher_month').addClass('is-invalid');
+                $('#error-voucher_month').text('Please select the voucher month.');
+                toastr.clear();
+                toastr.error('Please select the voucher month.');
+                return;
+            }
+
+            $btn.prop('disabled', true); // double click guard
+
+            $.ajax({
+                url: voucherGenerateUrl,
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(res) {
+                    $('#voucherModal').modal('hide');
+                    window.open(res.pdf_url, '_blank');
+                    reloadWithToast(res.message, 1200);
+                },
+                error: function(xhr) {
+                    $btn.prop('disabled', false);
+                    toastr.clear();
+                    if (xhr.status === 422 && xhr.responseJSON) {
+                        const msg = (xhr.responseJSON.errors && xhr.responseJSON.errors.month)
+                            ? xhr.responseJSON.errors.month[0]
+                            : xhr.responseJSON.message;
+                        $('#voucher_month').addClass('is-invalid');
+                        $('#error-voucher_month').text(msg);
+                        toastr.error(msg);
+                    } else {
+                        toastr.error('Something went wrong.');
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '.btnCancelVoucher', function() {
+            const $btn = $(this);
+            const id = $btn.data('id');
+
+            Swal.fire({
+                title: 'Cancel voucher #' + $btn.data('no') + '?',
+                text: 'The voucher will be cancelled. You can reactivate it later by regenerating it.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'No',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'fee-assignment-swal',
+                    confirmButton: 'btn btn-danger btn-sm',
+                    cancelButton: 'btn btn-secondary btn-sm'
+                }
+            }).then(function(result) {
+                if (!result.isConfirmed) return;
+
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: voucherCancelUrl.replace(':id', id),
+                    type: 'POST',
+                    success: function(res) {
+                        reloadWithToast(res.message, 1200);
+                    },
+                    error: function(xhr) {
+                        $btn.prop('disabled', false);
+                        toastr.clear();
+                        toastr.error((xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Something went wrong.');
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush
+@endcan
 
 @endsection

@@ -15,6 +15,7 @@ use App\Http\Controllers\Backend\ExpenseCategoryController;
 use App\Http\Controllers\Backend\ExpenseController;
 use App\Http\Controllers\Backend\FeeAssignmentController;
 use App\Http\Controllers\Backend\FeeCollectionController;
+use App\Http\Controllers\Backend\FeeVoucherController;
 use App\Http\Controllers\Backend\FeeStructureController;
 use App\Http\Controllers\Backend\FeeTypeController;
 use App\Http\Controllers\Backend\FinanceReportController;
@@ -350,6 +351,16 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['can:manage-fee-due-dates'])->group(function () {
             Route::controller(FeeCollectionController::class)->group(function () {
                 Route::post('/collect/{student}/extend-due-date', 'extendDueDate')->name('collect.extend_due_date');
+            });
+        });
+        // Fee vouchers (generate / print / cancel) // NEW 09-11-26
+        Route::middleware(['can:manage-fee-vouchers'])->group(function () {
+            Route::controller(FeeVoucherController::class)->group(function () {
+                Route::post('/voucher/bulk', 'bulk')->name('voucher.bulk');
+                Route::get('/voucher/print', 'print')->name('voucher.print');
+                Route::post('/voucher/{student}/generate', 'generate')->name('voucher.generate');
+                Route::get('/voucher/{voucher}/pdf', 'pdf')->name('voucher.pdf');
+                Route::post('/voucher/{voucher}/cancel', 'cancel')->name('voucher.cancel');
             });
         });
     });

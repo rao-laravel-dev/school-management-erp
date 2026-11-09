@@ -379,41 +379,38 @@
 
     <!-- 5. FEE VOUCHER CONTENT -->
     <div class="tab-pane fade" id="pills-voucher" role="tabpanel">
+        @can('access-parent-fees')
+        @include('student.fee_vouchers.partials.fee_tables', [
+            'section'    => 'vouchers',
+            'voucherUrl' => fn($voucher) => route('parent.students.fees.voucher', [$student->id, $voucher->id]),
+            'receiptUrl' => fn($receiptId) => route('parent.students.fees.receipt', [$student->id, $receiptId]),
+        ])
+        @else
         <div class="card radius-10 shadow-sm border-0">
             <div class="card-body p-4">
                 <h6>Download Fee Voucher</h6>
-                <p class="text-muted small">Fee vouchers will be available here soon.</p>
+                <p class="text-muted small">You do not have access to fee vouchers.</p>
             </div>
         </div>
+        @endcan
     </div>
 
     <!-- 6. FEE LEDGER CONTENT -->
     <div class="tab-pane fade" id="pills-finance" role="tabpanel">
+        @can('access-parent-fees')
+        @include('student.fee_vouchers.partials.fee_tables', [
+            'section'    => 'ledger',
+            'voucherUrl' => fn($voucher) => route('parent.students.fees.voucher', [$student->id, $voucher->id]),
+            'receiptUrl' => fn($receiptId) => route('parent.students.fees.receipt', [$student->id, $receiptId]),
+        ])
+        @else
         <div class="card radius-10 shadow-sm border-0">
-            <div class="card-header bg-transparent border-0 pt-3">
+            <div class="card-body p-4">
                 <h6 class="mb-0 fw-bold text-dark dark-readable">Fee Ledger History</h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Invoice Number</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold text-primary">INV-2026-001</td>
-                                <td>PKR 5,000</td>
-                                <td><span class="badge bg-success">Paid</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <p class="text-muted small mb-0">You do not have access to the fee ledger.</p>
             </div>
         </div>
+        @endcan
     </div>
 
     <!-- 7. TIME TABLE CONTENT -->
