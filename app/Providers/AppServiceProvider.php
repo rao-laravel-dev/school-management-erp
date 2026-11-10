@@ -63,6 +63,23 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
+        // School logo / icon (Site Settings) for role login pages, portal layouts + sidebars and ID cards; ek request mein ek hi query
+        $schoolBrand = null;
+        View::composer([
+            'admin.admin_login', 'superadmin.superadmin_login', 'teacher.teacher_login', 'student.student_login',
+            'parent.parents_login', 'reception.reception_login', 'accountant.accountant_login', 'admin.librarian.librarian_login',
+            'admin.layout.app', 'superadmin.layout.app', 'teacher.layout.app', 'student.layout.app',
+            'parent.layout.app', 'reception.layout.app', 'accountant.layout.app', 'admin.librarian.layout.app',
+            'admin.body.sidebar', 'superadmin.body.sidebar', 'teacher.body.sidebar', 'student.body.sidebar',
+            'parent.body.sidebar', 'reception.body.sidebar', 'accountant.body.sidebar', 'admin.librarian.body.sidebar',
+            'admin.id_card_template.card', 'admin.staff_id_card_template.card',
+        ], function ($view) use (&$schoolBrand) {
+            if (!$schoolBrand) {
+                $schoolBrand = \App\Models\SiteSetting::current();
+            }
+            $view->with('schoolBrand', $schoolBrand);
+        });
+
         // Student header "Class Teacher" badge: every student page gets it (dashboard/myteacher already pass their own)
         View::composer('student.body.header', function ($view) {
             if (array_key_exists('assignedTeacher', $view->getData()) || !auth()->check()) {

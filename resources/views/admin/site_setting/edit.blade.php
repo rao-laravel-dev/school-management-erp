@@ -131,12 +131,25 @@
                     <label for="logo" class="form-label">School Logo</label>
                     <input type="file" name="logo" id="logo" accept="image/*"
                         class="form-control form-control-sm @error('logo') is-invalid @enderror">
-                    <small class="text-muted">JPG, PNG or WebP — max 2MB</small>
+                    <small class="text-muted d-block">Wide logo, recommended 800x300 PNG with transparent background (8:3). Used on documents. JPG, PNG or WebP — max 2MB</small>
                     @error('logo')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    @if($setting->logo)
-                    <div><img src="{{ asset('uploads/site_setting/' . $setting->logo) }}" class="mt-2" style="max-height:60px;" alt="Current Logo"></div>
+                    @if($setting->logo_url)
+                    <div><img src="{{ $setting->logo_url }}" class="mt-2" style="max-height:60px;" alt="Current Logo"></div>
+                    @endif
+                </div>
+
+                <div class="col-md-6">
+                    <label for="icon" class="form-label">School Icon</label>
+                    <input type="file" name="icon" id="icon" accept="image/*"
+                        class="form-control form-control-sm @error('icon') is-invalid @enderror">
+                    <small class="text-muted d-block">Square icon, recommended 512x512 PNG with transparent background. Used in sidebar, role login pages and browser tab. JPG, PNG or WebP — max 2MB</small>
+                    @error('icon')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    @if($setting->icon_url)
+                    <div><img src="{{ $setting->icon_url }}" class="mt-2" style="max-height:60px;" alt="Current Icon"></div>
                     @endif
                 </div>
 

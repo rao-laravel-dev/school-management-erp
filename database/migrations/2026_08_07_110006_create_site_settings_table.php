@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('school_name');
             $table->string('logo')->nullable();
+            $table->string('icon')->nullable();
             $table->string('principal_signature')->nullable();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();

@@ -716,7 +716,9 @@ class AttendanceController extends Controller
             ? $scope->map(fn($a) => optional($a->schoolClass)->name . ' - ' . optional($a->section)->name)->implode(', ')
             : null;
 
-        return view('admin.attendance.scan_attendance', compact('classScoped', 'noClass', 'scopeLabel'));
+        $siteSetting = \App\Models\SiteSetting::current();
+
+        return view('admin.attendance.scan_attendance', compact('classScoped', 'noClass', 'scopeLabel', 'siteSetting'));
     }
     // End Method
 

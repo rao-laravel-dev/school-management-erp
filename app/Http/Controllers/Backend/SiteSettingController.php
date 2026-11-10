@@ -36,6 +36,7 @@ class SiteSettingController extends Controller
             'header_note' => 'nullable|string|max:255',
             'footer_note' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'icon' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'principal_signature' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'phone.regex' => 'Phone number format is invalid.',
@@ -63,7 +64,12 @@ class SiteSettingController extends Controller
         $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         if ($request->hasFile('logo')) {
             $oldFiles[] = $setting->logo;
-            $data['logo'] = $this->imageService->upload($request->file('logo'), 'uploads/site_setting', 400, 150);
+            $data['logo'] = $this->imageService->upload($request->file('logo'), 'uploads/site_setting', 800, 300);
+        }
+
+        if ($request->hasFile('icon')) {
+            $oldFiles[] = $setting->icon;
+            $data['icon'] = $this->imageService->upload($request->file('icon'), 'uploads/site_setting', 512, 512);
         }
 
         if ($request->hasFile('principal_signature')) {

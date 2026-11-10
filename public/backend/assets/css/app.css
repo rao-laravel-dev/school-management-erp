@@ -57,6 +57,13 @@ a {
 	width: 45px
 }
 
+/* Uploaded school icon keeps its colours in dark / semi-dark / coloured sidebar themes */
+html.dark-theme .logo-icon.school-icon,
+html.semi-dark .logo-icon.school-icon,
+html.color-sidebar .logo-icon.school-icon {
+	filter: none
+}
+
 .logo-text {
 	font-size: 22px;
 	margin-left: 10px;

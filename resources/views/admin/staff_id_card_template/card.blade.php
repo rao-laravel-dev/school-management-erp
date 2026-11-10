@@ -196,6 +196,8 @@
             <div class="id-card-header">
                 @if($template->logo)
                 <img src="{{ asset('uploads/staff_id_card_template/' . $template->logo) }}">
+                @elseif($schoolBrand->logo_url)
+                <img src="{{ $schoolBrand->logo_url }}">
                 @endif
                 <h5>{{ $template->school_name }}</h5>
                 <small>{{ $template->address_phone_email }}</small>
