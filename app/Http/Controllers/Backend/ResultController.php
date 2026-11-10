@@ -45,9 +45,13 @@ class ResultController extends Controller
                 ->get();
         }
 
+        $isPublished = $selectedExamId
+            ? (bool) Exam::whereKey($selectedExamId)->value('publish_result')
+            : false;
+
         return view('admin.result.index', compact(
             'exams', 'classes', 'sections', 'results',
-            'selectedExamId', 'selectedClassId', 'selectedSectionId'
+            'selectedExamId', 'selectedClassId', 'selectedSectionId', 'isPublished'
         ));
     }
 
@@ -69,6 +73,14 @@ class ResultController extends Controller
             'class_id' => 'required|exists:school_class,id',
             'section_id' => 'required|exists:sections,id',
         ]);
+
+        // Published result dobara calculate nahi hota (marks/positions change na hon)
+        if (Exam::whereKey($request->exam_id)->value('publish_result')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Result is published. Unpublish it first to recalculate.',
+            ], 422);
+        }
 
         $examId = $request->exam_id;
         $classId = $request->class_id;

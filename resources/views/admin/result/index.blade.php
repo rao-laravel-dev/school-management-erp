@@ -50,9 +50,14 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-semi-bold text-primary">Result</h5>
         @if($selectedExamId && $selectedClassId && $selectedSectionId)
-        <button type="button" id="calculateBtn" class="btn btn-sm btn-success">
-            <i class='bx bx-calculator'></i> Calculate Result
-        </button>
+        <div class="d-flex align-items-center">
+            @if($isPublished)
+            <small class="text-danger me-2">Result is published. Unpublish it first to recalculate.</small>
+            @endif
+            <button type="button" id="calculateBtn" class="btn btn-sm btn-success" @if($isPublished) disabled @endif>
+                <i class='bx bx-calculator'></i> Calculate Result
+            </button>
+        </div>
         @endif
     </div>
     <div class="card-body">
