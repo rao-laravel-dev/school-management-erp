@@ -82,6 +82,7 @@ class RoleSeeder extends Seeder
             'manage-school-timing',         // web.php
             'access-students',
             'manage-students',
+            'admit-students',               // web.php students.create/store/edit/update
             'access-student-categories',
             'manage-student-categories',
             'access-student-houses',
@@ -191,6 +192,7 @@ class RoleSeeder extends Seeder
             'access-teacher-assignment',
             'access-accountant',
             'access-students',
+            'admit-students',               // web.php students.create/store/edit/update
             'access-student-categories',
             'access-student-houses',
             'access-attendance',

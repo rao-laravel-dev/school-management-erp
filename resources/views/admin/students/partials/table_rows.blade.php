@@ -73,7 +73,7 @@
     <td class="text-center align-middle">
         <div class="d-flex justify-content-center gap-1">
             {{-- Edit Button --}}
-            @can('manage-students')
+            @can('admit-students')
             <a href="{{ route('students.edit', $enrollment->student->id) }}"
                 class="btn btn-sm btn-outline-primary px-2" title="Edit">
                 <i class="bx bx-edit"></i>

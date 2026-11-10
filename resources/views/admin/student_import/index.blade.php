@@ -13,9 +13,11 @@
         <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
             <h5 class="mb-0 text-primary">Bulk Student Import</h5>
             <div class="d-flex align-items-center gap-2">
+                @can('admit-students')
                 <a href="{{ route('students.create') }}" class="btn btn-sm btn-outline-secondary">
                     <i class="fas fa-arrow-left me-1"></i> Back to Admission Form
                 </a>
+                @endcan
                 <a href="{{ route('student_import.download_template') }}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-download me-1"></i> Download Sample Template
                 </a>

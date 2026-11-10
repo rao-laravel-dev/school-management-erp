@@ -85,7 +85,9 @@
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 @can('access-students')
                 <li class="{{ request()->routeIs('students.index', 'students.edit', 'students.trash') ? 'mm-active' : '' }}"><a href="{{ route('students.index') }}"><i class="bx bx-radio-circle"></i>All Students</a></li>
+                @can('admit-students')
                 <li class="{{ request()->routeIs('students.create') ? 'mm-active' : '' }}"><a href="{{ route('students.create') }}"><i class="bx bx-radio-circle"></i>Student Admission</a></li>
+                @endcan
                 @endcan
 
                 @can('access-student-import')

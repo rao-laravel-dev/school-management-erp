@@ -564,19 +564,23 @@ Route::middleware(['auth'])->group(function () {
         // Sab ke liye common middleware (Access)
         Route::middleware(['can:access-students'])->group(function () {
             Route::get('/students', 'AllStudent')->name('students.index');
-            Route::get('/students/create', 'AddStudent')->name('students.create');
-            Route::post('/students/store', 'StoreStudent')->name('students.store');
 
             // Sibling & AJAX Routes
-            Route::get('/students/check-parent/{cnic}', 'CheckParentProfile')->name('students.checkParent');
             Route::get('/students/get-sections/{class_id}', 'getSectionsByClass')->name('students.get_sections');
             Route::get('/students/get-groups/{class_id}', 'getGroupsByClass')->name('students.get_groups');
             Route::get('/students/filter', 'FilterStudents')->name('students.filter');
             Route::get('/students/export-excel', 'ExportExcel')->name('students.export_excel');
             Route::get('/students/export-pdf', 'ExportPdf')->name('students.export_pdf');
+            Route::get('/students/get-details/{id}', 'getStudentDetails')->name('students.get_details');
+        });
+
+        // Sirf Admin + Receptionist: admission + edit (form AJAX routes bhi yahin)
+        Route::middleware(['can:admit-students'])->group(function () {
+            Route::get('/students/create', 'AddStudent')->name('students.create');
+            Route::post('/students/store', 'StoreStudent')->name('students.store');
+            Route::get('/students/check-parent/{cnic}', 'CheckParentProfile')->name('students.checkParent');
             Route::get('/students/get-identifiers', 'GetNextAcademicIdentifiers')->name('students.get_identifiers');
             Route::get('/students/get-fee-structure', 'getFeeStructure')->name('students.get_fee_structure');
-            Route::get('/students/get-details/{id}', 'getStudentDetails')->name('students.get_details');
 
             // Edit/Update
             Route::get('/students/edit/{id}', 'EditStudent')->name('students.edit');

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateStudentRequest extends FormRequest
 {
     /**
-     * Route pehle se can:access-students middleware ke peeche hai.
+     * Route pehle se can:admit-students middleware ke peeche hai.
      */
     public function authorize(): bool
     {

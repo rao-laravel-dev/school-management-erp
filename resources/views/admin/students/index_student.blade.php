@@ -56,11 +56,13 @@
         </div>
     </div>
 
+    @can('admit-students')
     <div class="col text-end ms-auto">
         <a href="{{ route('students.create') }}" class="btn btn-primary btn-sm px-4 shadow-sm">
             <i class='bx bx-plus'></i> New Admission
         </a>
     </div>
+    @endcan
 
 </div>
 

@@ -43,7 +43,9 @@
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
                 <li class="{{ request()->routeIs('students.*') && ! request()->routeIs('students.create') ? 'mm-active' : '' }}"> <a href="{{ route('students.index') }}"><i class='bx bx-radio-circle'></i>All Students</a></li>
+                @can('admit-students')
                 <li class="{{ request()->routeIs('students.create') ? 'mm-active' : '' }}"> <a href="{{ route('students.create') }}"><i class='bx bx-radio-circle'></i>Student's Admission</a></li>
+                @endcan
                 @can('access-student-categories')
                 <li class="{{ request()->routeIs('student-category.*') ? 'mm-active' : '' }}"> <a href="{{ route('student-category.index') }}"><i class='bx bx-radio-circle'></i>Student Categories</a></li>
                 @endcan

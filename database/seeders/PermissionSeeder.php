@@ -76,6 +76,7 @@ class PermissionSeeder extends Seeder
             'manage-teacher-assignment',
             'access-students',
             'manage-students',
+            'admit-students',               // web.php students.create/store/edit/update + form AJAX
             'access-student-categories',
             'manage-student-categories',
             'access-student-houses',
