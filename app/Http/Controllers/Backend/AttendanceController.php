@@ -765,6 +765,11 @@ class AttendanceController extends Controller
                 if ($scope !== null) {
                     return $staffDenied;
                 }
+                // QR path par bhi STEP 2 jaisa rule: inactive user / trashed profile ka card scan nahi hota
+                $qrStaff = $qrRecord->owner;
+                if ((int) $qrStaff->status !== 1 || $qrStaff->isStaffTrashed()) {
+                    return response()->json(['status' => 'error', 'message' => 'This staff card is inactive.'], 403);
+                }
                 return $this->handleStaffScan($qrRecord->owner, $request->device_id);
             }
         }
