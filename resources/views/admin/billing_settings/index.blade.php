@@ -352,7 +352,7 @@
             }
             const data = { academic_year_id: billingSettingYearId, type: type, month: month };
             const text = type === 'fees'
-                ? 'Student fees for the selected month will be generated. Existing ones are skipped.'
+                ? 'Student fees and fee vouchers for the selected month will be generated. Existing ones are skipped.'
                 : 'Salary slips for the selected month will be generated for active staff.';
 
             if (type === 'fees') {

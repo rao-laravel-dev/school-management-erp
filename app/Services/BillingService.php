@@ -7,11 +7,14 @@ use App\Models\BillingSetting;
 use App\Models\Enrollment;
 use App\Models\FeeAssignment;
 use App\Models\FeeStructure;
+use App\Models\FeeVoucher;
+use App\Models\Student;
 use App\Models\StudentDiscount;
 use App\Models\StudentFees;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 // Auto monthly fees + salary slips: billing_settings (per academic year) ke hisab se
 class BillingService
@@ -124,14 +127,82 @@ class BillingService
             ? $this->generateFeesForMonth($setting, $month)
             : $this->generateSalaryForMonth($setting, $month);
 
+        // Vouchers fee rows commit hone ke BAAD (koi outer transaction nahi), voucher failure fees rollback nahi karta
+        $voucher = $type === 'fees'
+            ? $this->generateVouchersForMonth($setting, $month)
+            : ['created' => 0, 'skipped' => 0, 'failed' => 0, 'note' => ''];
+
         return [
-            'year'    => $setting->academicYear->name,
-            'type'    => $type,
-            'month'   => $month,
-            'created' => $result['created'],
-            'skipped' => $result['skipped'],
-            'note'    => $result['note'],
+            'year'           => $setting->academicYear->name,
+            'type'           => $type,
+            'month'          => $month,
+            'created'        => $result['created'],
+            'skipped'        => $result['skipped'],
+            'note'           => $result['note'],
+            'vouchers'       => $voucher['created'],
+            'voucher_failed' => $voucher['failed'],
+            'voucher_note'   => $voucher['note'],
         ];
+    }
+
+    /**
+     * Auto vouchers: un students ke liye jin ki is mahine ki unpaid/partial fee row hai aur is mahine ka
+     * koi voucher (kisi bhi status ka) nahi. Mojooda voucher kabhi refresh nahi hota (admin Regenerate kare).
+     * Har student alag try/catch: ek ki ghalti baqi ko nahi rokti.
+     */
+    public function generateVouchersForMonth(BillingSetting $setting, string $month): array
+    {
+        $out  = ['created' => 0, 'skipped' => 0, 'failed' => 0, 'note' => ''];
+        $year = $setting->academicYear;
+
+        // generate() current academic year, bank account aur late fee use karta hai
+        if (!$year->is_current) {
+            $out['note'] = 'Vouchers not created: academic year ' . $year->name . ' is not the current year.';
+            Log::info("billing: vouchers {$month} skipped, academic year {$year->name} is not the current year");
+
+            return $out;
+        }
+
+        $monthStart = Carbon::parse($month . '-01')->startOfMonth();
+        $monthEnd   = $monthStart->copy()->endOfMonth();
+
+        // Same rule as FeeVoucherService::monthOf(): period, warna due_date ka mahina
+        $candidateIds = StudentFees::whereIn('status', ['unpaid', 'partial'])
+            ->where(function ($q) use ($month, $monthStart, $monthEnd) {
+                $q->where('period', $month)
+                    ->orWhere(function ($q2) use ($monthStart, $monthEnd) {
+                        $q2->whereNull('period')
+                            ->whereBetween('due_date', [$monthStart->toDateString(), $monthEnd->toDateString()]);
+                    });
+            })
+            ->whereIn('student_id', Enrollment::where('academic_year_id', $year->id)->where('enroll_status', 1)->select('student_id'))
+            ->pluck('student_id')
+            ->unique();
+
+        $existingIds = FeeVoucher::where('period', $month)
+            ->whereIn('student_id', $candidateIds)
+            ->pluck('student_id');
+
+        $pendingIds = $candidateIds->diff($existingIds);
+        $out['skipped'] = $candidateIds->count() - $pendingIds->count();
+
+        $voucherService = app(FeeVoucherService::class);
+
+        foreach (Student::whereIn('id', $pendingIds)->get() as $student) {
+            try {
+                $voucherService->generate($student, $month);
+                $out['created']++;
+            } catch (ValidationException $e) {
+                $out['skipped']++;
+            } catch (\Throwable $e) {
+                $out['failed']++;
+                Log::error("billing: voucher {$month} student {$student->id} failed: " . $e->getMessage());
+            }
+        }
+
+        Log::info("billing: vouchers {$month} created {$out['created']}, skipped {$out['skipped']}, failed {$out['failed']}");
+
+        return $out;
     }
 
     /**

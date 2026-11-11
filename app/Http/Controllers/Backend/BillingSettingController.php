@@ -218,6 +218,19 @@ class BillingSettingController extends Controller
 
         $message = $created . ' ' . $noun . ($created === 1 ? '' : 's') . ' created, ' . $skipped . ' skipped (' . $period . ').';
 
+        if ($rows[0]['type'] === 'fees') {
+            $vouchers = array_sum(array_column($rows, 'vouchers'));
+            $failed   = array_sum(array_column($rows, 'voucher_failed'));
+            $vNotes   = array_values(array_filter(array_column($rows, 'voucher_note')));
+
+            if (count($rows) === 1 && $vNotes) {
+                $message .= ' ' . $vNotes[0];
+            } else {
+                $message .= ' ' . $vouchers . ' voucher' . ($vouchers === 1 ? '' : 's') . ' created';
+                $message .= $failed > 0 ? ', ' . $failed . ' failed (see log).' : '.';
+            }
+        }
+
         // Dates kabhi toastr mein nahi: sirf ek chhoti line (full list log mein)
         $notes = array_values(array_filter(array_column($rows, 'note')));
         if (count($notes) === 1 && count($rows) === 1) {

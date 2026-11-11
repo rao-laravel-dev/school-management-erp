@@ -53,7 +53,10 @@ class BillingGenerateMonthly extends Command
         }
 
         if ($rows) {
-            $this->table(['Year', 'Type', 'Month', 'Created', 'Skipped', 'Note'], array_map('array_values', $rows));
+            $this->table(
+                ['Year', 'Type', 'Month', 'Created', 'Skipped', 'Note', 'Vouchers', 'Voucher errors'],
+                array_map(fn($r) => [$r['year'], $r['type'], $r['month'], $r['created'], $r['skipped'], $r['note'], $r['vouchers'], $r['voucher_failed']], $rows)
+            );
         } else {
             $this->line('Nothing due.');
         }
