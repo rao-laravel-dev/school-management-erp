@@ -2993,3 +2993,11 @@ html.dark-theme .notification-bell-unread { background-color: rgb(0 140 255 / 14
 .notification-bell-list .msg-info { white-space: normal; }
 .notification-bell-list .dropdown-item { white-space: normal; }
 .notification-bell-list .msg-avatar { object-fit: cover; flex-shrink: 0; }
+
+/* SweetAlert2 confirm dialogs: Yes = green, Cancel/No = red (project rule). Overrides per-dialog colors (inline + btn-* classes) */
+.swal2-popup:not(.swal-keep-colors) .swal2-actions .swal2-confirm { background: #28a745 !important; border-color: #28a745 !important; color: #fff !important; }
+.swal2-popup:not(.swal-keep-colors) .swal2-actions .swal2-cancel { background: #dc3545 !important; border-color: #dc3545 !important; color: #fff !important; }
+/* SweetAlert2 action buttons: btn-sm size in every dialog (also those without customClass) */
+.swal2-popup .swal2-actions .swal2-confirm,
+.swal2-popup .swal2-actions .swal2-deny,
+.swal2-popup .swal2-actions .swal2-cancel { font-size: .875rem !important; padding: .25rem .5rem !important; border-radius: .2rem !important; line-height: 1.5 !important; }

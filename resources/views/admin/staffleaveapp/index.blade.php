@@ -407,7 +407,7 @@
                 // fee-assignment-swal = app.css dark mode popup + buttons gap
                 buttonsStyling: false,
                 customClass: {
-                    popup: 'fee-assignment-swal',
+                    popup: 'fee-assignment-swal swal-keep-colors',
                     confirmButton: options[0].cls,
                     cancelButton: 'btn btn-secondary btn-sm'
                 }
