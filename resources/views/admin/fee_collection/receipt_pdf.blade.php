@@ -175,10 +175,8 @@
     $totalBalance = 0; // ← naya
 
     foreach ($transactions as $txn) {
-    $feeAmount = $txn->studentFee->amount ?? 0;
     $feeDiscount = $txn->studentFee->discount ?? 0;
-    $proportion = $feeAmount > 0 ? ($txn->amount / $feeAmount) : 0;
-    $txnDiscount = $txn->fine > 0 ? 0 : $feeDiscount * $proportion; // late fee row has no discount
+    $txnDiscount = $txn->fine > 0 ? 0 : $feeDiscount; // late fee row has no discount; full fee discount, same as Collect Fees page
 
     $rowDiscounts[$txn->id] = $txnDiscount;
     $totalDiscount += $txnDiscount;
