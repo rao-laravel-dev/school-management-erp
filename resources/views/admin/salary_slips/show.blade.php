@@ -19,6 +19,9 @@
     <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
         <h5 class="mb-0">{{ $slip->user->name }} — {{ \Carbon\Carbon::parse($slip->month)->format('F Y') }}</h5>
         <div>
+            <a href="{{ route('salary_slips.pdf', $slip->id) }}" target="_blank" id="slipPdfBtn" class="btn btn-outline-primary btn-sm">
+                <i class="bx bxs-file-pdf"></i> PDF
+            </a>
             @if($slip->status == 'pending')
                 <a href="{{ route('salary_slips.edit', $slip->id) }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bx bx-edit"></i> Edit
@@ -133,6 +136,10 @@ $(document).ready(function () {
     @if($errors->any())
     toastr.error("{{ $errors->first() }}", 'Validation Error');
 @endif
+
+    $('#slipPdfBtn').on('click', function () {
+        toastr.success('Salary slip PDF opened.'); // link khud naye tab mein khulta hai
+    });
 
     $('#payForm').on('submit', function (e) {
         e.preventDefault();

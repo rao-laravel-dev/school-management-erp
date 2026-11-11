@@ -15,6 +15,9 @@
             <a href="{{ route('my.salary_slips.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bx bx-arrow-back"></i> Back
             </a>
+            <a href="{{ route('my.salary_slips.pdf', $slip->id) }}" target="_blank" id="slipPdfBtn" class="btn btn-outline-primary btn-sm">
+                <i class="bx bxs-file-pdf"></i> PDF
+            </a>
             <button type="button" class="btn btn-primary btn-sm" id="printSlipBtn">
                 <i class="bx bx-printer"></i> Print
             </button>
@@ -73,6 +76,10 @@
 @push('scripts')
 <script>
     $(function() {
+        $('#slipPdfBtn').on('click', function() {
+            toastr.success('Salary slip PDF opened.'); // link khud naye tab mein khulta hai
+        });
+
         $('#printSlipBtn').on('click', function() {
             window.print();
         });

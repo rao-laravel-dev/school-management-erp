@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\SalarySlip;
+use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\BillingNotifier;
+use App\Services\FeeVoucherService;
 use App\Services\SalarySlipService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -301,4 +304,34 @@ class SalarySlipController extends Controller
         return view('my.salary_slips.show', compact('slip'));
     }
     // End Method
+
+    // Salary slip PDF (admin/accountant): school logo + name header, fee receipt jaisa layout
+    public function pdf($id)
+    {
+        return $this->slipPdf(SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'user.librarianWithTrashed', 'generatedBy', 'paidBy', 'transaction'])->findOrFail($id));
+    }
+    // End Method
+
+    // My Salary Slip PDF (owner check: kisi aur ki slip par 403)
+    public function myPdf($id)
+    {
+        $slip = SalarySlip::with(['user.roles', 'user.teacherWithTrashed', 'user.accountantWithTrashed', 'user.receptionistWithTrashed', 'user.librarianWithTrashed', 'generatedBy', 'paidBy', 'transaction'])->findOrFail($id);
+
+        abort_if((int) $slip->user_id !== (int) auth()->id(), 403);
+
+        return $this->slipPdf($slip);
+    }
+    // End Method
+
+    private function slipPdf(SalarySlip $slip)
+    {
+        $school = SiteSetting::current();
+
+        return Pdf::loadView('admin.salary_slips.slip_pdf', [
+            'slip'   => $slip,
+            'school' => $school,
+            'logo'   => app(FeeVoucherService::class)->logoDataUri($school),
+        ])->setPaper('a4', 'portrait')->setOption(['enable_font_subsetting' => true])
+            ->stream('salary-slip-' . $slip->id . '.pdf');
+    }
 }

@@ -492,6 +492,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['can:access-my-salary-slips'])->controller(SalarySlipController::class)->group(function () {
             Route::get('/salary-slips', 'myIndex')->name('salary_slips.index');
             Route::get('/salary-slips/{id}', 'myShow')->whereNumber('id')->name('salary_slips.show'); // owner check controller mein
+            Route::get('/salary-slips/{id}/pdf', 'myPdf')->whereNumber('id')->name('salary_slips.pdf'); // owner check controller mein
         });
         Route::middleware(['can:access-my-attendance'])->controller(StaffAttendanceController::class)->group(function () {
             Route::get('/attendance', 'myAttendance')->name('attendance.index');
