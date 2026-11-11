@@ -223,7 +223,7 @@ class FeeAssignmentService
         $skipped    = $requested->count() - $pendingIds->count();
 
         if ($pendingIds->isEmpty()) {
-            return ['created' => 0, 'skipped' => $skipped];
+            return ['created' => 0, 'skipped' => $skipped, 'student_ids' => []];
         }
 
         $discountsByStudent = $this->billing->activeDiscounts($pendingIds, $assignment);
@@ -245,6 +245,6 @@ class FeeAssignmentService
             }
         });
 
-        return ['created' => $pendingIds->count(), 'skipped' => $skipped];
+        return ['created' => $pendingIds->count(), 'skipped' => $skipped, 'student_ids' => $pendingIds->all()];
     }
 }

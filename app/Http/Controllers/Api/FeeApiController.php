@@ -8,6 +8,7 @@ use App\Http\Resources\StudentFeeResource;
 use App\Models\BankAccount;
 use App\Models\StudentFees;
 use App\Models\Transaction;
+use App\Services\BillingNotifier;
 use App\Services\FeeVoucherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -120,6 +121,9 @@ class FeeApiController extends Controller
         if (! $transaction && ! $groupId) {
             return response()->json(['message' => 'Transaction failed.'], 500);
         }
+
+        // Staff API payment: parent gets the normal fee_paid notification (+ admin copy if staff is not admin)
+        app(BillingNotifier::class)->feePaid($groupId ?: $transaction->id, auth()->user());
 
         return response()->json([
             'message'        => 'Payment collected successfully.',

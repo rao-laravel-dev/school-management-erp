@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\BillingSetting;
+use App\Services\BillingNotifier;
 use App\Services\BillingService;
 use Illuminate\Console\Command;
 
@@ -57,6 +58,9 @@ class BillingGenerateMonthly extends Command
                 ['Year', 'Type', 'Month', 'Created', 'Skipped', 'Note', 'Vouchers', 'Voucher errors'],
                 array_map(fn($r) => [$r['year'], $r['type'], $r['month'], $r['created'], $r['skipped'], $r['note'], $r['vouchers'], $r['voucher_failed']], $rows)
             );
+
+            // Scheduled / artisan run: admins ko ek summary bell (kabhi per student nahi)
+            app(BillingNotifier::class)->cronSummary($rows);
         } else {
             $this->line('Nothing due.');
         }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\SalarySlip;
 use App\Models\User;
+use App\Services\BillingNotifier;
 use App\Services\SalarySlipService;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
@@ -130,6 +131,9 @@ class SalarySlipController extends Controller
             $skipped = $result['skipped'];
         }
  
+        // Staff ko slip notification (+ admin copy agar actor admin nahi); ek queued job
+        app(BillingNotifier::class)->salarySlipsGenerated(collect($generated)->pluck('id')->all(), auth()->user());
+
         $message = count($generated) . ' salary slip(s) generated successfully.';
         if (count($skipped) > 0) {
             $message .= ' ' . count($skipped) . ' skipped (already generated or missing salary structure).';
@@ -247,7 +251,9 @@ class SalarySlipController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
- 
+
+        app(BillingNotifier::class)->salaryPaid($slip->fresh(), auth()->user());
+
         return redirect()->route('salary_slips.show', $slip->id)
             ->with('success', 'Salary slip marked as paid.');
     }

@@ -8,6 +8,7 @@ use App\Http\Requests\GenerateFeeVoucherRequest;
 use App\Models\AcademicYear;
 use App\Models\FeeVoucher;
 use App\Models\Student;
+use App\Services\BillingNotifier;
 use App\Services\FeeVoucherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,13 @@ class FeeVoucherController extends Controller
     public function generate(GenerateFeeVoucherRequest $request, Student $student)
     {
         $voucher = app(FeeVoucherService::class)->generate($student, $request->month);
+
+        // Parent ko notification sirf pehli dafa banne par (regenerate par nahi, BillingNotifier::NOTIFY_ON_REGENERATE)
+        app(BillingNotifier::class)->vouchersGenerated(
+            $voucher->wasRecentlyCreated ? [$voucher->id] : [],
+            auth()->user(),
+            $voucher->wasRecentlyCreated ? [] : [$voucher->id]
+        );
 
         return response()->json([
             'success'    => true,
@@ -50,11 +58,19 @@ class FeeVoucherController extends Controller
 
         $service = app(FeeVoucherService::class);
         $ids     = [];
+        $newIds  = []; // pehli dafa bane vouchers (notification ke liye)
+        $oldIds  = []; // regenerate hue
         $skipped = [];
 
         foreach ($students as $student) {
             try {
-                $ids[] = $service->generate($student, $request->month)->id;
+                $voucher = $service->generate($student, $request->month);
+                $ids[]   = $voucher->id;
+                if ($voucher->wasRecentlyCreated) {
+                    $newIds[] = $voucher->id;
+                } else {
+                    $oldIds[] = $voucher->id;
+                }
             } catch (ValidationException $e) {
                 // Paid voucher or nothing payable: reported to the user, not an error
                 $skipped[] = [
@@ -63,6 +79,9 @@ class FeeVoucherController extends Controller
                 ];
             }
         }
+
+        // One queued job for the whole batch; one notification per parent
+        app(BillingNotifier::class)->vouchersGenerated($newIds, auth()->user(), $oldIds);
 
         return response()->json([
             'success' => true,

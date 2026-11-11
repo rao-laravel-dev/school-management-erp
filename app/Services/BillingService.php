@@ -130,7 +130,12 @@ class BillingService
         // Vouchers fee rows commit hone ke BAAD (koi outer transaction nahi), voucher failure fees rollback nahi karta
         $voucher = $type === 'fees'
             ? $this->generateVouchersForMonth($setting, $month)
-            : ['created' => 0, 'skipped' => 0, 'failed' => 0, 'note' => ''];
+            : ['created' => 0, 'skipped' => 0, 'failed' => 0, 'note' => '', 'student_ids' => []];
+
+        // Parents ko notification: is run ki NAYI fee rows wale students (voucher fail/skip bhi fee notification nahi rokta)
+        if ($type === 'fees' && !empty($result['student_ids'])) {
+            app(BillingNotifier::class)->feesGenerated($month, $result['student_ids'], $voucher['student_ids']);
+        }
 
         return [
             'year'           => $setting->academicYear->name,
@@ -152,7 +157,7 @@ class BillingService
      */
     public function generateVouchersForMonth(BillingSetting $setting, string $month): array
     {
-        $out  = ['created' => 0, 'skipped' => 0, 'failed' => 0, 'note' => ''];
+        $out  = ['created' => 0, 'skipped' => 0, 'failed' => 0, 'note' => '', 'student_ids' => []];
         $year = $setting->academicYear;
 
         // generate() current academic year, bank account aur late fee use karta hai
@@ -192,6 +197,7 @@ class BillingService
             try {
                 $voucherService->generate($student, $month);
                 $out['created']++;
+                $out['student_ids'][] = $student->id;
             } catch (ValidationException $e) {
                 $out['skipped']++;
             } catch (\Throwable $e) {
@@ -216,7 +222,7 @@ class BillingService
         $index  = array_search($month, $months, true);
 
         if ($index === false) {
-            return ['created' => 0, 'skipped' => 0, 'note' => 'Month is outside the academic year.'];
+            return ['created' => 0, 'skipped' => 0, 'note' => 'Month is outside the academic year.', 'student_ids' => []];
         }
 
         $monthStart = Carbon::parse($month . '-01')->startOfMonth();
@@ -239,6 +245,7 @@ class BillingService
 
         $created = 0;
         $skipped = 0;
+        $newStudentIds = []; // notification ke liye: is run mein nayi fee row wale students
 
         foreach ($structures as $fs) {
             // Sirf active enrolled students, jo is mahine tak admit ho chuke hon (purane mahino ki fee nahi)
@@ -286,6 +293,8 @@ class BillingService
                     $created++;
                 }
             });
+
+            $newStudentIds = array_merge($newStudentIds, $pendingIds->all());
         }
 
         // Assign Fee ki recurring (Tuition) assignments: sirf unke selected students ke liye
@@ -303,11 +312,12 @@ class BillingService
             $row      = $assignmentService->createRecurringRowsForMonth($assignment, $month, $setting);
             $created += $row['created'];
             $skipped += $row['skipped'];
+            $newStudentIds = array_merge($newStudentIds, $row['student_ids']);
         }
 
         Log::info("billing: fees {$month} (year {$year->name}) created {$created}, skipped {$skipped}");
 
-        return ['created' => $created, 'skipped' => $skipped, 'note' => ''];
+        return ['created' => $created, 'skipped' => $skipped, 'note' => '', 'student_ids' => array_values(array_unique($newStudentIds))];
     }
 
     /**
@@ -340,6 +350,9 @@ class BillingService
         $result  = $service->generateBulk($month);
         $created = count($result['generated']);
         $skipped = count($result['skipped']);
+
+        // Staff ko slip notification (cron = actor nahi, Generate Now = admin: koi admin copy nahi)
+        app(BillingNotifier::class)->salarySlipsGenerated(collect($result['generated'])->pluck('id')->all(), auth()->user());
 
         Log::info("billing: salary {$month} created {$created}, skipped {$skipped}");
 

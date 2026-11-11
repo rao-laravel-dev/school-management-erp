@@ -628,7 +628,12 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        
+
+        // Fee notification link (#pills-voucher / #pills-finance): us tab ko kholo
+        if (window.location.hash === '#pills-voucher' || window.location.hash === '#pills-finance') {
+            $(window.location.hash + '-tab').trigger('click');
+        }
+
         // 📊 1. ATTENDANCE DONUT CHART
         var attendanceOptions = {
             series: [{{ $presentCount ?? 0 }}, {{ $absentCount ?? 0 }}, {{ $lateCount ?? 0 }}, {{ (int) $halfDayCount }}, {{ $leaveCount ?? 0 }}],

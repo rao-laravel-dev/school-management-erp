@@ -14,6 +14,7 @@ use App\Models\StudentFees;
 use App\Models\TeacherAssignment;
 use App\Models\Transaction;
 use App\Http\Requests\ExtendFeeDueDateRequest;
+use App\Services\BillingNotifier;
 use App\Services\FeeVoucherService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -247,6 +248,12 @@ class FeeCollectionController extends Controller
             $feeService->refreshUnpaid($fee->student_id); // unpaid voucher follows the new balance
         });
 
+        // Parent (+ admin copy agar actor admin nahi) ko notification; receipt id = group id ya transaction id
+        $receiptId = $groupId ?: ($transaction ? $transaction->id : null);
+        if ($receiptId) {
+            app(BillingNotifier::class)->feePaid($receiptId, auth()->user());
+        }
+
         return response()->json([
             'message'        => 'Payment collected successfully.',
             'paid_amount'    => number_format($fee->paid_amount, 2),
@@ -389,6 +396,11 @@ class FeeCollectionController extends Controller
 
             $feeService->refreshUnpaid($fees->pluck('student_id')->unique()->all()); // unpaid vouchers follow the new balances
         });
+
+        // One notification per parent for the whole receipt (siblings in one payment = one bell)
+        if ($groupId) {
+            app(BillingNotifier::class)->feePaid($groupId, auth()->user());
+        }
 
         return response()->json([
             'message'    => 'Payment collected successfully.',
