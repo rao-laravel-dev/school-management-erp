@@ -14,7 +14,7 @@
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 
 	<!-- Favicon -->
-	<link rel="icon" href="{{ $schoolBrand->icon_url ?: asset('backend/assets/images/favicon-32x32.png') }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}"/>
+	<link rel="icon" href="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/favicon-32x32.png')) }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}"/>
 
 	<!-- Google Fonts -->
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">

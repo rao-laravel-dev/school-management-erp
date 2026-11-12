@@ -63,9 +63,12 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // School logo / icon (Site Settings) for role login pages, portal layouts + sidebars and ID cards; ek request mein ek hi query
+        // School logo / icon (Site Settings) for the main login, role login pages, portal layouts + sidebars and ID cards; ek request mein ek hi query
+        // Also passes the Modern School System (MSS) product logo / icon (static files, null when missing)
         $schoolBrand = null;
+        $mssBrand = null;
         View::composer([
+            'auth.login',
             'admin.admin_login', 'superadmin.superadmin_login', 'teacher.teacher_login', 'student.student_login',
             'parent.parents_login', 'reception.reception_login', 'accountant.accountant_login', 'admin.librarian.librarian_login',
             'admin.layout.app', 'superadmin.layout.app', 'teacher.layout.app', 'student.layout.app',
@@ -74,11 +77,23 @@ class AppServiceProvider extends ServiceProvider
             'parent.body.sidebar', 'reception.body.sidebar', 'accountant.body.sidebar', 'admin.librarian.body.sidebar',
             'admin.id_card_template.card', 'admin.staff_id_card_template.card',
             'frontend.home.body.footer',
-        ], function ($view) use (&$schoolBrand) {
+        ], function ($view) use (&$schoolBrand, &$mssBrand) {
             if (!$schoolBrand) {
                 $schoolBrand = \App\Models\SiteSetting::current();
             }
-            $view->with('schoolBrand', $schoolBrand);
+            // MSS logo / icon: first file found in public/backend/assets/images wins, else null (the view keeps its own fallback)
+            if ($mssBrand === null) {
+                $pick = function (array $files) {
+                    foreach ($files as $file) {
+                        if (is_file(public_path('backend/assets/images/' . $file))) {
+                            return asset('backend/assets/images/' . $file);
+                        }
+                    }
+                    return null;
+                };
+                $mssBrand = ['logo' => $pick(['mss-logo.png', 'mss-logo.jpeg']), 'icon' => $pick(['mss-icon.png'])];
+            }
+            $view->with('schoolBrand', $schoolBrand)->with('mssLogo', $mssBrand['logo'])->with('mssIcon', $mssBrand['icon']);
         });
 
         // Student header "Class Teacher" badge: every student page gets it (dashboard/myteacher already pass their own)

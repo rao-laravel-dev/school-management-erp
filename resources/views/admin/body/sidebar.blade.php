@@ -1,6 +1,6 @@
 <div class="sidebar-wrapper" data-simplebar="true">
     <div class="sidebar-header">
-        <div><img src="{{ $schoolBrand->icon_url ?: asset('backend/assets/images/logo-icon.png') }}" class="logo-icon{{ $schoolBrand->icon_url ? ' school-icon' : '' }}" alt="logo icon"></div>
+        <div><img src="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/logo-icon.png')) }}" class="logo-icon{{ ($schoolBrand->icon_url || $mssIcon) ? ' school-icon' : '' }}" alt="logo icon"></div>
         <div>
             <h4 class="logo-text">{{ Auth::user()->isSuperAdmin() ? 'Super Admin' : 'Admin' }}</h4>
         </div>

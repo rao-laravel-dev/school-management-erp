@@ -6,7 +6,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!--favicon-->
-	<link rel="icon" href="{{ asset('backend/assets/images/favicon-32x32.png') }}" type="image/png" />
+	<link rel="icon" href="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/favicon-32x32.png')) }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}" />
 	<!--plugins-->
 	<link href="{{ asset('backend/assets/plugins/simplebar/css/simplebar.css') }}" rel="stylesheet" />
 	<link href="{{ asset('backend/assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css') }}" rel="stylesheet" />
@@ -28,14 +28,34 @@
 	<div class="wrapper">
 		<div class="section-authentication-signin d-flex align-items-center justify-content-center my-5 my-lg-0">
 			<div class="container">
-				<div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
-					<div class="col mx-auto">
-						<div class="card mb-0">
-							<div class="card-body">
+				<div class="row">
+					<div class="col-12 mx-auto">
+						<div class="card mb-0 overflow-hidden login-card-outer">
+							<div class="card-body p-0">
+								<div class="row g-0">
+								{{-- Left: Modern School System product branding --}}
+								<div class="col-12 col-lg-6 login-brand-panel d-flex flex-column align-items-center justify-content-center text-center py-4">
+									<a href="https://modernschoolsystem.com" target="_blank" rel="noopener" class="login-brand-link mb-3">
+										@if($mssLogo)
+											<img src="{{ $mssLogo }}" class="login-brand-logo" alt="Modern School System">
+										@else
+											<span class="login-brand-name">Modern School System</span>
+										@endif
+									</a>
+									<p class="login-brand-credits mb-0 px-3">
+										<span class="brand-part">Developed by <a href="https://coresynergylabs.com" target="_blank" rel="noopener">Core Synergy Labs</a></span>
+										<span class="brand-sep"> · </span>
+										<span class="brand-part">Educational Partner: <a href="https://webdevelopersacademy.com" target="_blank" rel="noopener">Web Developers Academy</a></span>
+									</p>
+								</div>
+								<div class="col-12 col-lg-6">
 								<div class="p-4">
+									{{-- School's own logo (Site Settings); nothing shown when not uploaded --}}
+									@if($schoolBrand->logo_url)
 									<div class="mb-3 text-center">
-										<img src="{{ asset('backend/assets/images/wda-logo.png') }}" width="180" alt="" />
+										<img src="{{ $schoolBrand->logo_url }}" class="login-school-logo" alt="{{ $schoolBrand->school_name }}">
 									</div>
+									@endif
 									<div class="text-center mb-4">
 										<!-- <h5 class="">Rocker Admin</h5> -->
 										<p class="mb-0">Please log in to your account</p>
@@ -80,6 +100,8 @@
 
 
 
+								</div>
+								</div>
 								</div>
 							</div>
 						</div>

@@ -6,7 +6,7 @@
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 @include('partials.theme_init')
 
-	<link rel="icon" href="{{ $schoolBrand->icon_url ?: asset('backend/assets/images/favicon-32x32.png') }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}"/>
+	<link rel="icon" href="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/favicon-32x32.png')) }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}"/>
 
 	<!-- Plugins CSS -->
 	<link href="{{asset('backend/assets/plugins/vectormap/jquery-jvectormap-2.0.2.css')}}" rel="stylesheet"/>
