@@ -356,6 +356,7 @@ Route::get('students/login', [StudentProfileController::class, 'StudentLogin'])-
 // ID CARD QR VERIFY (public by design; full-vs-basic decided inside the controller by permission)
 Route::controller(CardVerifyController::class)->prefix('verify')->name('card_verify.')
     ->middleware('throttle:30,1')->group(function () {
+        Route::get('/salary-slip/{id}', 'salarySlip')->whereNumber('id')->name('salary_slip'); // signed URL, checked in controller
         Route::get('/{code}', 'show')->where('code', '[A-Za-z0-9-]+')->name('show');
     });
 

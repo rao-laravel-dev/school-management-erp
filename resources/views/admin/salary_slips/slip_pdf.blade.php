@@ -129,7 +129,7 @@
     @php
     $role = ucfirst($slip->user->roles->first()->name ?? '-');
     $monthLabel = \Carbon\Carbon::parse($slip->month)->format('F Y');
-    $qrText = 'Salary Slip #' . $slip->id . ' | ' . $slip->user->name . ' | ' . $slip->user->staff_code . ' | ' . $monthLabel . ' | Net ' . number_format($slip->net_salary, 2) . ' | ' . ($slip->status == 'paid' ? 'Paid' : 'Pending');
+    $qrText = \Illuminate\Support\Facades\URL::signedRoute('card_verify.salary_slip', ['id' => $slip->id]); // URL only, no name/amount
     $qr = DNS2D::getBarcodePNG($qrText, 'QRCODE', 4, 4);
     @endphp
 

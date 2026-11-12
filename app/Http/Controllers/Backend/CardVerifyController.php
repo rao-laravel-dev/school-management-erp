@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\QrCode;
+use App\Models\SalarySlip;
 use App\Models\SiteSetting;
 use App\Models\Student;
 use App\Models\User;
@@ -79,4 +80,32 @@ class CardVerifyController extends Controller
 
         return response()->view($view, $data)->header('X-Robots-Tag', 'noindex');
     }
+
+    // Salary slip QR (/verify/salary-slip/{id}, signed): owner + admin/superadmin go to the full slip, everyone else basic info (no amounts)
+    public function salarySlip(Request $request, $id)
+    {
+        $school = SiteSetting::current();
+
+        // Signature check: a changed id or a link without signature is treated as invalid (no slip browsing)
+        $slip = $request->hasValidSignature() ? SalarySlip::with('user.roles')->find($id) : null;
+
+        if (!$slip || !$slip->user) {
+            return response()->view('card_verify.salary_slip', ['school' => $school, 'slip' => null], 404)
+                ->header('X-Robots-Tag', 'noindex');
+        }
+
+        $user = auth()->user();
+        if ($user) {
+            if (in_array($user->activeRoleName(), ['admin', 'superadmin'], true)) {
+                return redirect()->route('salary_slips.show', $slip->id);
+            }
+            if ((int) $slip->user_id === (int) $user->id && $user->can('access-my-salary-slips')) {
+                return redirect()->route('my.salary_slips.show', $slip->id);
+            }
+        }
+
+        return response()->view('card_verify.salary_slip', ['school' => $school, 'slip' => $slip])
+            ->header('X-Robots-Tag', 'noindex');
+    }
+    // End Method
 }
