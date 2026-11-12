@@ -2,7 +2,7 @@
 @section('content')
 
 {{-- Breadcrumb: home = route('dashboard') (x-breadcrumb home is admin-only, 403 for staff roles) --}}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+<div class="page-breadcrumb d-none d-sm-flex d-lg-none align-items-center mb-3">
     <div class="breadcrumb-title pe-3">Scan Attendance</div>
     <div class="ps-3">
         <nav>
@@ -36,7 +36,7 @@
                 @if(!empty($siteSetting->logo))
                 <img src="{{ asset('uploads/site_setting/' . $siteSetting->logo) }}" alt="logo" class="kiosk-logo-img">
                 @endif
-                <h1 class="kiosk-school-name">{{ $siteSetting->school_name ?? 'School System' }}</h1>
+                <h1 class="kiosk-school-name {{ !empty($siteSetting->logo) ? 'visually-hidden' : '' }}">{{ $siteSetting->school_name ?? 'School System' }}</h1>
             </div>
 
             <div class="kiosk-subtitle-row row justify-content-end">
@@ -46,7 +46,7 @@
                     <div class="kiosk-subtitle small">Scanning for: {{ $scopeLabel }}</div>
                     @endif
                 </div>
-                <div class="col-md-2 offset-md-2 text-end d-flex align-items-center justify-content-end gap-1">
+                <div class="col-md-3 offset-md-1 text-end d-flex align-items-center justify-content-end gap-1">
                     <input type="text" id="scan-input" class="form-control form-control-sm kiosk-scan-input"
                         placeholder="Scan / Roll No / Adm No"
                         autocomplete="off" autofocus>
@@ -57,6 +57,19 @@
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                             <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </button>
+                    <button type="button" class="btn btn-sm kiosk-camera-btn d-none" id="kiosk-fullscreen-btn"
+                        title="Full screen">
+                        {{-- enter icon (shown normally) --}}
+                        <svg class="kiosk-fs-enter" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                        {{-- exit icon (shown while fullscreen) --}}
+                        <svg class="kiosk-fs-exit" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
                         </svg>
                     </button>
                 </div>
@@ -174,7 +187,7 @@
     }
 
     .kiosk-logo-box {
-        border: 1px solid rgba(255, 255, 255, .6);
+        border: none;
         border-radius: 8px;
         display: inline-flex;
         align-items: center;
@@ -386,7 +399,7 @@
         }
 
         .kiosk-subtitle-row .col-md-4,
-        .kiosk-subtitle-row .col-md-2.offset-md-2 {
+        .kiosk-subtitle-row .col-md-3.offset-md-1 {
             text-align: center !important;
             margin-left: 0 !important;
             justify-content: center !important;
@@ -395,6 +408,241 @@
         .kiosk-scan-input {
             max-width: 90%;
             margin-top: 8px;
+        }
+
+        .kiosk-logo-box {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 12px;
+        }
+
+        .kiosk-school-name {
+            font-size: 18px;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .kiosk-logo-img {
+            height: 32px;
+            max-width: 100%;
+        }
+    }
+
+    /* ---- desktop: kiosk fits one screen, no page scroll, blue 50% / white 50% ---- */
+    @media (min-width: 992px) {
+        .kiosk-wrapper {
+            --kiosk-topbar: 60px;  /* .topbar height, app.css */
+            --kiosk-footer: 36px;  /* fixed .page-footer height, app.css */
+            padding-bottom: 0;     /* was 24px, pushed the page past the viewport */
+        }
+
+        .kiosk-card {
+            /* 100vh minus topbar, footer and .page-content vertical padding (1.5rem + .7rem) */
+            height: calc(100vh - var(--kiosk-topbar) - var(--kiosk-footer) - 2.2rem);
+            display: flex;
+            flex-direction: column;
+            position: relative;    /* anchor for the 50% blue backdrop below */
+        }
+
+        /* blue backdrop = top 50% of the card; header and body sit above it (z-index 1) */
+        .kiosk-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(135deg, #1e0fb0, #2a17e0);
+            z-index: 0;
+        }
+
+        .kiosk-header {
+            flex: 0 0 auto;        /* height = its content (incl. the class-teacher "Scanning for" line) */
+            position: relative;
+            z-index: 1;
+            padding: 2vh 24px;     /* fixed 200px / 220px bottom padding removed */
+        }
+
+        .kiosk-logo-box {
+            padding: 8px 24px;
+        }
+
+        .kiosk-logo-img {
+            height: clamp(40px, 7vh, 72px);
+        }
+
+        .kiosk-subtitle-row {
+            margin-top: 1vh;
+        }
+
+        .kiosk-datetime {
+            font-size: clamp(18px, 3.2vh, 30px);
+            margin-top: 1vh;
+        }
+
+        /* body starts right after the header (no pull-up); it is the scroll container (safety net) */
+        .kiosk-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            position: relative;
+            z-index: 1;
+            overflow-y: auto;
+            padding: 0 clamp(20px, 3vw, 40px) 1.5vh;
+        }
+
+        /* stacked order (photo, name, rows, status) like below 992px, only vh-based tighter sizes */
+        .kiosk-info-box {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: clamp(10px, 1.6vh, 32px) clamp(16px, 2vw, 28px);
+        }
+
+        .kiosk-photo-circle {
+            width: clamp(60px, 13vh, 140px);
+            height: clamp(60px, 13vh, 140px);
+            margin: 0 auto 1vh;
+        }
+
+        .kiosk-id-name {
+            font-size: clamp(16px, 3vh, 30px);
+            margin-bottom: 1vh;
+        }
+
+        .kiosk-details {
+            border-spacing: 0 clamp(2px, .5vh, 10px);
+        }
+
+        .kiosk-details tr td {
+            padding: clamp(2px, .6vh, 10px) 12px;
+            font-size: clamp(12px, 1.8vh, 17px);
+        }
+
+        .kiosk-details tr td:first-child {
+            font-size: clamp(11px, 1.4vh, 14px);
+        }
+
+        .kiosk-status-box {
+            padding: clamp(6px, 1.2vh, 18px) 24px;
+            margin-top: clamp(6px, 1.2vh, 22px);
+            margin-bottom: clamp(6px, 1vh, 24px);
+            font-size: clamp(16px, 2.8vh, 24px);
+        }
+    }
+
+    /* ---- full screen toggle (kiosk device) ---- */
+    /* icon swap; id selector beats ".kiosk-camera-btn svg { display:block }" */
+    #kiosk-fullscreen-btn .kiosk-fs-exit {
+        display: none;
+    }
+
+    body.kiosk-fullscreen #kiosk-fullscreen-btn .kiosk-fs-enter {
+        display: none;
+    }
+
+    body.kiosk-fullscreen #kiosk-fullscreen-btn .kiosk-fs-exit {
+        display: block;
+    }
+
+    /* hide layout chrome (same markup in admin / reception / teacher layouts) */
+    body.kiosk-fullscreen .sidebar-wrapper,
+    body.kiosk-fullscreen .topbar,
+    body.kiosk-fullscreen .page-footer,
+    body.kiosk-fullscreen .overlay,
+    body.kiosk-fullscreen .back-to-top {
+        display: none !important;
+    }
+
+    /* remove the space the sidebar / topbar / footer reserved */
+    body.kiosk-fullscreen .page-wrapper,
+    body.kiosk-fullscreen .wrapper.toggled .page-wrapper {
+        margin: 0 !important;
+    }
+
+    body.kiosk-fullscreen .page-content {
+        padding: 0 !important;
+    }
+
+    body.kiosk-fullscreen .kiosk-wrapper {
+        max-width: none;
+        padding: 0;
+    }
+
+    body.kiosk-fullscreen .kiosk-card {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+    }
+
+    @media (min-width: 992px) {
+        /* card = whole screen; flex column + 50% blue ::before stay as above */
+        body.kiosk-fullscreen .kiosk-card {
+            height: 100vh;
+            justify-content: center;  /* header + body block sits in the vertical middle: equal space above and below */
+        }
+
+        /* header turns transparent so the card's 50% blue ::before also fills the space above it (no seam) */
+        body.kiosk-fullscreen .kiosk-header {
+            background: transparent !important;
+        }
+
+        /* body stops absorbing the free space (flex 1 1 auto) so centering works; it can still shrink + scroll as a safety net.
+           Its bottom padding and the status box bottom margin are removed so the gap below the status box equals the gap above the header. */
+        body.kiosk-fullscreen .kiosk-body {
+            flex: 0 1 auto;
+            padding-bottom: 0;
+        }
+
+        body.kiosk-fullscreen .kiosk-status-box {
+            margin-bottom: 0;
+        }
+    }
+
+    /* fullscreen on tall screens (1920x1080 / 1920x1200): same elements, higher vh coefficients and max caps.
+       Below 900px height nothing changes, so 1366x768 keeps the sizes above. */
+    @media (min-width: 992px) and (min-height: 900px) {
+        body.kiosk-fullscreen .kiosk-logo-img {
+            height: clamp(40px, 7.5vh, 120px);
+        }
+
+        body.kiosk-fullscreen .kiosk-datetime {
+            font-size: clamp(18px, 3.5vh, 44px);
+        }
+
+        body.kiosk-fullscreen .kiosk-info-box {
+            max-width: 1000px;
+            padding: clamp(10px, 1.8vh, 36px) clamp(16px, 2vw, 40px);
+        }
+
+        body.kiosk-fullscreen .kiosk-photo-circle {
+            width: clamp(60px, 15vh, 200px);
+            height: clamp(60px, 15vh, 200px);
+        }
+
+        body.kiosk-fullscreen .kiosk-id-name {
+            font-size: clamp(16px, 3.6vh, 42px);
+            line-height: 1.25;
+        }
+
+        body.kiosk-fullscreen .kiosk-details {
+            border-spacing: 0 clamp(2px, .55vh, 12px);
+        }
+
+        body.kiosk-fullscreen .kiosk-details tr td {
+            padding: clamp(2px, .55vh, 12px) 12px;
+            font-size: clamp(12px, 1.9vh, 24px);
+            line-height: 1.3;
+        }
+
+        body.kiosk-fullscreen .kiosk-details tr td:first-child {
+            font-size: clamp(11px, 1.5vh, 18px);
+        }
+
+        body.kiosk-fullscreen .kiosk-status-box {
+            padding: clamp(6px, 1.5vh, 26px) 32px;
+            margin-top: clamp(6px, 1.6vh, 26px);
+            font-size: clamp(16px, 3.4vh, 38px);
         }
     }
 </style>
@@ -650,6 +898,38 @@
             });
             $('#kiosk-id-name').text(`${idValue || ''} | ${person.name}`);
             $('#kiosk-status-box').attr('class', 'kiosk-status-box ' + statusClass).text(bigMsg);
+        }
+
+        /* ---------- full screen toggle (kiosk device) ---------- */
+        // whole page goes fullscreen (not .kiosk-card) so the camera modal, toastr and Swal stay visible
+        const fsRoot = document.documentElement;
+        const fsSupported = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+
+        function fsElement() {
+            return document.fullscreenElement || document.webkitFullscreenElement || null;
+        }
+
+        if (fsSupported) {
+            $('#kiosk-fullscreen-btn').removeClass('d-none');
+
+            $('#kiosk-fullscreen-btn').on('click', function() {
+                if (fsElement()) {
+                    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                } else {
+                    const req = fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen;
+                    const p = req.call(fsRoot);
+                    // promise rejects if the browser blocks it; just put focus back
+                    if (p && p.catch) p.catch(function() { refocusScanInput(); });
+                }
+            });
+
+            // fires on button click, Esc and browser exit; body class drives the page CSS
+            $(document).on('fullscreenchange webkitfullscreenchange', function() {
+                const isFs = !!fsElement();
+                $('body').toggleClass('kiosk-fullscreen', isFs);
+                $('#kiosk-fullscreen-btn').attr('title', isFs ? 'Exit full screen' : 'Full screen');
+                refocusScanInput();
+            });
         }
     })();
 </script>
