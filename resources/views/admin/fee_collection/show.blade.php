@@ -108,7 +108,7 @@
 
 
 <div class="card radius-10">
-    <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+    <div class="card-header bg-transparent d-flex align-items-center justify-content-between fee-records-header">
         <h5 class="mb-0 text-primary">Fee Records</h5>
         @if($arrears['total'] > 0)
         <span class="badge bg-danger fs-6">
@@ -461,6 +461,38 @@
     </div>
 </div>
 @endcan
+
+@push('styles')
+<style>
+    /* Fee Records header: wrap below 768px, desktop unchanged */
+    @media (max-width: 767.98px) {
+        .fee-records-header {
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .fee-records-header > .d-flex {
+            flex-wrap: wrap;
+        }
+
+        .fee-records-header .badge {
+            white-space: normal;
+            text-align: left;
+        }
+    }
+
+    /* app.css mobile ".btn-primary" (full width, block, 8px padding) must not enlarge Generate Voucher; keep btn-sm size.
+       Same breakpoint as that app.css rule (max-width: 768px). */
+    @media (max-width: 768px) {
+        .fee-records-header .btn-primary.btn-sm {
+            width: auto;
+            display: inline-block;
+            font-size: .875rem;
+            padding: .25rem .5rem !important;
+        }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
