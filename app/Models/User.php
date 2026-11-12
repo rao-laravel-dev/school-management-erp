@@ -254,7 +254,7 @@ class User extends Authenticatable
     // User.php mein, doosre relations ke sath add karo (e.g. teacher() ke paas)
     public function qrCode()
     {
-        return $this->morphOne(\App\Models\QrCode::class, 'owner');
+        return $this->morphOne(\App\Models\QrCode::class, 'owner')->oldestOfMany();
     }
 
     public function bankDetail()

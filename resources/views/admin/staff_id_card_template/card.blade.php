@@ -59,6 +59,8 @@
         .id-card-body table td { padding: .3mm 0; text-align: left; font-size: 5pt; line-height: 1.25; vertical-align: top; color: #333; overflow-wrap: anywhere; }
         .id-card-body table td.label { font-weight: 700; width: 38%; white-space: nowrap; padding-right: 3mm; }
 
+        .id-card-footer { text-align: center; padding: 1mm 2mm; border-top: .2mm dashed #ccc; flex: 0 0 auto; font-size: 4pt; color: #666; display: flex; justify-content: space-between; }
+
         .id-card-back-header { background-color: var(--header-color); color: #fff; text-align: center; padding: 1mm; font-size: 5pt; font-weight: 700; flex: 0 0 auto; }
         .id-card-back-content {
     flex: 0 0 auto;
@@ -160,6 +162,7 @@
         }
         .id-card-back-footer .barcode-text { font-size: 3.5pt; letter-spacing: .3mm; color: #333; font-family: 'Courier New', monospace; margin-bottom: 1mm; }
         .id-card-back-footer .signature-line { margin-top: 1mm; border-top: .2mm solid #999; width: 55%; display: inline-block; padding-top: .4mm; font-size: 3.5pt; color: #333; }
+        .card-meta { width: 100%; font-size: 3pt; color: #888; display: flex; justify-content: space-between; margin-top: .8mm; }
 
         @media print {
             @page { size: A4; margin: 10mm; }
@@ -241,6 +244,11 @@
                     @endif
                 </table>
             </div>
+
+            <div class="id-card-footer">
+                <span>{{ $serialNo }}</span>
+                <span>Valid: {{ now()->format('Y') }}-{{ now()->addYear()->format('y') }}</span>
+            </div>
         </div>
 
         {{-- BACK --}}
@@ -280,10 +288,19 @@
                 <div class="barcode-text">{{ $barcodeValue }}</div>
                 @endif
                 <div class="signature-line">Principal / Authorized Signature</div>
+                <div class="card-meta">
+                    <span>Card No: {{ $serialNo }}</span>
+                    <span>Issued: {{ now()->format('d-m-Y') }}</span>
+                </div>
             </div>
         </div>
     </div>
     @endforeach
+    <script>
+    window.onload = function() {
+        window.print();
+    };
+    </script>
 </body>
 
 </html>

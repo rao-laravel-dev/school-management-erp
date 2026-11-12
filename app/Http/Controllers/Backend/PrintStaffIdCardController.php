@@ -33,7 +33,9 @@ class PrintStaffIdCardController extends Controller
         $staffMembers = User::role($role)
             ->where('status', 1)
             ->with(['teacher', 'accountant', 'receptionist', 'librarian', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'librarianWithTrashed', 'roles']) // roles: staff_code accessor N+1 se bachne ke liye
-            ->get();
+            ->get()
+            ->reject(fn ($user) => $user->isStaffTrashed()) // no card for a trashed staff profile
+            ->values(); // keep a JSON array for print.blade.php (data.length / forEach)
 
         $staff =$staffMembers->map(function ($user) {
             return [
