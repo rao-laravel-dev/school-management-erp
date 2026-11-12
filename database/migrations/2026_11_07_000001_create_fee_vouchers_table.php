@@ -34,6 +34,9 @@ return new class extends Migration
             $table->string('onebill_invoice_no')->nullable()->unique();
             $table->string('bank_reference')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            // user + time of the last regenerate/reactivate (null = never regenerated)
+            $table->foreignId('regenerated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('regenerated_at')->nullable();
             $table->timestamps();
 
             // Ek student ka ek mahine ka ek hi voucher

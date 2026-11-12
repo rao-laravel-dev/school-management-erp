@@ -240,7 +240,7 @@ class FeeVoucherService
 
             if ($voucher) {
                 // Regenerate / reactivate: same row, same voucher_no
-                $voucher->update($data + ['issue_date' => today(), 'status' => 'unpaid', 'paid_at' => null]);
+                $voucher->update($data + ['issue_date' => today(), 'status' => 'unpaid', 'paid_at' => null, 'regenerated_by' => auth()->id(), 'regenerated_at' => now()]);
 
                 return $voucher;
             }
@@ -339,7 +339,7 @@ class FeeVoucherService
     public function pdfData(Collection $vouchers): array
     {
         $vouchers = new EloquentCollection($vouchers->all()); // callers may pass collect([$voucher]); load() needs this type
-        $vouchers->load(['student.parent', 'student.enrollments.schoolClass', 'student.enrollments.section', 'bankAccount', 'createdBy']);
+        $vouchers->load(['student.parent', 'student.enrollments.schoolClass', 'student.enrollments.section', 'bankAccount', 'createdBy', 'regeneratedBy']);
 
         $rows = StudentFees::with(['feeType', 'feeAssignment'])
             ->whereIn('id', $vouchers->pluck('student_fee_ids')->flatten()->filter()->unique())

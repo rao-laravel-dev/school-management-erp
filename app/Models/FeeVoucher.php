@@ -27,6 +27,8 @@ class FeeVoucher extends Model
         'onebill_invoice_no',
         'bank_reference',
         'created_by',
+        'regenerated_by',
+        'regenerated_at',
     ];
 
     protected $casts = [
@@ -40,6 +42,7 @@ class FeeVoucher extends Model
         'amount_before_due' => 'decimal:2',
         'amount_after_due'  => 'decimal:2',
         'paid_at'           => 'datetime',
+        'regenerated_at'    => 'datetime',
     ];
 
     public function student()
@@ -60,5 +63,10 @@ class FeeVoucher extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function regeneratedBy()
+    {
+        return $this->belongsTo(User::class, 'regenerated_by');
     }
 }
