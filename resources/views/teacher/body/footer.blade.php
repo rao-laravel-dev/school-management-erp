@@ -1,4 +1,5 @@
+@php $footerSchool = ($schoolBrand->school_name ?? null) ?: 'School System'; @endphp
 <footer class="page-footer">
-			<p class="mb-0">&copy; <script>document.write(new Date().getFullYear())</script> School-Managment-System - Powered by <a href="#" target="_blank" class="text-danger fw-semibold">Web Developer Academy</a> 
+			<p class="mb-0" title="&copy; {{ now()->year }} {{ $footerSchool }} · Powered by Modern School System · Developed by Core Synergy Labs · Educational Partner: Web Developers Academy"><span class="footer-part">&copy; {{ now()->year }} {{ $footerSchool }}</span> <span class="footer-sep">·</span> <span class="footer-part">Powered by <a href="https://modernschoolsystem.com" target="_blank" rel="noopener" class="text-danger fw-semibold">Modern School System</a></span> <span class="footer-sep">·</span> <span class="footer-part"><span class="footer-label">Developed by </span><a href="https://coresynergylabs.com" target="_blank" rel="noopener" class="text-danger fw-semibold">Core Synergy Labs</a></span> <span class="footer-sep">·</span> <span class="footer-part"><span class="footer-label">Educational Partner: </span><a href="https://webdevelopersacademy.com" target="_blank" rel="noopener" class="text-danger fw-semibold">Web Developers Academy</a></span>
 </p>
 		</footer>

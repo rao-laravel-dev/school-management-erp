@@ -1,3 +1,13 @@
+  <style>
+    /* Public site footer branding: app.css is not loaded here, so the footer-part / footer-sep styles live in this partial */
+    .ftco-footer .footer-part { white-space: nowrap; }
+    .ftco-footer .footer-sep { margin: 0 .35rem; opacity: .6; }
+    @media (max-width: 767.98px) {
+        /* Phones: one footer-part per centred line, separators hidden */
+        .ftco-footer .footer-part { display: block; white-space: normal; }
+        .ftco-footer .footer-sep { display: none; }
+    }
+  </style>
   <footer class="ftco-footer ftco-bg-dark ftco-section">
             <div class="container">
                 <div class="row mb-5">
@@ -76,7 +86,8 @@
                     <div class="col-md-12 text-center">
 
                         <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                            <p class="mb-0">&copy; <script>document.write(new Date().getFullYear())</script> School-Managment-System - Powered by <a href="#" target="_blank" class="text-danger fw-semibold">Web Developer Academy</a> 
+                            @php $footerSchool = ($schoolBrand->school_name ?? null) ?: 'School System'; @endphp
+                            <p class="mb-0"><span class="footer-part">&copy; {{ now()->year }} {{ $footerSchool }}</span> <span class="footer-sep">·</span> <span class="footer-part">Powered by <a href="https://modernschoolsystem.com" target="_blank" rel="noopener" class="text-danger fw-semibold">Modern School System</a></span> <span class="footer-sep">·</span> <span class="footer-part">Developed by <a href="https://coresynergylabs.com" target="_blank" rel="noopener" class="text-danger fw-semibold">Core Synergy Labs</a></span> <span class="footer-sep">·</span> <span class="footer-part">Educational Partner: <a href="https://webdevelopersacademy.com" target="_blank" rel="noopener" class="text-danger fw-semibold">Web Developers Academy</a></span>
 </p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
                     </div>
                 </div>

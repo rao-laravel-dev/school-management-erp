@@ -73,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
             'admin.body.sidebar', 'superadmin.body.sidebar', 'teacher.body.sidebar', 'student.body.sidebar',
             'parent.body.sidebar', 'reception.body.sidebar', 'accountant.body.sidebar', 'admin.librarian.body.sidebar',
             'admin.id_card_template.card', 'admin.staff_id_card_template.card',
+            'frontend.home.body.footer',
         ], function ($view) use (&$schoolBrand) {
             if (!$schoolBrand) {
                 $schoolBrand = \App\Models\SiteSetting::current();
