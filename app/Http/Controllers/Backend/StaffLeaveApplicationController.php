@@ -36,7 +36,8 @@ class StaffLeaveApplicationController extends Controller
     // Sirf admin/superadmin sab rows dekh sakte hain
     private function canManageAllLeaves(): bool
     {
-        return auth()->user()->hasAnyRole(['admin', 'superadmin']);
+        // Admin/superadmin ya jisko manage-leave-application grant ho (route bhi isi permission par hai)
+        return auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('manage-leave-application');
     }
 
     // Non-admin sirf apni row (user_id == auth id), warna 403

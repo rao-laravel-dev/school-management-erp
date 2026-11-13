@@ -132,7 +132,7 @@
 
                         <div class="col-md-4">
                             <label for="staff_user_id" class="small fw-bold">Staff *</label>
-                            @if(auth()->user()->hasAnyRole(['admin', 'superadmin']))
+                            @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('manage-leave-application'))
                             {{-- Admin/Superadmin ke liye Select Dropdown --}}
                             <select name="user_id" id="staff_user_id" class="form-select form-select-sm @error('user_id') is-invalid @enderror">
                                 <option value="">Select Staff</option>
@@ -453,7 +453,7 @@
                 loadLeaveTypes(editData.user_id, editData.leave_type);
                 return;
             }
-            @if(auth()->user()->hasAnyRole(['admin', 'superadmin']))
+            @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('manage-leave-application'))
                 let adminSelectedId = $('#staff_user_id').val();
                 if (adminSelectedId) loadLeaveTypes(adminSelectedId);
             @else
