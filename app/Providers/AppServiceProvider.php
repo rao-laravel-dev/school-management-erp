@@ -77,6 +77,9 @@ class AppServiceProvider extends ServiceProvider
             'parent.body.sidebar', 'reception.body.sidebar', 'accountant.body.sidebar', 'admin.librarian.body.sidebar',
             'admin.id_card_template.card', 'admin.staff_id_card_template.card',
             'frontend.home.body.footer',
+            'auth.reset-password', 'auth.register', 'auth.forgot-password', 'layouts.app',
+            'card_verify.public', 'card_verify.salary_slip',
+            'admin.auth.admin_reset_password', 'admin.auth.admin_forgot_password',
         ], function ($view) use (&$schoolBrand, &$mssBrand) {
             if (!$schoolBrand) {
                 $schoolBrand = \App\Models\SiteSetting::current();

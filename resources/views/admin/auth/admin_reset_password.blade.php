@@ -6,7 +6,8 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!--favicon-->
-	<link rel="icon" href="assets/images/favicon-32x32.png" type="image/png" />
+	{{-- <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png" /> --}}
+	<link rel="icon" href="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/favicon-32x32.png')) }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}" />
 	<!--plugins-->
 	<link href="assets/plugins/simplebar/css/simplebar.css" rel="stylesheet" />
 	<link href="assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet" />
@@ -41,7 +42,8 @@
         <div class="card-body p-sm-5">
             <div class="">
                 <div class="mb-4 text-center">
-                    <img src="{{ asset('backend/assets/images/logo-icon.png') }}" width="60" alt="" />
+                    {{-- <img src="{{ asset('backend/assets/images/logo-icon.png') }}" width="60" alt="" /> --}}
+                    <img src="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/logo-icon.png')) }}" width="60" alt="" />
                 </div>
                 <div class="text-start mb-4">
                     <h5 class="">Generate New Password</h5>
