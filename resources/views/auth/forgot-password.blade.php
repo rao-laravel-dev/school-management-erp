@@ -22,7 +22,8 @@
     <link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
-    <title>Rocker</title>
+    {{-- <title>Rocker</title> --}}
+    <title>Forgot Password</title>
 </head>
 
 <body class="">

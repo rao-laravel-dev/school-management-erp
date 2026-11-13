@@ -23,7 +23,8 @@
     <link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
     <!-- 🔥 Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
-    <title>SmartSchool</title>
+    {{-- <title>SmartSchool</title> --}}
+    <title>Receptionist Login</title>
 </head>
 
 <body class="">

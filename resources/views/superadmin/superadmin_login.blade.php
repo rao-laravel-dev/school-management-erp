@@ -22,7 +22,8 @@
     <link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
-    <title>Admin Login</title>
+    {{-- <title>Admin Login</title> --}}
+    <title>Superadmin Login</title>
 </head>
 
 <body class="">

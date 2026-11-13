@@ -20,7 +20,8 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
 	<link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
-	<title>Rocker - Bootstrap 5 Admin Dashboard Template</title>
+	{{-- <title>Rocker - Bootstrap 5 Admin Dashboard Template</title> --}}
+	<title>Login</title>
 </head>
 
 <body class="">
