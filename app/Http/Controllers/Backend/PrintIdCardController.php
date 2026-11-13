@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use App\Models\Enrollment;
 use App\Models\IdCardTemplate;
 use App\Models\SchoolClass;
@@ -76,7 +77,16 @@ class PrintIdCardController extends Controller
             ->whereHas('student') // soft-deleted student ka card nahi banta
             ->get();
 
-        return view('admin.id_card_template.card', compact('template', 'enrollments'));
+        // Card "Valid" = active session ki dates (enrollment ka session nahi); null = view purana now() wala value dikhaye
+        $activeYear = AcademicYear::where('is_current', 1)->first(['start_date', 'end_date']);
+        $validSession = null;
+        if ($activeYear && $activeYear->start_date && $activeYear->end_date) {
+            $validSession = $activeYear->start_date->format('Y') === $activeYear->end_date->format('Y')
+                ? $activeYear->start_date->format('Y')
+                : $activeYear->start_date->format('Y') . '-' . $activeYear->end_date->format('y');
+        }
+
+        return view('admin.id_card_template.card', compact('template', 'enrollments', 'validSession'));
     }
     
 }

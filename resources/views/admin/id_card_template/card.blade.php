@@ -486,7 +486,8 @@
 
             <div class="id-card-footer">
                 <span>{{ $serialNo }}</span>
-                <span>Valid: {{ now()->format('Y') }}-{{ now()->addYear()->format('y') }}</span>
+                {{-- <span>Valid: {{ now()->format('Y') }}-{{ now()->addYear()->format('y') }}</span> --}}
+                <span>Valid: {{ !empty($validSession) ? $validSession : now()->format('Y') . '-' . now()->addYear()->format('y') }}</span>
             </div>
         </div>
 
