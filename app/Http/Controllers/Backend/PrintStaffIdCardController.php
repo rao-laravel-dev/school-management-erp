@@ -34,6 +34,8 @@ class PrintStaffIdCardController extends Controller
         $staffMembers = User::role($role)
             ->where('status', 1)
             ->with(['teacher', 'accountant', 'receptionist', 'librarian', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'librarianWithTrashed', 'roles']) // roles: staff_code accessor N+1 se bachne ke liye
+            // old: (no orderBy, oldest first)
+            ->orderByDesc('users.id') // newest registered first, same as student list
             ->get()
             ->reject(fn ($user) => $user->isStaffTrashed()) // no card for a trashed staff profile
             ->values(); // keep a JSON array for print.blade.php (data.length / forEach)
@@ -63,6 +65,8 @@ class PrintStaffIdCardController extends Controller
         $staffMembers = User::whereIn('id', $request->staff_ids)
             ->withoutSuperadmin()
             ->with(['teacher', 'accountant', 'receptionist', 'librarian', 'teacherWithTrashed', 'accountantWithTrashed', 'receptionistWithTrashed', 'librarianWithTrashed', 'roles'])
+            // old: (no orderBy, oldest first)
+            ->orderByDesc('users.id') // printed cards follow the list order (newest first)
             ->get();
 
         // Card "Valid" = active session ki dates; null = view purana now() wala value dikhaye

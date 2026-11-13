@@ -43,6 +43,7 @@ class PrintIdCardController extends Controller
             ->where('section_id', $sectionId)
             ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // promote ke baad purane saal ki row na aaye
             ->whereHas('student') // soft-deleted student wali enrollment skip (warna null crash)
+            ->orderByDesc('student_id') // naya registered student sab se upar (students.id = registration order)
             ->get();
 
         $students = $enrollments->map(function ($enrollment) {
@@ -75,6 +76,7 @@ class PrintIdCardController extends Controller
             ->whereIn('id', $request->enrollment_ids)
             ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // purane saal ki enrollment ka card nahi banta
             ->whereHas('student') // soft-deleted student ka card nahi banta
+            ->orderByDesc('student_id') // print order = list order (newest registered first)
             ->get();
 
         // Card "Valid" = active session ki dates (enrollment ka session nahi); null = view purana now() wala value dikhaye
