@@ -309,6 +309,7 @@
             'att_scan', 'staff_att_mark', 'att_report', 'staff_att_report',
             'exam_schedule', 'result', 'print_marksheet', 'design_marksheet', 'print_report_card',
             'id_print', 'staff_id_print',
+            'marksheet', 'id_design', 'staff_id_design',
         ]])
 
         {{-- Logout (hamesha last) --}}

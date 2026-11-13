@@ -167,6 +167,7 @@
 			'att_mark', 'att_scan', 'att_report',
 			'class_timetable', 'home_work',
 			'marksheet', 'result', 'print_marksheet',
+			'students_list',
 		]])
 
 		{{-- Logout (hamesha last) --}}

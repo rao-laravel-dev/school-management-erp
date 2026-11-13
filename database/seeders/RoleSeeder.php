@@ -167,33 +167,34 @@ class RoleSeeder extends Seeder
             'access-rooms',
             'manage-rooms',
             'access-teacher-timetable',
-            'access-lessons',
-            'access-topics',
-            'access-lesson-plans',
-            'access-copy-old-lessons',
-            'access-syllabus-status',
-            'access-exam-types',
-            'access-exams',
+            // Receptionist pages use none of these (extra admin modules removed from defaults):
+            // 'access-lessons',
+            // 'access-topics',
+            // 'access-lesson-plans',
+            // 'access-copy-old-lessons',
+            // 'access-syllabus-status',
+            // 'access-exam-types',
+            // 'access-exams',
             'access-exam-schedules',
-            'access-marks-grades',
+            // 'access-marks-grades',
             'access-marksheets',
             'access-marksheet-templates',
             'manage-marksheet-templates',
-            'access-skill-categories',       // web.php
-            'access-skill-assessment-areas', // web.php
-            'access-skill-assessment-entry', // web.php
-            'access-report-card-template',   // web.php
+            // 'access-skill-categories',       // web.php
+            // 'access-skill-assessment-areas', // web.php
+            // 'access-skill-assessment-entry', // web.php
+            // 'access-report-card-template',   // web.php
             'access-print-report-card',      // web.php
             'access-results',
-            'access-site-settings',
-            'access-school-timing',             // web.php          
+            // 'access-site-settings',
+            'access-school-timing',             // web.php
             'access-id-card-templates',
-            'manage-id-card-templates',
+            // 'manage-id-card-templates',      // sidebar only prints ID cards, no design
             'access-staff-id-card-templates',
             'access-teacher',
             'access-teacher',
             'access-teacher-assignment',
-            'access-accountant',
+            // 'access-accountant',
             'access-students',
             'admit-students',               // web.php students.create/store/edit/update
             'access-student-categories',
@@ -219,31 +220,32 @@ class RoleSeeder extends Seeder
             'access-receptionist',
             'access-teacher',
             'access-students',
-            'access-student-categories',
-            'access-student-houses',
+            // Accountant pages use none of these (extra admin modules removed from defaults):
+            // 'access-student-categories',
+            // 'access-student-houses',
             'access-attendance',
-            'access-class-timetable',
-            'access-lessons',
-            'access-topics',
-            'access-lesson-plans',
-            'access-copy-old-lessons',
-            'access-syllabus-status',
-            'access-exam-types',
-            'access-exams',
-            'access-exam-schedules',
-            'access-marks-grades',
-            'access-marksheets',
-            'access-marksheet-templates',
-            'access-skill-categories',          // web.php
-            'access-skill-assessment-areas',    // web.php
-            'access-skill-assessment-entry',    // web.php
-            'access-report-card-template',      // web.php
-            'access-print-report-card',         // web.php
-            'access-results',
-            'access-site-settings',
-            'access-school-timing',             // web.php          
-            'access-id-card-templates',
-            'access-staff-id-card-templates',
+            // 'access-class-timetable',
+            // 'access-lessons',
+            // 'access-topics',
+            // 'access-lesson-plans',
+            // 'access-copy-old-lessons',
+            // 'access-syllabus-status',
+            // 'access-exam-types',
+            // 'access-exams',
+            // 'access-exam-schedules',
+            // 'access-marks-grades',
+            // 'access-marksheets',
+            // 'access-marksheet-templates',
+            // 'access-skill-categories',          // web.php
+            // 'access-skill-assessment-areas',    // web.php
+            // 'access-skill-assessment-entry',    // web.php
+            // 'access-report-card-template',      // web.php
+            // 'access-print-report-card',         // web.php
+            // 'access-results',
+            // 'access-site-settings',
+            // 'access-school-timing',             // web.php
+            // 'access-id-card-templates',
+            // 'access-staff-id-card-templates',
             'access-leave-application',
             'access-fee-structures',
             'access-fee-collections',
@@ -292,8 +294,8 @@ class RoleSeeder extends Seeder
         Role::findByName('teacher', 'web')->givePermissionTo([
             'view dashboard',
             'access-students',
-            'access-student-categories',
-            'access-student-houses',
+            // 'access-student-categories',    // teacher pages do not use
+            // 'access-student-houses',        // teacher pages do not use
             'access-attendance',
             'mark-attendance',
             'access-scan-attendance',       // web.php attendance.scan* (own class students only, controller scope)
@@ -304,22 +306,23 @@ class RoleSeeder extends Seeder
             'manage-home-works',
             'access-class-timetable',
             'access-my-timetable',          // web.php Teacher view only permission
-            'access-lessons',
-            'manage-lessons',
-            'access-topics',
-            'manage-topics',
-            'access-lesson-plans',
+            // Teacher uses own portal routes (teacher.lesson_plan.*, teacher.exam_schedule.*); admin ones removed from defaults:
+            // 'access-lessons',
+            // 'manage-lessons',
+            // 'access-topics',
+            // 'manage-topics',
+            // 'access-lesson-plans',
             'access-my-lesson-plan',        // web.php Teacher view only permission
-            'access-copy-old-lessons',
+            // 'access-copy-old-lessons',
             'access-my-syllabus-status',    // web.php Teacher view only permission
-            'access-exam-types',
-            'access-exams',
-            'access-exam-schedules',
+            // 'access-exam-types',
+            // 'access-exams',
+            // 'access-exam-schedules',
             'access-my-exam-schedule',          // web.php Teacher k liye permission only
-            'access-marks-grades',
+            // 'access-marks-grades',
             'access-marksheets',
             'manage-marksheets',            // marks save (controller still checks class_timetables)
-            'access-marksheet-templates',
+            // 'access-marksheet-templates',
             'access-results',
             'access-leave-application',
             'view school-notices',
