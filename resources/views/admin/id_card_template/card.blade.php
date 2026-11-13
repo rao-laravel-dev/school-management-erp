@@ -113,20 +113,30 @@
         }
 
         /* Horizontal: photo left, details right | Vertical: photo top, details below */
+        /* old: .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; flex-direction: row; gap: 2mm; } */
         .id-card-body {
-            padding: 1.5mm 2mm;
+            padding: 1.5mm 3mm;
             font-size: 5.5pt;
             flex: 1 1 auto;
             overflow: hidden;
             display: flex;
             align-items: center;
+            justify-content: center;
             flex-direction: row;
-            gap: 2mm;
+            /* old: gap: 3mm; */
+            /* old: gap: 5mm; */
+            gap: 7mm;
         }
 
+        /* old: .id-card.vertical .id-card-body { flex-direction: column; align-items: center; } */
         .id-card.vertical .id-card-body {
             flex-direction: column;
             align-items: center;
+            /* old: justify-content: flex-start; */
+            justify-content: safe center;
+            padding: 2.5mm 3mm 1.5mm;
+            /* old: gap: 2mm; */
+            gap: 4mm;
         }
 
         .id-card-body .photo {
@@ -141,12 +151,24 @@
             border-radius: 1mm;
             border: .2mm solid #ddd;
             display: block;
+            /* old: (no padding / background / box-sizing) */
+            padding: .6mm;
+            background: #fff;
+            box-sizing: border-box;
         }
 
+        /* old: .id-card-body table { width: 100%; text-align: left; border-collapse: collapse; } */
         .id-card-body table {
-            width: 100%;
+            flex: 0 1 auto;
+            width: auto;
+            max-width: 100%;
+            min-width: 0;
             text-align: left;
             border-collapse: collapse;
+        }
+
+        .id-card.vertical .id-card-body table {
+            flex: 0 0 auto;
         }
 
         .id-card-body table td {
@@ -156,12 +178,25 @@
             line-height: 1.25;
             vertical-align: top;
             color: #333;
+            overflow-wrap: anywhere;
         }
 
+        /* old: .id-card-body table td.label { font-weight: 700; width: 38%; white-space: nowrap; } */
         .id-card-body table td.label {
             font-weight: 700;
-            width: 38%;
+            width: auto;
             white-space: nowrap;
+            /* old: padding-right: 3mm; then 5mm; */
+            padding-right: 7mm;
+        }
+
+        /* Vertical only: wider label gap + a little row spacing */
+        .id-card.vertical .id-card-body table td {
+            padding: .7mm 0;
+        }
+
+        .id-card.vertical .id-card-body table td.label {
+            padding-right: 8mm;
         }
 
         .id-card-footer {

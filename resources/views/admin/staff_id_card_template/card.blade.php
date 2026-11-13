@@ -51,13 +51,29 @@
     color: #fff;
 }
 
-        .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 4mm; }
-        .id-card.vertical .id-card-body { flex-direction: column; align-items: center; gap: 2mm; }
+        /* old: .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 4mm; } */
+        /* old: .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; flex-direction: row; gap: 2mm; } */
+        /* old: .id-card-body { padding: 1.5mm 3mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 3mm; } */
+        /* old: .id-card-body { padding: 1.5mm 3mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 5mm; } */
+        .id-card-body { padding: 1.5mm 3mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 7mm; }
+        /* old: .id-card.vertical .id-card-body { flex-direction: column; align-items: center; gap: 2mm; } */
+        /* old: .id-card.vertical .id-card-body { flex-direction: column; align-items: center; justify-content: flex-start; padding: 2.5mm 3mm 1.5mm; gap: 2mm; } */
+        .id-card.vertical .id-card-body { flex-direction: column; align-items: center; justify-content: safe center; padding: 2.5mm 3mm 1.5mm; gap: 4mm; }
         .id-card-body .photo { flex: 0 0 auto; text-align: center; }
-        .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid #ddd; display: block; }
-        .id-card-body table { width: auto; max-width: 100%; text-align: left; border-collapse: collapse; }
+        /* old: .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid #ddd; display: block; } */
+        .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid #ddd; display: block; padding: .6mm; background: #fff; box-sizing: border-box; }
+        /* old: .id-card-body table { width: auto; max-width: 100%; text-align: left; border-collapse: collapse; } */
+        /* old: .id-card-body table { width: 100%; max-width: 100%; text-align: left; border-collapse: collapse; } */
+        .id-card-body table { flex: 0 1 auto; width: auto; max-width: 100%; min-width: 0; text-align: left; border-collapse: collapse; }
+        .id-card.vertical .id-card-body table { flex: 0 0 auto; }
         .id-card-body table td { padding: .3mm 0; text-align: left; font-size: 5pt; line-height: 1.25; vertical-align: top; color: #333; overflow-wrap: anywhere; }
-        .id-card-body table td.label { font-weight: 700; width: 38%; white-space: nowrap; padding-right: 3mm; }
+        /* old: .id-card-body table td.label { font-weight: 700; width: 38%; white-space: nowrap; padding-right: 3mm; } */
+        /* old: .id-card-body table td.label { font-weight: 700; width: auto; white-space: nowrap; padding-right: 3mm; } */
+        /* old: .id-card-body table td.label { font-weight: 700; width: auto; white-space: nowrap; padding-right: 5mm; } */
+        .id-card-body table td.label { font-weight: 700; width: auto; white-space: nowrap; padding-right: 7mm; }
+        /* Vertical only: wider label gap + a little row spacing */
+        .id-card.vertical .id-card-body table td { padding: .7mm 0; }
+        .id-card.vertical .id-card-body table td.label { padding-right: 8mm; }
 
         .id-card-footer { text-align: center; padding: 1mm 2mm; border-top: .2mm dashed #ccc; flex: 0 0 auto; font-size: 4pt; color: #666; display: flex; justify-content: space-between; }
 
