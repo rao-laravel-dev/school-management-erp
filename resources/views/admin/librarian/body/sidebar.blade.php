@@ -99,6 +99,11 @@
 		</li>
 		@endcanany
 
+		{{-- Admin ne jo modules grant kiye (jo is sidebar mein pehle se nahi), @can ke saath --}}
+		@include('admin.body.partials.granted_modules', ['skip' => [
+			'lib_categories', 'lib_books', 'lib_issue', 'lib_settings', 'lib_members',
+		]])
+
 		{{-- Logout (hamesha last) --}}
 		<li>
 			<a href="{{ route('librarian.logout') }}">

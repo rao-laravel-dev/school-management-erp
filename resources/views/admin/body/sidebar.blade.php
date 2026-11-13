@@ -439,7 +439,10 @@
         </li>
         @endif
 
+        {{-- Purana outer @if (Fee Collect / Fee Reports / Bank Accounts ki permission shamil nahi thi):
         @if(auth()->user()->can('access-fee-types') || auth()->user()->can('access-fee-structures') || auth()->user()->can('access-discount-policies') || auth()->user()->can('access-fine-policies') || auth()->user()->can('access-billing-settings') || auth()->user()->can('access-fee-assignments') || auth()->user()->can('access-expense-categories') || auth()->user()->can('access-expenses'))
+        --}}
+        @if(auth()->user()->can('access-fee-types') || auth()->user()->can('access-fee-structures') || auth()->user()->can('access-fee-collections') || auth()->user()->can('manage-fee-collections') || auth()->user()->can('access-bank-accounts') || auth()->user()->can('access-discount-policies') || auth()->user()->can('access-fine-policies') || auth()->user()->can('access-billing-settings') || auth()->user()->can('access-fee-assignments') || auth()->user()->can('access-expense-categories') || auth()->user()->can('access-expenses'))
         @php $open = request()->routeIs('fee_types.*', 'fee_structure.*', 'fee_assignments.*', 'fees.*', 'bank_accounts.*', 'discount_policies.*', 'fine_policies.*', 'billing_settings.*', 'expense_categories.*', 'expenses.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
@@ -451,6 +454,7 @@
                 <li class="{{ request()->routeIs('fee_types.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_types.index') }}"><i class='bx bx-radio-circle'></i>Fee Type</a></li>
                 @endcan
 
+                {{-- Purana block: Fee Collect / Assign / Reports / Bank sab access-fee-structures ke andar the (routes ki apni permission hai):
                 @can('access-fee-structures')
                 <li class="{{ request()->routeIs('fee_structure.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_structure.index') }}"><i class='bx bx-radio-circle'></i>Fee Structure</a></li>
                 <li class="{{ request()->routeIs('fees.collect.index', 'fees.collect.show', 'fees.collect.receipt') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.index') }}"><i class='bx bx-radio-circle'></i>Collect Fees</a></li>
@@ -458,6 +462,23 @@
                 <li class="{{ request()->routeIs('fee_assignments.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_assignments.index') }}"><i class='bx bx-radio-circle'></i>Assign Fee</a></li>
                 @endcan
                 <li class="{{ request()->routeIs('fees.collect.report') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.report') }}"><i class='bx bx-radio-circle'></i>Fee Reports</a></li>
+                <li class="{{ request()->routeIs('bank_accounts.*') ? 'mm-active' : '' }}"><a href="{{ route('bank_accounts.index') }}"><i class='bx bx-radio-circle'></i>Bank Accounts</a></li>
+                @endcan
+                --}}
+                @can('access-fee-structures')
+                <li class="{{ request()->routeIs('fee_structure.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_structure.index') }}"><i class='bx bx-radio-circle'></i>Fee Structure</a></li>
+                @endcan
+                @can('access-fee-collections')
+                <li class="{{ request()->routeIs('fees.collect.index', 'fees.collect.show', 'fees.collect.receipt') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.index') }}"><i class='bx bx-radio-circle'></i>Collect Fees</a></li>
+                @endcan
+                @can('access-fee-assignments')
+                <li class="{{ request()->routeIs('fee_assignments.*') ? 'mm-active' : '' }}"><a href="{{ route('fee_assignments.index') }}"><i class='bx bx-radio-circle'></i>Assign Fee</a></li>
+                @endcan
+                {{-- Fee Reports route (fees.collect.report) manage-fee-collections maangta hai --}}
+                @can('manage-fee-collections')
+                <li class="{{ request()->routeIs('fees.collect.report') ? 'mm-active' : '' }}"><a href="{{ route('fees.collect.report') }}"><i class='bx bx-radio-circle'></i>Fee Reports</a></li>
+                @endcan
+                @can('access-bank-accounts')
                 <li class="{{ request()->routeIs('bank_accounts.*') ? 'mm-active' : '' }}"><a href="{{ route('bank_accounts.index') }}"><i class='bx bx-radio-circle'></i>Bank Accounts</a></li>
                 @endcan
 

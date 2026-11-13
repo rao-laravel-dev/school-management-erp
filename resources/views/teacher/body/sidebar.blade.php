@@ -162,6 +162,13 @@
 			</ul>
 		</li>
 		@endcanany
+		{{-- Admin ne jo modules grant kiye (jo is sidebar mein pehle se nahi), @can ke saath --}}
+		@include('admin.body.partials.granted_modules', ['skip' => [
+			'att_mark', 'att_scan', 'att_report',
+			'class_timetable', 'home_work',
+			'marksheet', 'result', 'print_marksheet',
+		]])
+
 		{{-- Logout (hamesha last) --}}
 		<li>
 			<a href="{{ route('teacher.logout') }}">

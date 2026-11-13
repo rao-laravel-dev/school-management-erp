@@ -120,7 +120,9 @@
         </li>
         @endcanany
 
-        @can('access-academics')
+        {{-- @can('access-academics') --}}
+        {{-- Parent ab apne bachon ki permissions par: sirf access-rooms (ya timetable / school timing) milne par bhi dikhe --}}
+        @canany(['access-academics', 'access-class-timetable', 'access-teacher-timetable', 'access-rooms', 'access-school-timing'])
         @php $open = request()->routeIs('classes.*', 'sections.*', 'groups.*', 'subjects.*', 'school-class-subjects.*', 'academic_years.*', 'class_timetable.*', 'teacher_timetable.*', 'rooms.*', 'school_timing.*', 'academic_calendar.*', 'event_type.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
@@ -128,6 +130,7 @@
                 <div class="menu-title">Academics</div>
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
+                @can('access-academics')
                 {{-- Classes --}}
                 @php $subOpen = request()->routeIs('classes.*'); @endphp
                 <li class="{{ $subOpen ? 'mm-active' : '' }}">
@@ -179,6 +182,7 @@
 
                 {{-- Academic Year --}}
                 <li class="{{ request()->routeIs('academic_years.*') ? 'mm-active' : '' }}"><a href="{{ route('academic_years.index') }}"><i class='bx bx-radio-circle'></i>Academic Year</a></li>
+                @endcan
 
                 {{-- TimeTable --}}
                 @canany(['access-class-timetable', 'access-teacher-timetable'])
@@ -207,6 +211,7 @@
                 @endcan
 
                 {{-- Academic Calendar --}}
+                @can('access-academics')
                 @php $subOpen = request()->routeIs('academic_calendar.*', 'event_type.*'); @endphp
                 <li class="{{ $subOpen ? 'mm-active' : '' }}">
                     <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Academic Calendar</a>
@@ -215,9 +220,11 @@
                         <li class="{{ request()->routeIs('event_type.*') ? 'mm-active' : '' }}"><a href="{{ route('event_type.index') }}"><i class='bx bx-right-arrow-alt'></i>Holiday</a></li>
                     </ul>
                 </li>
+                @endcan
             </ul>
         </li>
-        @endcan
+        {{-- @endcan --}}
+        @endcanany
 
         {{-- Examination --}}
         @canany(['access-exam-schedules', 'access-results', 'access-marksheets', 'access-marksheet-templates', 'access-print-report-card'])
@@ -293,6 +300,16 @@
             </ul>
         </li>
         @endcanany
+
+        {{-- Admin ne jo modules grant kiye (jo is sidebar mein pehle se nahi), @can ke saath --}}
+        @include('admin.body.partials.granted_modules', ['skip' => [
+            'sec_academics', 'sec_front_office', 'school_timing',
+            'students_list', 'student_admit', 'student_category', 'student_house',
+            'all_teachers', 'teacher_add', 'assign_list', 'assign_create',
+            'att_scan', 'staff_att_mark', 'att_report', 'staff_att_report',
+            'exam_schedule', 'result', 'print_marksheet', 'design_marksheet', 'print_report_card',
+            'id_print', 'staff_id_print',
+        ]])
 
         {{-- Logout (hamesha last) --}}
         <li>

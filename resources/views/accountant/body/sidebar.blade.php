@@ -156,6 +156,15 @@
         </li>
         @endcanany
 
+        {{-- Admin ne jo modules grant kiye (jo is sidebar mein pehle se nahi), @can ke saath --}}
+        @include('admin.body.partials.granted_modules', ['skip' => [
+            'fee_collect', 'fee_report', 'fee_structure', 'fee_types', 'discount_policies',
+            'bank_accounts', 'expense_categories', 'expenses',
+            'salary_slips', 'staff_att_report',
+            'receptionist_list', 'all_teachers', 'students_list',
+            'finance_report', 'att_report',
+        ]])
+
         {{-- Logout (hamesha last) --}}
         <li>
             <a href="{{ route('accountant.logout') }}">
