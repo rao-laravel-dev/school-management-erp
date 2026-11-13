@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FeeApiController;
+use App\Http\Controllers\Api\FeeVoucherApiController;
 use App\Http\Middleware\EnsureApiUserIsActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,18 @@ Route::middleware(['auth:sanctum', EnsureApiUserIsActive::class, 'throttle:60,1'
             });
         });
     });
+
+    // Portal fee vouchers (read-only, own data only; portal permissions, not admin fee permission)
+    Route::prefix('parent/fees')->name('api.parent.fees.')->middleware('can:access-parent-fees')
+        ->controller(FeeVoucherApiController::class)->group(function () {
+            Route::get('/vouchers', 'parentVouchers')->name('vouchers');
+            Route::get('/vouchers/{voucher}/pdf', 'parentVoucherPdf')->whereNumber('voucher')->name('vouchers.pdf');
+        });
+    Route::prefix('student/fees')->name('api.student.fees.')->middleware('can:access-student-fees')
+        ->controller(FeeVoucherApiController::class)->group(function () {
+            Route::get('/vouchers', 'studentVouchers')->name('vouchers');
+            Route::get('/vouchers/{voucher}/pdf', 'studentVoucherPdf')->whereNumber('voucher')->name('vouchers.pdf');
+        });
 
     // 👇 Fee API routes yahan aage add karenge
 });
