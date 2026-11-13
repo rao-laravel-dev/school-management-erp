@@ -14,13 +14,30 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
 
-        $user = User::where('email', $request->email)->first();
+        // $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Auth::guard('web')->attempt([
-            'email'    => $request->email,
-            'password' => $request->password,
-        ])) {
+        // if (! $user || ! Auth::guard('web')->attempt([
+        //     'email'    => $request->email,
+        //     'password' => $request->password,
+        // ])) {
+        //     return response()->json(['message' => 'Invalid credentials.'], 401);
+        // }
+
+        // Web login jaisa: email ya username (student admission no / parent CNIC); validate() session nahi banata
+        $isEmail     = filter_var($request->email, FILTER_VALIDATE_EMAIL);
+        $credentials = $isEmail
+            ? ['email' => $request->email, 'password' => $request->password]
+            : ['username' => $request->email, 'password' => $request->password];
+
+        if (! Auth::guard('web')->validate($credentials)) {
             return response()->json(['message' => 'Invalid credentials.'], 401);
+        }
+
+        $user = Auth::guard('web')->getLastAttempted();
+
+        // Staff (student/parent ke ilawa) sirf email se login karega
+        if (! $isEmail && ! $user->hasAnyRole(['student', 'parent'])) {
+            return response()->json(['message' => 'Staff must log in with email.'], 403);
         }
 
         // Web login jaisa status check: inactive/pending/role-disabled/school-locked/trashed user ko token nahi milta

@@ -20,7 +20,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'    => 'required|email',
+            // 'email'    => 'required|email',
+            'email'    => 'required|string', // email, ya student/parent ke liye admission no / CNIC (web login jaisa)
             'password' => 'required|string',
         ];
     }
@@ -32,7 +33,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email.required'    => 'Email address is required.',
-            'email.email'       => 'Please enter a valid email address.',
+            // 'email.email'       => 'Please enter a valid email address.',
             'password.required' => 'Password is required.',
         ];
     }
