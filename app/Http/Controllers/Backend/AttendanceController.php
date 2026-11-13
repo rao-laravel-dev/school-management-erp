@@ -1186,7 +1186,8 @@ class AttendanceController extends Controller
             return null;
         }
         if ($role !== 'teacher') {
-            return collect();
+            // Non-teacher role ko access-attendance grant ho to sab classes (read-only report), warna khali
+            return $user->can('access-attendance') ? null : collect();
         }
 
         $teacher = Teacher::where('user_id', $user->id)->first();
