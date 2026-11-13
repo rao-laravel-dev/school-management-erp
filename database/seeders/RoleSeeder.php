@@ -26,8 +26,11 @@ class RoleSeeder extends Seeder
         // 3. SuperAdmin (SAB KUCH - syncPermissions purani hata kar nayi update karega)
         Role::findByName('superadmin', 'web')->syncPermissions(Permission::all());
 
+        // Roles below use givePermissionTo (additive): grants made from the Role Permissions pages survive a re-run.
+        // A seeder-intended removal needs an explicit revokePermissionTo([...]) line.
+
         // 4. Admin
-        Role::findByName('admin', 'web')->syncPermissions([
+        Role::findByName('admin', 'web')->givePermissionTo([
             'view dashboard',
             'access-academics',
             'manage-academics',
@@ -157,7 +160,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // 5. Receptionist
-        Role::findByName('receptionist', 'web')->syncPermissions([
+        Role::findByName('receptionist', 'web')->givePermissionTo([
             'view dashboard',
             'access-academics',
             'access-class-timetable',
@@ -211,7 +214,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // 6. Accountant
-        Role::findByName('accountant', 'web')->syncPermissions([
+        Role::findByName('accountant', 'web')->givePermissionTo([
             'view dashboard',
             'access-receptionist',
             'access-teacher',
@@ -266,7 +269,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // 6b. Librarian (portal sidebar: library + own attendance/leave/salary)
-        Role::findByName('librarian', 'web')->syncPermissions([
+        Role::findByName('librarian', 'web')->givePermissionTo([
             'view dashboard',
             'access-book-categories',
             'manage-book-categories',
@@ -286,7 +289,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // 7. Teacher
-        Role::findByName('teacher', 'web')->syncPermissions([
+        Role::findByName('teacher', 'web')->givePermissionTo([
             'view dashboard',
             'access-students',
             'access-student-categories',
@@ -324,7 +327,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // 8. Parent
-        Role::findByName('parent', 'web')->syncPermissions([
+        Role::findByName('parent', 'web')->givePermissionTo([
             'view dashboard',
             'access-parent-timetable', // parent portal: selected child's class timetable (read-only)
             'access-parent-homework',  // parent portal: selected child's homework (read-only)
@@ -336,7 +339,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // 9. Student
-        Role::findByName('student', 'web')->syncPermissions([
+        Role::findByName('student', 'web')->givePermissionTo([
             'view dashboard',
             'access-student-academics',   // student portal only (admin access-academics removed)
             'access-student-attendance',  // student portal only (admin access-attendance removed)
@@ -349,6 +352,6 @@ class RoleSeeder extends Seeder
         ]);
 
         // 10. User (Default)
-        Role::findByName('user', 'web')->syncPermissions(['view dashboard']);
+        Role::findByName('user', 'web')->givePermissionTo(['view dashboard']);
     }
 }

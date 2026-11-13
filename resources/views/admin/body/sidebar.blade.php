@@ -25,6 +25,26 @@
         </li>
         @endrole
 
+        {{-- Role permissions: superadmin edits the admin role, admin edits the roles under admin --}}
+        @role('superadmin')
+        <li>
+            <a href="{{ route('superadmin.roles.edit', 'admin') }}">
+                <div class="parent-icon"><i class='bx bx-lock'></i></div>
+                <div class="menu-title">Admin Permissions</div>
+            </a>
+        </li>
+        @endrole
+        @can('view roles')
+        @if (!Auth::user()->isSuperAdmin())
+        <li>
+            <a href="{{ route('admin.roles.edit') }}">
+                <div class="parent-icon"><i class='bx bx-lock-open'></i></div>
+                <div class="menu-title">Role Permissions</div>
+            </a>
+        </li>
+        @endif
+        @endcan
+
         @can('access-receptionist')
         @php $open = request()->routeIs('receptionist.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">

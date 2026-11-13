@@ -128,6 +128,12 @@ Route::middleware(['auth', 'role:admin|superadmin'])->prefix('admin')->name('adm
         Route::get('/change/password', 'AdminChangePassword')->name('change.password');
         Route::post('/password/update', 'AdminPasswordUpdate')->name('password.update');
     });
+
+    // ROLE PERMISSIONS (admin grants/revokes permissions for the roles under admin; {id} = role name)
+    Route::controller(RoleController::class)->group(function () {
+        Route::get('/role-permissions/{id?}', 'EditRole')->middleware('can:view roles')->name('roles.edit');
+        Route::post('/role-permissions/{id}', 'UpdateRole')->middleware('can:edit roles')->name('roles.update');
+    });
 });
 //ADMIN LOGIN 
 Route::get('admin/login', [AdminController::class, 'AdminLogin'])->name('admin.login');
