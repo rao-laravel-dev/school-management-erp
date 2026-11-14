@@ -161,3 +161,119 @@ $(function() {
 	
 	
 });
+
+// Header search: filters the current user's own sidebar links (already permission-filtered)
+(function ($) {
+	$(function () {
+		"use strict";
+		var $modal = $('#SearchModal');
+		if (!$modal.length) return;
+
+		var $input = $modal.find('input[type=search]');
+		var $list = $modal.find('.search-list');
+		var items = null;
+		var results = [];
+		var peopleResults = []; // placeholder: students/staff section will fill this later
+
+		// compact look: small input and smaller result rows (scoped to #SearchModal)
+		$input.removeClass('form-control-lg').addClass('form-control-sm');
+		$modal.find('.search-show').removeClass('fs-4').addClass('fs-5');
+		$('<style></style>').text('#SearchModal .search-list .list-group-item { padding: .35rem .75rem; font-size: .875rem; } #SearchModal .search-list small { font-size: .75rem; } #SearchModal input.is-invalid { border-color: #dc3545 !important; box-shadow: 0 0 0 .2rem rgba(220,53,69,.25); background-image: none; }').appendTo('head');
+		var active = -1;
+
+		function buildIndex() {
+			var seen = {};
+			items = [];
+			$('#menu a[href]').each(function () {
+				var $a = $(this);
+				var href = ($a.attr('href') || '').trim();
+				var low = href.toLowerCase();
+				if (!href || href === '#' || low.indexOf('javascript:') === 0 || low.indexOf('logout') !== -1) return;
+				if ($a.closest('form').length || seen[href]) return;
+				var label = $.trim($a.find('.menu-title').text() || $a.text());
+				if (!label) return;
+				var group = $.trim($a.closest('ul').siblings('a.has-arrow').find('.menu-title').text());
+				seen[href] = true;
+				items.push({
+					href: href,
+					label: label,
+					group: group,
+					icon: $a.find('i').first().attr('class') || 'bx bx-link',
+					key: (label + ' ' + group).toLowerCase()
+				});
+			});
+		}
+
+		function message(text) {
+			$list.empty().append($('<div class="text-muted"></div>').text(text));
+		}
+
+		function setActive(i) {
+			var $els = $list.find('.list-group-item');
+			if (!$els.length) return;
+			active = (i + $els.length) % $els.length;
+			// group text inherits the row colour (white on .active); only its opacity changes
+			$els.removeClass('active').find('small').css('opacity', '.65');
+			var $cur = $els.eq(active).addClass('active');
+			$cur.find('small').css('opacity', '.9');
+			$cur[0].scrollIntoView({ block: 'nearest' });
+		}
+
+		// danger state: query typed but nothing found anywhere (pages and, later, people)
+		function updateDanger() {
+			var q = $.trim($input.val());
+			$input.toggleClass('is-invalid', !!q && !results.length && !peopleResults.length);
+		}
+
+		function render() {
+			render_();
+			updateDanger();
+		}
+
+		function render_() {
+			var q = $.trim($input.val()).toLowerCase();
+			active = -1;
+			if (!q) { results = []; message('Type to search pages...'); return; }
+			if (!items) buildIndex();
+			results = $.grep(items, function (it) { return it.key.indexOf(q) !== -1; }).slice(0, 15);
+			if (!results.length) { message('No matching pages'); return; }
+			var $group = $('<div class="list-group"></div>');
+			$.each(results, function (_, it) {
+				var $row = $('<a class="list-group-item list-group-item-action d-flex align-items-center gap-2"></a>').attr('href', it.href);
+				$row.append($('<i></i>').addClass(it.icon));
+				$row.append($('<span></span>').text(it.label));
+				if (it.group) $row.append($('<small class="ms-auto"></small>').css('opacity', '.65').text(it.group));
+				$group.append($row);
+			});
+			$list.empty().append($group);
+			setActive(0);
+		}
+
+		$modal.on('show.bs.modal', function () {
+			if (!items) buildIndex();
+			render();
+		});
+		// replace the template's static "Search content..." text right away
+		render();
+		// Bootstrap's focus trap moves focus to the modal itself, so focus the input after it settles
+		function focusInput() {
+			setTimeout(function () {
+				$input[0].focus();
+				if (document.activeElement !== $input[0]) setTimeout(function () { $input[0].focus(); }, 150);
+			}, 0);
+		}
+		$modal.on('shown.bs.modal', focusInput);
+		$modal.on('hidden.bs.modal', function () { $input.val(''); render(); });
+
+		$input.on('input', render);
+		$input.on('keydown', function (e) {
+			if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+			else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+			else if (e.key === 'Enter') {
+				e.preventDefault();
+				var r = results[active > -1 ? active : 0];
+				if (r) window.location.href = r.href;
+			}
+		});
+	});
+})(jQuery);
