@@ -54,7 +54,7 @@
 	<!-- jQuery (Required) -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-	<title>{{ auth()->user()->getRoleNames()->first() ?? 'Dashboard' }} | SmartSchool</title>
+	<title>Receptionist Dashboard</title>
 	
 </head>
 
