@@ -15,7 +15,9 @@ class PrintIdCardController extends Controller
     public function index()
     {
         $classes = SchoolClass::where('status', 1)->get();
-        $templates = IdCardTemplate::where('status', 1)->get();
+        $templates = IdCardTemplate::where('status', 1)->get()
+            ->filter(fn ($t) => auth()->user()->can('access-id-card-design-' . $t->design)) // only designs this user may print
+            ->values();
 
         return view('admin.id_card_template.print', compact('classes', 'templates'));
     }
@@ -70,6 +72,7 @@ class PrintIdCardController extends Controller
         ]);
 
         $template = IdCardTemplate::findOrFail($request->template_id);
+        abort_unless($request->user()->can('access-id-card-design-' . $template->design), 403); // stale / tampered POST guard
 
         $sessionId = $this->getActiveSessionId();
         $enrollments = Enrollment::with(['student.parent', 'student.house', 'schoolClass', 'section'])

@@ -70,6 +70,9 @@ class PermissionSeeder extends Seeder
             'manage-id-card-templates',
             'access-staff-id-card-templates',
             'manage-staff-id-card-templates',
+            'access-id-card-design-1',      // ID card design 1/2/3 (student + staff templates)
+            'access-id-card-design-2',
+            'access-id-card-design-3',
             'access-teacher',
             'manage-teacher',
             'access-teacher-assignment',

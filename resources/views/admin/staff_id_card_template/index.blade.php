@@ -64,6 +64,16 @@
                         </select>
                     </div>
 
+                    {{-- Card Design: all 3 shown; designs this user lacks are disabled (not hidden) so an existing template's design stays visible --}}
+                    <div class="mb-3">
+                        <label for="design" class="form-label">Card Design <span class="text-danger">*</span></label>
+                        <select name="design" id="design" class="form-select form-select-sm">
+                            @foreach([1, 2, 3] as $d)
+                            <option value="{{ $d }}" @cannot('access-id-card-design-' . $d) disabled @endcannot>Design {{ $d }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <hr>
                     <p class="fw-semi-bold mb-2">Fields to Show on Card</p>
                     <div class="row">
@@ -112,6 +122,7 @@
                             <th>Title</th>
                             <th>Background</th>
                             <th>Design Type</th>
+                            <th>Design</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -125,6 +136,7 @@
                                 @endif
                             </td>
                             <td>{{ ucfirst($template->design_type) }}</td>
+                            <td>Design {{ $template->design }}</td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-outline-secondary viewBtn"
     data-img="{{ $template->design_type === 'vertical'
@@ -132,13 +144,15 @@
         : asset('uploads/id-card-images/staff-id-card-template-horizontal.jpg') }}">
     <i class="bx bx-show"></i>
 </button>
+                                @can('access-id-card-design-' . $template->design)
                                 <button class="btn btn-sm btn-outline-primary editBtn" data-id="{{ $template->id }}"><i class="bx bx-edit"></i></button>
                                 <a href="{{ route('staff_id_card_template.delete', $template->id) }}" class="btn btn-sm btn-outline-danger deleteBtn"><i class="bx bx-trash"></i></a>
+                                @endcan
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4">
+                            <td colspan="5">
                                 <div class="alert alert-danger d-flex align-items-center gap-2 mb-0">
                                     <i class="bx bx-error-circle"></i> No templates found.
                                 </div>
@@ -195,6 +209,7 @@ $(function() {
         $('#address_phone_email').val(t.address_phone_email);
         $('#header_color').val(t.header_color ?? '#4b3bdb');
         $('#design_type').val(t.design_type);
+        $('#design').val(t.design);
 
         $('.toggle-field').each(function() {
             const name = $(this).attr('name');

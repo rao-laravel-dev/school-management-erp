@@ -16,7 +16,9 @@ class PrintStaffIdCardController extends Controller
     public function index()
     {
         $roles = Role::whereNotIn('name', $this->excludedRoles)->get();
-        $templates = StaffIdCardTemplate::where('status', 1)->get();
+        $templates = StaffIdCardTemplate::where('status', 1)->get()
+            ->filter(fn ($t) => auth()->user()->can('access-id-card-design-' . $t->design)) // only designs this user may print
+            ->values();
 
         return view('admin.staff_id_card_template.print', [
             'roles' => $roles,
@@ -61,6 +63,7 @@ class PrintStaffIdCardController extends Controller
         ]);
 
         $template = StaffIdCardTemplate::findOrFail($request->template_id);
+        abort_unless($request->user()->can('access-id-card-design-' . $template->design), 403); // stale / tampered POST guard
 
         $staffMembers = User::whereIn('id', $request->staff_ids)
             ->withoutSuperadmin()

@@ -27,7 +27,9 @@ class StaffIdCardTemplateController extends Controller
 
     public function edit($id)
     {
-        return response()->json(StaffIdCardTemplate::findOrFail($id));
+        $template = StaffIdCardTemplate::findOrFail($id);
+        abort_unless(auth()->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
+        return response()->json($template);
     }
 
     private function rules()
@@ -38,6 +40,7 @@ class StaffIdCardTemplateController extends Controller
             'address_phone_email' => 'nullable|string|max:255',
             'header_color' => 'nullable|string|max:20',
             'design_type' => 'required|in:horizontal,vertical',
+            'design' => 'required|in:1,2,3',
             'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'signature' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -47,7 +50,8 @@ class StaffIdCardTemplateController extends Controller
     public function save(Request $request)
     {
         $request->validate($this->rules());
-        $data = $request->only(['title','school_name','address_phone_email','header_color','design_type']);
+        abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
+        $data = $request->only(['title','school_name','address_phone_email','header_color','design_type','design']);
 
         foreach ($this->toggles as $toggle) {
             $data[$toggle] = $request->boolean($toggle);
@@ -65,8 +69,10 @@ class StaffIdCardTemplateController extends Controller
     public function update(Request $request, $id)
     {
         $template = StaffIdCardTemplate::findOrFail($id);
+        abort_unless($request->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
         $request->validate($this->rules());
-        $data = $request->only(['title','school_name','address_phone_email','header_color','design_type']);
+        abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
+        $data = $request->only(['title','school_name','address_phone_email','header_color','design_type','design']);
 
         foreach ($this->toggles as $toggle) {
             $data[$toggle] = $request->boolean($toggle);
@@ -98,6 +104,7 @@ class StaffIdCardTemplateController extends Controller
     public function delete($id)
     {
         $template = StaffIdCardTemplate::findOrFail($id);
+        abort_unless(auth()->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
         $this->imageService->delete($template->background_image, $this->folder);
         $this->imageService->delete($template->logo, $this->folder);
         $this->imageService->delete($template->signature, $this->folder);

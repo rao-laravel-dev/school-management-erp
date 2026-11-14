@@ -27,6 +27,7 @@ class IdCardTemplateController extends Controller
     public function edit($id)
     {
         $template = IdCardTemplate::findOrFail($id);
+        abort_unless(auth()->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
         return response()->json($template);
     }
 
@@ -38,6 +39,7 @@ class IdCardTemplateController extends Controller
             'address_phone_email' => 'nullable|string|max:255',
             'header_color' => 'nullable|string|max:20',
             'design_type' => 'required|in:horizontal,vertical',
+            'design' => 'required|in:1,2,3',
             'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'signature' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -47,9 +49,10 @@ class IdCardTemplateController extends Controller
     public function save(Request $request)
     {
         $request->validate($this->rules());
+        abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
 
         $data = $request->only([
-            'title', 'school_name', 'address_phone_email', 'header_color', 'design_type',
+            'title', 'school_name', 'address_phone_email', 'header_color', 'design_type', 'design',
             'show_admission_no', 'show_student_name', 'show_class', 'show_father_name',
             'show_mother_name', 'show_address', 'show_phone', 'show_dob',
             'show_blood_group', 'show_roll_no', 'show_house', 'show_qr_code', 'show_barcode',
@@ -77,10 +80,12 @@ class IdCardTemplateController extends Controller
     public function update(Request $request, $id)
     {
         $template = IdCardTemplate::findOrFail($id);
+        abort_unless($request->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
         $request->validate($this->rules());
+        abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
 
         $data = $request->only([
-            'title', 'school_name', 'address_phone_email', 'header_color', 'design_type',
+            'title', 'school_name', 'address_phone_email', 'header_color', 'design_type', 'design',
         ]);
 
         foreach (['show_admission_no','show_student_name','show_class','show_father_name','show_mother_name','show_address','show_phone','show_dob','show_blood_group','show_roll_no','show_house','show_qr_code','show_barcode'] as $toggle) {
@@ -113,6 +118,7 @@ class IdCardTemplateController extends Controller
     public function delete($id)
     {
         $template = IdCardTemplate::findOrFail($id);
+        abort_unless(auth()->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
         $this->imageService->delete($template->background_image, $this->folder);
         $this->imageService->delete($template->logo, $this->folder);
         $this->imageService->delete($template->signature, $this->folder);

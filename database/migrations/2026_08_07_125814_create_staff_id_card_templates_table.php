@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('address_phone_email')->nullable();
             $table->string('header_color')->nullable();
             $table->enum('design_type', ['horizontal', 'vertical'])->default('horizontal');
+            $table->unsignedTinyInteger('design')->default(1); // card layout 1/2/3 (each gated by access-id-card-design-N)
 
             $table->boolean('show_staff_name')->default(true);
             $table->boolean('show_staff_id')->default(true);
