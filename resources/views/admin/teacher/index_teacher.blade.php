@@ -153,7 +153,8 @@ toastr.error(@json(session('toastr-error')), 'Error!');
         // --- 1. DATATABLE INITIALIZATION ---
         $('#teacherTable').DataTable({
             "pageLength": 10,
-            "ordering": true
+            "ordering": true,
+            "search": { "search": new URLSearchParams(window.location.search).get('q') || '' } // header search link
         });
 
         // --- NEW: TEACHER DETAILS MODAL (AJAX) ---

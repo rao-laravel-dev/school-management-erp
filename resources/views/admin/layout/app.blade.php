@@ -53,7 +53,7 @@
 
     </div>
 
-    <div class="modal" id="SearchModal" tabindex="-1">
+    <div class="modal" id="SearchModal" tabindex="-1" @canany(['access-students', 'access-teacher', 'access-receptionist', 'access-accountant', 'access-librarian']) data-people-url="{{ route('search.people') }}" @endcanany>
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
             <div class="modal-content">
                 <div class="modal-header gap-2">
@@ -85,7 +85,7 @@
     <script src="{{asset('backend/assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js')}}"></script>
     <script src="{{asset('backend/assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js')}}"></script>
 
-    <script src="{{asset('backend/assets/js/app.js')}}"></script>
+    <script src="{{asset('backend/assets/js/app.js')}}?v={{ filemtime(public_path('backend/assets/js/app.js')) }}"></script>
     <script src="{{ asset('backend/assets/plugins/apexcharts-bundle/js/apexcharts.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>

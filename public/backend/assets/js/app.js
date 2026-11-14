@@ -173,12 +173,16 @@ $(function() {
 		var $list = $modal.find('.search-list');
 		var items = null;
 		var results = [];
-		var peopleResults = []; // placeholder: students/staff section will fill this later
+		var peopleResults = []; // students/staff hits from /search/people (items carry a `section` field)
+		var peopleTimer = null;
+		var peopleXhr = null;
 
 		// compact look: small input and smaller result rows (scoped to #SearchModal)
 		$input.removeClass('form-control-lg').addClass('form-control-sm');
 		$modal.find('.search-show').removeClass('fs-4').addClass('fs-5');
 		$('<style></style>').text('#SearchModal .search-list .list-group-item { padding: .35rem .75rem; font-size: .875rem; } #SearchModal .search-list small { font-size: .75rem; } #SearchModal input.is-invalid { border-color: #dc3545 !important; box-shadow: 0 0 0 .2rem rgba(220,53,69,.25); background-image: none; }').appendTo('head');
+		// placeholder tells the user what the box searches (people only when the layout exposes data-people-url)
+		$input.attr('placeholder', $modal.data('people-url') ? 'Search pages, or people by name, ID or roll no...' : 'Search pages...');
 		var active = -1;
 
 		function buildIndex() {
@@ -236,17 +240,64 @@ $(function() {
 			if (!q) { results = []; message('Type to search pages...'); return; }
 			if (!items) buildIndex();
 			results = $.grep(items, function (it) { return it.key.indexOf(q) !== -1; }).slice(0, 15);
-			if (!results.length) { message('No matching pages'); return; }
-			var $group = $('<div class="list-group"></div>');
-			$.each(results, function (_, it) {
-				var $row = $('<a class="list-group-item list-group-item-action d-flex align-items-center gap-2"></a>').attr('href', it.href);
-				$row.append($('<i></i>').addClass(it.icon));
-				$row.append($('<span></span>').text(it.label));
-				if (it.group) $row.append($('<small class="ms-auto"></small>').css('opacity', '.65').text(it.group));
-				$group.append($row);
-			});
-			$list.empty().append($group);
+			if (!results.length && !peopleResults.length) { message('No matching pages'); return; }
+			$list.empty();
+			if (results.length) {
+				var $group = $('<div class="list-group"></div>');
+				$.each(results, function (_, it) {
+					var $row = $('<a class="list-group-item list-group-item-action d-flex align-items-center gap-2"></a>').attr('href', it.href);
+					$row.append($('<i></i>').addClass(it.icon));
+					$row.append($('<span></span>').text(it.label));
+					if (it.group) $row.append($('<small class="ms-auto"></small>').css('opacity', '.65').text(it.group));
+					$group.append($row);
+				});
+				$list.append($group);
+			}
+			renderPeople();
 			setActive(0);
+		}
+
+		// Students / Staff sections below Pages (rows share the Pages row class, so keyboard nav spans all sections)
+		function renderPeople() {
+			$.each([['students', 'Students'], ['staff', 'Staff']], function (_, sec) {
+				var rows = $.grep(peopleResults, function (p) { return p.section === sec[0]; });
+				if (!rows.length) return;
+				$list.append($('<div class="text-muted fw-semibold small mt-2 mb-1"></div>').text(sec[1]));
+				var $group = $('<div class="list-group"></div>');
+				$.each(rows, function (_, p) {
+					var $row = $('<a class="list-group-item list-group-item-action d-flex align-items-center gap-2"></a>').attr('href', p.url);
+					$row.append($('<img class="rounded-circle" width="28" height="28" alt="">').attr('src', p.photo).css('object-fit', 'cover'));
+					$row.append($('<span></span>').text(p.name + ' (' + p.code + ')'));
+					if (p.meta) $row.append($('<small class="ms-auto"></small>').css('opacity', '.65').text(p.meta));
+					$group.append($row);
+				});
+				$list.append($group);
+			});
+		}
+
+		// debounced people lookup (only when the layout exposes data-people-url and query has 2+ chars)
+		function schedulePeople() {
+			clearTimeout(peopleTimer);
+			if (peopleXhr) { peopleXhr.abort(); peopleXhr = null; }
+			var q = $.trim($input.val());
+			var url = $modal.data('people-url');
+			if (!url || q.length < 2) {
+				if (peopleResults.length) { peopleResults = []; render(); }
+				return;
+			}
+			peopleTimer = setTimeout(function () {
+				peopleXhr = $.getJSON(url, { q: q }).done(function (res) {
+					if (q !== $.trim($input.val())) return; // stale response
+					peopleResults = [];
+					$.each(res.students || [], function (_, p) { p.section = 'students'; peopleResults.push(p); });
+					$.each(res.staff || [], function (_, p) { p.section = 'staff'; peopleResults.push(p); });
+					render();
+				}).fail(function (xhr, status) {
+					if (status === 'abort') return;
+					peopleResults = [];
+					render();
+				});
+			}, 300);
 		}
 
 		$modal.on('show.bs.modal', function () {
@@ -263,16 +314,22 @@ $(function() {
 			}, 0);
 		}
 		$modal.on('shown.bs.modal', focusInput);
-		$modal.on('hidden.bs.modal', function () { $input.val(''); render(); });
+		$modal.on('hidden.bs.modal', function () {
+			clearTimeout(peopleTimer);
+			if (peopleXhr) { peopleXhr.abort(); peopleXhr = null; }
+			peopleResults = [];
+			$input.val('');
+			render();
+		});
 
-		$input.on('input', render);
+		$input.on('input', function () { render(); schedulePeople(); });
 		$input.on('keydown', function (e) {
 			if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
 			else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
 			else if (e.key === 'Enter') {
 				e.preventDefault();
-				var r = results[active > -1 ? active : 0];
-				if (r) window.location.href = r.href;
+				var href = $list.find('.list-group-item').eq(active > -1 ? active : 0).attr('href');
+				if (href) window.location.href = href;
 			}
 		});
 	});

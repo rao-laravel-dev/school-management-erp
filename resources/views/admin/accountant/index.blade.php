@@ -139,7 +139,8 @@
 
         $('#accountantTable').DataTable({
             "pageLength": 10,
-            "ordering": true
+            "ordering": true,
+            "search": { "search": new URLSearchParams(window.location.search).get('q') || '' } // header search link
         });
 
         // --- ACCOUNTANT DETAILS MODAL (AJAX) ---

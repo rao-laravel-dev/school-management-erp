@@ -158,7 +158,8 @@
         $('#librarianTable').DataTable({
             "pageLength": 10,
             "ordering": true,
-            "language": { "emptyTable": "No librarians found." }
+            "language": { "emptyTable": "No librarians found." },
+            "search": { "search": new URLSearchParams(window.location.search).get('q') || '' } // header search link
         });
 
         // Details Modal (AJAX)

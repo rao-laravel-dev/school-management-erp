@@ -85,7 +85,7 @@
     <script src="{{asset('backend/assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js')}}"></script>
     <script src="{{asset('backend/assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js')}}"></script>
 
-    <script src="{{asset('backend/assets/js/app.js')}}"></script>
+    <script src="{{asset('backend/assets/js/app.js')}}?v={{ filemtime(public_path('backend/assets/js/app.js')) }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>

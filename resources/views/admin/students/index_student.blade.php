@@ -305,6 +305,13 @@
             }, 500);
         });
 
+        // Header search link (?keyword=<admission no>): prefill the keyword filter and load the filtered list
+        let headerKeyword = new URLSearchParams(window.location.search).get('keyword');
+        if (headerKeyword) {
+            $('#filter-keyword').val(headerKeyword);
+            fetchStudents();
+        }
+
         // --- CENTRAL FUNCTION: LOAD DEPENDENT DROPDOWNS ---
         function loadDependentDropdowns(class_id) {
             $('#filter-section').html('<option value="">Select Section</option>');

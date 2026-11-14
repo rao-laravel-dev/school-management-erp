@@ -81,7 +81,7 @@
 </div>
 
 <!-- Search Modal -->
-<div class="modal" id="SearchModal" tabindex="-1">
+<div class="modal" id="SearchModal" tabindex="-1" @canany(['access-students', 'access-teacher', 'access-receptionist', 'access-accountant', 'access-librarian']) data-people-url="{{ route('search.people') }}" @endcanany>
 	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
 		<div class="modal-content">
 			<div class="modal-header gap-2">
@@ -139,7 +139,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 
 <!-- App JS -->
-<script src="{{ asset('backend/assets/js/app.js') }}"></script>
+<script src="{{ asset('backend/assets/js/app.js') }}?v={{ filemtime(public_path('backend/assets/js/app.js')) }}"></script>
 <script src="{{ asset('backend/assets/js/index.js') }}"></script>
 
 <!-- ✅ Datatable Init -->

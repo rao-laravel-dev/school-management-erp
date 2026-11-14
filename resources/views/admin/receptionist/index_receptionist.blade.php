@@ -142,7 +142,8 @@
         $('#example').DataTable({
             "pageLength": 10,
             "ordering": true,
-            "destroy": true // Ye line error solve kar degi
+            "destroy": true, // Ye line error solve kar degi
+            "search": { "search": new URLSearchParams(window.location.search).get('q') || '' } // header search link
         });
 
         // --- STATUS TOGGLE (AJAX) ---

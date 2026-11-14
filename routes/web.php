@@ -31,6 +31,7 @@ use App\Http\Controllers\Backend\StaffAttendanceController;
 use App\Http\Controllers\Backend\StaffLeaveApplicationController;
 use App\Http\Controllers\Backend\StaffLeaveSettingController;
 use App\Http\Controllers\Backend\StudentController;
+use App\Http\Controllers\Backend\PeopleSearchController;
 use App\Http\Controllers\Backend\SubjectController;
 use App\Http\Controllers\Backend\SuperAdminController;
 use App\Http\Controllers\Backend\TeacherAssignmentController;
@@ -369,6 +370,10 @@ Route::controller(CardVerifyController::class)->prefix('verify')->name('card_ver
 
 // CRUD ROUTE IN ONE GROUP
 Route::middleware(['auth'])->group(function () {
+
+    // Header search: students / staff by name or ID (permission checks inside controller)
+    Route::get('/search/people', [PeopleSearchController::class, 'search'])
+        ->middleware('throttle:60,1')->name('search.people');
 
     // ==========================================
     // ACCOUNTANT CRUD ROUTE PIPELINE

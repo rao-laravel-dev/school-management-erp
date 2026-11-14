@@ -63,7 +63,7 @@
 </div>
 
 <!-- Search Modal (OUTSIDE wrapper) -->
-<div class="modal" id="SearchModal" tabindex="-1">
+<div class="modal" id="SearchModal" tabindex="-1" @canany(['access-students', 'access-teacher', 'access-receptionist', 'access-accountant', 'access-librarian']) data-people-url="{{ route('search.people') }}" @endcanany>
 	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
 		<div class="modal-content">
 			<div class="modal-header gap-2">
@@ -98,7 +98,7 @@
 
 <script src="{{asset('backend/assets/plugins/chartjs/js/chart.js')}}"></script>
 
-<script src="{{asset('backend/assets/js/app.js')}}"></script>
+<script src="{{asset('backend/assets/js/app.js')}}?v={{ filemtime(public_path('backend/assets/js/app.js')) }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
  <script>
