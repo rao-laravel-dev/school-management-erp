@@ -22,6 +22,20 @@
     .design-3 .d3-back-code { flex: 0 0 auto; border-top: none; padding: 1mm 2mm 0; }
     .design-3 .d3-back-sign { flex: 0 0 auto; margin-top: auto; padding: 0 2mm 1mm; text-align: center; }
     .design-3 .d3-back-sign .signature-line { margin-top: 1mm; border-top: .2mm solid #999; width: 55%; display: inline-block; padding-top: .4mm; font-size: 3.5pt; color: #333; }
+    /* horizontal back: smaller QR + tighter spacing so signature and card meta fit in 54mm (same QR size as design 2) */
+    .design-3.horizontal .d3-back-code .qr-wrap { margin: .3mm 0 .6mm; }
+    .design-3.horizontal .d3-back-code .qr-wrap svg { width: 11mm; height: 11mm; }
+    .design-3.horizontal .id-card-back-content { padding: .6mm 2mm; }
+    /* horizontal back, round 2: long school address wraps to several lines in the contact row, so win back vertical space (no text hidden) */
+    .design-3.horizontal .d3-banner.d3-banner-back { padding-bottom: 1.8mm; }
+    .design-3.horizontal .d3-back-code { padding: .4mm 2mm 0; }
+    .design-3.horizontal .d3-back-code .barcode-text { margin-bottom: .3mm; }
+    .design-3.horizontal .id-card-back-rules ul li { line-height: 1.0; }
+    .design-3.horizontal .id-card-back-contact table { margin-bottom: 0; }
+    .design-3.horizontal .id-card-back-contact table td { padding: .05mm 0; line-height: 1.05; }
+    .design-3.horizontal .d3-back-sign { padding-bottom: .4mm; }
+    .design-3.horizontal .d3-back-sign .signature-line { margin-top: .3mm; }
+    .design-3.horizontal .d3-back-sign .card-meta { margin-top: .3mm; }
 </style>
 @endonce
 <div class="card-pair">

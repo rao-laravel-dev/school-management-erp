@@ -15,6 +15,10 @@
     .design-2 .id-card-body table td.label { padding-right: 3mm; }
     .design-2 .id-card-body .photo img { width: 16mm; height: 16mm; border-radius: 50%; border: .5mm solid var(--header-color); padding: 0; }
     .design-2.vertical .id-card-body { gap: 2mm; }
+    /* vertical: tighter rows + design-2 label gap so all fields fit under the top band (card.blade.php vertical td rules otherwise win) */
+    .design-2.vertical .id-card-body { padding: 1.5mm 3mm 1mm; }
+    .design-2.vertical .id-card-body table td { padding: .4mm 0; }
+    .design-2.vertical .id-card-body table td.label { padding-right: 3mm; }
     /* back: tighter so the signature line fits inside the narrower content area */
     .design-2 .id-card-back-content { padding: .6mm 1.5mm; gap: 1.5mm; }
     .design-2 .id-card-back-rules, .design-2 .id-card-back-contact { font-size: 3.4pt; }
