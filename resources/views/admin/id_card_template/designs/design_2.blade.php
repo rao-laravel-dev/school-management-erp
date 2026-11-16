@@ -21,11 +21,19 @@
     .design-2.vertical .id-card-body table td.label { padding-right: 3mm; }
     /* back: tighter so the signature line fits inside the narrower content area */
     .design-2 .id-card-back-content { padding: .6mm 1.5mm; gap: 1.5mm; }
-    .design-2 .id-card-back-rules, .design-2 .id-card-back-contact { font-size: 3.4pt; }
-    .design-2 .id-card-back-rules h6, .design-2 .id-card-back-contact h6 { font-size: 3.8pt; margin-bottom: .2mm; }
+    /* old: font-size: 3.4pt (T333c: was small because the school address was long; now ~5pt) */
+    .design-2 .id-card-back-rules, .design-2 .id-card-back-contact { font-size: 5pt; }
+    /* old: font-size: 3.8pt */
+    .design-2 .id-card-back-rules h6, .design-2 .id-card-back-contact h6 { font-size: 5.4pt; margin-bottom: .2mm; }
     .design-2 .id-card-back-rules ul li { margin-bottom: 0; line-height: 1.05; }
     .design-2 .id-card-back-contact table { margin-bottom: .3mm; }
-    .design-2 .id-card-back-contact table td { font-size: 3.4pt; padding: .1mm 0; overflow-wrap: anywhere; }
+    /* old: .design-2 .id-card-back-contact table td { font-size: 3.4pt; ... } */
+    .design-2 .id-card-back-contact table td { font-size: 5pt; padding: .1mm 0; overflow-wrap: anywhere; }
+    /* horizontal back (85.6x54mm): the contact column is only ~32mm wide, so use 4.5pt and a narrow label column so a long school Address/Phone/Email (incl. the email) still fits above the card edge; vertical keeps 5pt */
+    .design-2.horizontal .id-card-back-rules, .design-2.horizontal .id-card-back-contact { font-size: 4.5pt; }
+    .design-2.horizontal .id-card-back-rules h6, .design-2.horizontal .id-card-back-contact h6 { font-size: 4.9pt; }
+    .design-2.horizontal .id-card-back-contact table td { font-size: 4.5pt; }
+    .design-2.horizontal .id-card-back-contact table td.label { width: 1%; white-space: nowrap; padding-right: 1.5mm; }
     .design-2 .id-card-back-footer { padding: .6mm 2mm .4mm; }
     .design-2 .id-card-back-footer .qr-wrap { margin: .3mm 0 .6mm; }
     .design-2 .id-card-back-footer .qr-wrap svg { width: 11mm; height: 11mm; }
