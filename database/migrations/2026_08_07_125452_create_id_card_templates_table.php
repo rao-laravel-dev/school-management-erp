@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('school_name');
             $table->string('address_phone_email')->nullable();
             $table->string('header_color')->nullable();
+            $table->string('accent_color')->nullable(); // T338: second brand colour (photo ring / back underlines)
             $table->enum('design_type', ['horizontal', 'vertical'])->default('horizontal');
             $table->unsignedTinyInteger('design')->default(1); // card layout 1/2/3 (each gated by access-id-card-design-N)
 

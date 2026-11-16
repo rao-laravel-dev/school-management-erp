@@ -38,7 +38,9 @@ class StaffIdCardTemplateController extends Controller
             'title' => 'required|string|max:255',
             'school_name' => 'required|string|max:255',
             'address_phone_email' => 'nullable|string|max:255',
-            'header_color' => 'nullable|string|max:20',
+            // old: 'header_color' => 'nullable|string|max:20',
+            'header_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/', // T338: value is printed into a <style> block
+            'accent_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
             'design_type' => 'required|in:horizontal,vertical',
             'design' => 'required|in:1,2,3',
             'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -51,7 +53,7 @@ class StaffIdCardTemplateController extends Controller
     {
         $request->validate($this->rules());
         abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
-        $data = $request->only(['title','school_name','address_phone_email','header_color','design_type','design']);
+        $data = $request->only(['title','school_name','address_phone_email','header_color','accent_color','design_type','design']);
 
         foreach ($this->toggles as $toggle) {
             $data[$toggle] = $request->boolean($toggle);
@@ -72,7 +74,7 @@ class StaffIdCardTemplateController extends Controller
         abort_unless($request->user()->can('access-id-card-design-' . $template->design), 403); // template's current design must be allowed
         $request->validate($this->rules());
         abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
-        $data = $request->only(['title','school_name','address_phone_email','header_color','design_type','design']);
+        $data = $request->only(['title','school_name','address_phone_email','header_color','accent_color','design_type','design']);
 
         foreach ($this->toggles as $toggle) {
             $data[$toggle] = $request->boolean($toggle);
@@ -99,6 +101,50 @@ class StaffIdCardTemplateController extends Controller
         }
 
         return redirect()->route('staff_id_card_template.index')->with('toastr-success', 'Staff ID Card Template updated successfully.');
+    }
+
+    // T338: renders the real card view for ONE unsaved sample staff member (form live preview + eye button). Writes nothing to the DB.
+    public function livePreview(Request $request)
+    {
+        $request->validate([
+            'school_name' => 'nullable|string|max:255',
+            'address_phone_email' => 'nullable|string|max:255',
+            'header_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
+            'accent_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
+            'design_type' => 'required|in:horizontal,vertical',
+            'design' => 'required|in:1,2,3',
+            'template_id' => 'nullable|integer',
+        ]);
+        abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403);
+
+        $data = $request->only(['school_name', 'address_phone_email', 'header_color', 'accent_color', 'design_type', 'design']);
+        foreach ($this->toggles as $toggle) {
+            $data[$toggle] = $request->boolean($toggle);
+        }
+        $data['school_name'] = $data['school_name'] ?: 'Your School Name';
+
+        $template = new StaffIdCardTemplate($data); // unsaved
+        if ($request->filled('template_id') && ($saved = StaffIdCardTemplate::find($request->template_id))) {
+            $template->logo = $saved->logo; // images are not part of the preview POST; reuse the saved ones
+            $template->background_image = $saved->background_image;
+        }
+
+        // Unsaved sample teacher; role + profile relations are preset so staff_code / photo_url / getOrCreateQrCode() never query or insert
+        $teacher = (new \App\Models\Teacher)->forceFill([
+            'teacher_id' => 'TCH-0001', 'department' => 'Science', 'father_name' => 'Ahmed Khan', 'mother_name' => 'Sara Khan',
+            'phone' => '0300-1234567', 'dob' => '1990-03-21', 'joining_date' => '2020-08-01', 'address' => 'House 12, Main Street, City',
+        ]);
+        $staff = (new \App\Models\User)->forceFill(['id' => 1, 'name' => 'Rao Imran']);
+        $staff->setRelation('roles', collect([(new \Spatie\Permission\Models\Role)->forceFill(['name' => 'teacher'])]));
+        $staff->setRelation('teacher', $teacher);
+        $staff->setRelation('teacherWithTrashed', $teacher);
+        $staff->setRelation('qrCode', (new \App\Models\QrCode)->forceFill(['code' => 'STF-DEMO-0001']));
+
+        $staffMembers = collect([$staff]);
+        $validSession = null;
+        $isPreview = true;
+
+        return view('admin.staff_id_card_template.card', compact('template', 'staffMembers', 'validSession', 'isPreview'));
     }
 
     public function delete($id)

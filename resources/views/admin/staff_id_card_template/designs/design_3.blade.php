@@ -2,13 +2,14 @@
 @once
 <style>
     /* ---- Design 3: photo-centred banner ---- */
-    .design-3 .d3-banner { background: var(--header-color); color: #fff; text-align: center; padding: 1.2mm 2mm 4mm; border-radius: 0 0 50% 50% / 0 0 4mm 4mm; flex: 0 0 auto; }
+    /* T338: text on the main colour = var(--header-text) (old: #fff); photo ring = var(--accent-color) (old: var(--header-color)) */
+    .design-3 .d3-banner { background: var(--header-color); color: var(--header-text); text-align: center; padding: 1.2mm 2mm 4mm; border-radius: 0 0 50% 50% / 0 0 4mm 4mm; flex: 0 0 auto; }
     .design-3 .d3-banner.d3-banner-back { padding-bottom: 2.5mm; }
     .design-3 .d3-banner img { height: 5mm; }
-    .design-3 .d3-banner h5 { margin: .3mm 0 0; font-size: 6.5pt; font-weight: 700; line-height: 1.1; color: #fff; }
-    .design-3 .d3-banner small { display: block; font-size: 4pt; line-height: 1.2; color: #fff; }
+    .design-3 .d3-banner h5 { margin: .3mm 0 0; font-size: 6.5pt; font-weight: 700; line-height: 1.1; color: var(--header-text); }
+    .design-3 .d3-banner small { display: block; font-size: 4pt; line-height: 1.2; color: var(--header-text); }
     .design-3 .d3-photo { flex: 0 0 auto; margin-top: -3mm; text-align: center; position: relative; z-index: 1; }
-    .design-3 .d3-photo img { width: 14mm; height: 14mm; border-radius: 50%; object-fit: cover; border: .7mm solid #fff; box-shadow: 0 0 0 .3mm var(--header-color); background: #fff; box-sizing: border-box; }
+    .design-3 .d3-photo img { width: 14mm; height: 14mm; border-radius: 50%; object-fit: cover; border: .7mm solid #fff; box-shadow: 0 0 0 .3mm var(--accent-color); background: #fff; box-sizing: border-box; }
     .design-3.vertical .d3-photo img { width: 18mm; height: 18mm; }
     .design-3 .d3-name { text-align: center; font-size: 6pt; font-weight: 700; letter-spacing: .2mm; color: #000; margin: .8mm 2mm .4mm; }
     .design-3 .d3-body { flex: 1 1 auto; overflow: hidden; padding: .5mm 3mm; font-size: 5pt; color: #333; }

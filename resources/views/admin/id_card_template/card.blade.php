@@ -8,7 +8,10 @@
         :root {
             --card-w: {{ $template->design_type === 'vertical' ? '54mm' : '85.6mm' }};
             --card-h: {{ $template->design_type === 'vertical' ? '85.6mm' : '54mm' }};
-            --header-color: {{ $template->header_color ?? '#4b3bdb' }};
+            /* old: --header-color: header_color ?? '#4b3bdb'; (now safe_header_color from HasCardColors) */
+            --header-color: {{ $template->safe_header_color }};
+            --header-text: {{ $template->header_text_color }}; /* T338: auto white/black on the main colour */
+            --accent-color: {{ $template->safe_accent_color }};
         }
 
         body {
@@ -88,7 +91,8 @@
 
         .id-card-header {
             background-color: var(--header-color);
-            color: #fff;
+            /* old: color: #fff; */
+            color: var(--header-text);
             text-align: center;
             padding: 1.2mm 2mm;
             flex: 0 0 auto;
@@ -103,14 +107,16 @@
             font-size: 7pt;
             font-weight: 700;
             line-height: 1.1;
-            color: #fff;
+            /* old: color: #fff; */
+            color: var(--header-text);
         }
 
         .id-card-header small {
             font-size: 4.5pt;
             display: block;
             line-height: 1.2;
-            color: #fff;
+            /* old: color: #fff; */
+            color: var(--header-text);
         }
 
         /* Horizontal: photo left, details right | Vertical: photo top, details below */
@@ -150,7 +156,8 @@
             height: 19mm;
             object-fit: cover;
             border-radius: 1mm;
-            border: .2mm solid #ddd;
+            /* old: border: .2mm solid #ddd; */
+            border: .2mm solid var(--accent-color);
             display: block;
             /* old: (no padding / background / box-sizing) */
             padding: .6mm;
@@ -214,7 +221,8 @@
         /* ---- Back side ---- */
         .id-card-back-header {
             background-color: var(--header-color);
-            color: #fff;
+            /* old: color: #fff; */
+            color: var(--header-text);
             text-align: center;
             padding: 1mm;
             font-size: 5pt;
@@ -248,7 +256,8 @@
         .id-card-back-rules h6 {
             margin: 0 0 .4mm;
             font-size: 4.5pt;
-            border-bottom: .2mm solid #ddd;
+            /* old: border-bottom: .2mm solid #ddd; */
+            border-bottom: .2mm solid var(--accent-color);
             padding-bottom: .2mm;
             color: #000;
         }
@@ -282,7 +291,8 @@
         .id-card-back-contact h6 {
             margin: 0 0 .4mm;
             font-size: 4.5pt;
-            border-bottom: .2mm solid #ddd;
+            /* old: border-bottom: .2mm solid #ddd; */
+            border-bottom: .2mm solid var(--accent-color);
             padding-bottom: .2mm;
             align-self: stretch;
             color: #000;
@@ -417,9 +427,11 @@
 </head>
 
 <body>
+    @if(empty($isPreview))
     <div class="no-print" style="text-align:right; margin-bottom:10px;">
         <button onclick="window.print()">Print</button>
     </div>
+    @endif
 
     @php
     $cardClass = $template->design_type === 'vertical' ? 'vertical' : 'horizontal';
@@ -433,11 +445,13 @@
 
     @include('admin.id_card_template.designs.design_' . (in_array((int) $template->design, [1, 2, 3], true) ? (int) $template->design : 1))
     @endforeach
+    @if(empty($isPreview))
     <script>
     window.onload = function() {
         window.print();
     };
 </script>
+    @endif
 </body>
 
 </html>

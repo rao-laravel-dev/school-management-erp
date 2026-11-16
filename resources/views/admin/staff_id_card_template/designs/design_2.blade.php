@@ -3,17 +3,18 @@
 <style>
     /* ---- Design 2: side colour band ---- */
     .id-card.design-2.horizontal { flex-direction: row; }
-    .design-2 .d2-band { background: var(--header-color); color: #fff; display: flex; align-items: center; justify-content: center; gap: 1.5mm; flex: 0 0 auto; text-align: center; overflow: hidden; }
+    /* T338: text on the main colour = var(--header-text) (old: #fff); accent lines = var(--accent-color) (old: var(--header-color)) */
+    .design-2 .d2-band { background: var(--header-color); color: var(--header-text); display: flex; align-items: center; justify-content: center; gap: 1.5mm; flex: 0 0 auto; text-align: center; overflow: hidden; }
     .design-2.horizontal .d2-band { width: 15mm; flex-direction: column; padding: 2mm 0; }
     .design-2.vertical .d2-band { height: 14mm; flex-direction: row; padding: 0 2mm; }
     .design-2 .d2-band img { width: 12mm; height: auto; max-height: 14mm; object-fit: contain; flex: 0 0 auto; }
-    .design-2 .d2-band .d2-school { font-size: 6pt; font-weight: 700; line-height: 1.1; color: #fff; }
+    .design-2 .d2-band .d2-school { font-size: 6pt; font-weight: 700; line-height: 1.1; color: var(--header-text); }
     .design-2.horizontal .d2-band .d2-school { writing-mode: vertical-rl; transform: rotate(180deg); max-height: 36mm; overflow: hidden; }
     .design-2 .d2-main { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-    .design-2 .d2-address { flex: 0 0 auto; font-size: 4.5pt; text-align: center; color: #333; padding: 1mm 2mm; border-bottom: .3mm solid var(--header-color); }
+    .design-2 .d2-address { flex: 0 0 auto; font-size: 4.5pt; text-align: center; color: #333; padding: 1mm 2mm; border-bottom: .3mm solid var(--accent-color); }
     .design-2 .id-card-body { gap: 4mm; }
     .design-2 .id-card-body table td.label { padding-right: 3mm; }
-    .design-2 .id-card-body .photo img { width: 16mm; height: 16mm; border-radius: 50%; border: .5mm solid var(--header-color); padding: 0; }
+    .design-2 .id-card-body .photo img { width: 16mm; height: 16mm; border-radius: 50%; border: .5mm solid var(--accent-color); padding: 0; }
     .design-2.vertical .id-card-body { gap: 2mm; }
     /* vertical: tighter rows + design-2 label gap so all fields fit under the top band (card.blade.php vertical td rules otherwise win) */
     .design-2.vertical .id-card-body { padding: 1.5mm 3mm 1mm; }

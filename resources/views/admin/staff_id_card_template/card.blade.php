@@ -8,7 +8,10 @@
         :root {
             --card-w: {{ $template->design_type === 'vertical' ? '54mm' : '85.6mm' }};
             --card-h: {{ $template->design_type === 'vertical' ? '85.6mm' : '54mm' }};
-            --header-color: {{ $template->header_color ?? '#4b3bdb' }};
+            /* old: --header-color: header_color ?? '#4b3bdb'; (now safe_header_color from HasCardColors) */
+            --header-color: {{ $template->safe_header_color }};
+            --header-text: {{ $template->header_text_color }}; /* T338: auto white/black on the main colour */
+            --accent-color: {{ $template->safe_accent_color }};
         }
 
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #eee; text-align: center; }
@@ -42,14 +45,15 @@
         .id-card .tm-tr { top: -0.3mm; right: -0.3mm; border-top-width: .3mm; border-right-width: .3mm; }
         .id-card .tm-bl { bottom: -0.3mm; left: -0.3mm; border-bottom-width: .3mm; border-left-width: .3mm; }
 
-        .id-card-header { background-color: var(--header-color); color: #fff; text-align: center; padding: 1.2mm 2mm; flex: 0 0 auto; }
+        /* old: color: #fff; (header, h5, small, back header: now var(--header-text)) */
+        .id-card-header { background-color: var(--header-color); color: var(--header-text); text-align: center; padding: 1.2mm 2mm; flex: 0 0 auto; }
         .id-card-header img { height: 6mm; }
-        .id-card-header h5 { margin: .5mm 0 0; font-size: 7pt; font-weight: 700; line-height: 1.1; color: #fff; }
+        .id-card-header h5 { margin: .5mm 0 0; font-size: 7pt; font-weight: 700; line-height: 1.1; color: var(--header-text); }
         .id-card-header small {
     font-size: 4.5pt;
     display: block;
     line-height: 1.2;
-    color: #fff;
+    color: var(--header-text);
 }
 
         /* old: .id-card-body { padding: 1.5mm 2mm; font-size: 5.5pt; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 4mm; } */
@@ -62,7 +66,7 @@
         .id-card.vertical .id-card-body { flex-direction: column; align-items: center; justify-content: safe center; padding: 2.5mm 3mm 1.5mm; gap: 4mm; }
         .id-card-body .photo { flex: 0 0 auto; text-align: center; }
         /* old: .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid #ddd; display: block; } */
-        .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid #ddd; display: block; padding: .6mm; background: #fff; box-sizing: border-box; }
+        .id-card-body .photo img { width: 15mm; height: 19mm; object-fit: cover; border-radius: 1mm; border: .2mm solid var(--accent-color); display: block; padding: .6mm; background: #fff; box-sizing: border-box; }
         /* old: .id-card-body table { width: auto; max-width: 100%; text-align: left; border-collapse: collapse; } */
         /* old: .id-card-body table { width: 100%; max-width: 100%; text-align: left; border-collapse: collapse; } */
         .id-card-body table { flex: 0 1 auto; width: auto; max-width: 100%; min-width: 0; text-align: left; border-collapse: collapse; }
@@ -78,7 +82,7 @@
 
         .id-card-footer { text-align: center; padding: 1mm 2mm; border-top: .2mm dashed #ccc; flex: 0 0 auto; font-size: 4pt; color: #666; display: flex; justify-content: space-between; }
 
-        .id-card-back-header { background-color: var(--header-color); color: #fff; text-align: center; padding: 1mm; font-size: 5pt; font-weight: 700; flex: 0 0 auto; }
+        .id-card-back-header { background-color: var(--header-color); color: var(--header-text); text-align: center; padding: 1mm; font-size: 5pt; font-weight: 700; flex: 0 0 auto; }
         .id-card-back-content {
     flex: 0 0 auto;
     overflow: hidden;
@@ -101,7 +105,8 @@
 .id-card-back-rules h6 {
     margin: 0 0 .4mm;
     font-size: 4.5pt;
-    border-bottom: .2mm solid #ddd;
+    /* old: border-bottom: .2mm solid #ddd; */
+    border-bottom: .2mm solid var(--accent-color);
     padding-bottom: .2mm;
     color: #000;
 }
@@ -130,7 +135,8 @@
 .id-card-back-contact h6 {
     margin: 0 0 .4mm;
     font-size: 4.5pt;
-    border-bottom: .2mm solid #ddd;
+    /* old: border-bottom: .2mm solid #ddd; */
+    border-bottom: .2mm solid var(--accent-color);
     padding-bottom: .2mm;
     align-self: stretch;
     color: #000;
@@ -195,7 +201,7 @@
 
 <body>
     <div class="no-print" style="text-align:right; margin-bottom:10px;">
-        <button onclick="window.print()">Print</button>
+        @if(empty($isPreview))<button onclick="window.print()">Print</button>@endif
     </div>
 
     @php $cardClass = $template->design_type === 'vertical' ? 'vertical' : 'horizontal'; @endphp
@@ -211,11 +217,13 @@
 
     @include('admin.staff_id_card_template.designs.design_' . (in_array((int) $template->design, [1, 2, 3], true) ? (int) $template->design : 1))
     @endforeach
+    @if(empty($isPreview))
     <script>
     window.onload = function() {
         window.print();
     };
     </script>
+    @endif
 </body>
 
 </html>

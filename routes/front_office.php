@@ -1024,6 +1024,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/edit/{id}', 'edit')->name('edit');
                 Route::get('/preview/{id}', 'preview')->name('preview');
+                Route::post('/live-preview', 'livePreview')->name('live_preview'); // T338: real card with sample data, nothing saved
             });
         });
         Route::middleware('can:manage-id-card-templates')->group(function () {
@@ -1043,6 +1044,7 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(StaffIdCardTemplateController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/edit/{id}', 'edit')->name('edit');
+                Route::post('/live-preview', 'livePreview')->name('live_preview'); // T338: real card with sample data, nothing saved
             });
         });
         Route::middleware('can:manage-staff-id-card-templates')->group(function () {

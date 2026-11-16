@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Enrollment;
 use App\Models\IdCardTemplate;
+use App\Models\SchoolClass;
+use App\Models\Section;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 
@@ -37,7 +40,9 @@ class IdCardTemplateController extends Controller
             'title' => 'required|string|max:255',
             'school_name' => 'required|string|max:255',
             'address_phone_email' => 'nullable|string|max:255',
-            'header_color' => 'nullable|string|max:20',
+            // old: 'header_color' => 'nullable|string|max:20',
+            'header_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/', // T338: value is printed into a <style> block
+            'accent_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
             'design_type' => 'required|in:horizontal,vertical',
             'design' => 'required|in:1,2,3',
             'background_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -52,7 +57,7 @@ class IdCardTemplateController extends Controller
         abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
 
         $data = $request->only([
-            'title', 'school_name', 'address_phone_email', 'header_color', 'design_type', 'design',
+            'title', 'school_name', 'address_phone_email', 'header_color', 'accent_color', 'design_type', 'design',
             'show_admission_no', 'show_student_name', 'show_class', 'show_father_name',
             'show_mother_name', 'show_address', 'show_phone', 'show_dob',
             'show_blood_group', 'show_roll_no', 'show_house', 'show_qr_code', 'show_barcode',
@@ -85,7 +90,7 @@ class IdCardTemplateController extends Controller
         abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403); // each design is gated by its own permission
 
         $data = $request->only([
-            'title', 'school_name', 'address_phone_email', 'header_color', 'design_type', 'design',
+            'title', 'school_name', 'address_phone_email', 'header_color', 'accent_color', 'design_type', 'design',
         ]);
 
         foreach (['show_admission_no','show_student_name','show_class','show_father_name','show_mother_name','show_address','show_phone','show_dob','show_blood_group','show_roll_no','show_house','show_qr_code','show_barcode'] as $toggle) {
@@ -113,6 +118,57 @@ class IdCardTemplateController extends Controller
         }
 
         return redirect()->route('id_card_template.index')->with('toastr-success', 'ID Card Template updated successfully.');
+    }
+
+    // T338: renders the real card view for ONE unsaved sample student (form live preview + eye button). Writes nothing to the DB.
+    public function livePreview(Request $request)
+    {
+        $request->validate([
+            'school_name' => 'nullable|string|max:255',
+            'address_phone_email' => 'nullable|string|max:255',
+            'header_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
+            'accent_color' => 'nullable|regex:/^#[0-9a-fA-F]{6}$/',
+            'design_type' => 'required|in:horizontal,vertical',
+            'design' => 'required|in:1,2,3',
+            'template_id' => 'nullable|integer',
+        ]);
+        abort_unless($request->user()->can('access-id-card-design-' . $request->design), 403);
+
+        $toggles = ['show_admission_no','show_student_name','show_class','show_father_name','show_mother_name','show_address','show_phone','show_dob','show_blood_group','show_roll_no','show_house','show_qr_code','show_barcode'];
+        $data = $request->only(['school_name', 'address_phone_email', 'header_color', 'accent_color', 'design_type', 'design']);
+        foreach ($toggles as $toggle) {
+            $data[$toggle] = $request->boolean($toggle);
+        }
+        $data['school_name'] = $data['school_name'] ?: 'Your School Name';
+
+        $template = new IdCardTemplate($data); // unsaved
+        if ($request->filled('template_id') && ($saved = IdCardTemplate::find($request->template_id))) {
+            $template->logo = $saved->logo; // images are not part of the preview POST; reuse the saved ones
+            $template->background_image = $saved->background_image;
+        }
+
+        // Unsaved sample student; qrCode relation is preset so getOrCreateQrCode() never inserts
+        $student = (new \App\Models\Student)->forceFill([
+            'id' => 1, 'first_name' => 'Rao', 'last_name' => 'Imran', 'admission_no' => 'ADM-0001',
+            'date_of_birth' => '2012-05-14', 'blood_group' => 'B+',
+        ]);
+        $student->setRelation('parent', (new \App\Models\ParentProfile)->forceFill([
+            'father_name' => 'Ahmed Khan', 'mother_name' => 'Sara Khan', 'father_phone' => '0300-1234567',
+            'guardian_address' => 'House 12, Main Street, City',
+        ]));
+        $student->setRelation('house', (new \App\Models\StudentHouse)->forceFill(['name' => 'Blue House']));
+        $student->setRelation('qrCode', (new \App\Models\QrCode)->forceFill(['code' => 'STU-DEMO-0001']));
+
+        $enrollment = (new Enrollment)->forceFill(['roll_no' => '12']);
+        $enrollment->setRelation('student', $student);
+        $enrollment->setRelation('schoolClass', (new SchoolClass)->forceFill(['name' => 'Class 5']));
+        $enrollment->setRelation('section', (new Section)->forceFill(['name' => 'A']));
+
+        $enrollments = collect([$enrollment]);
+        $validSession = null;
+        $isPreview = true;
+
+        return view('admin.id_card_template.card', compact('template', 'enrollments', 'validSession', 'isPreview'));
     }
 
     public function delete($id)

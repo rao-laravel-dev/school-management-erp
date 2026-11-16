@@ -56,6 +56,17 @@
                                class="form-control form-control-sm form-control-color">
                     </div>
 
+                    {{-- T338: second brand colour + 8 one-click colour pairs (Main / Accent) --}}
+                    <div class="mb-2">
+                        <label for="accent_color" class="form-label">Accent Color</label>
+                        <input type="color" name="accent_color" id="accent_color" value="#ffb020"
+                               class="form-control form-control-sm form-control-color">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block">Colour Presets</label>
+                        <div id="colorPresets" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="design_type" class="form-label">Design Type <span class="text-danger">*</span></label>
                         <select name="design_type" id="design_type" class="form-select form-select-sm">
@@ -112,6 +123,15 @@
     </div>
 
     <div class="col-md-7">
+        {{-- T338: live preview of the real card (front + back) with sample data; nothing is saved --}}
+        <div class="card mb-3">
+            <div class="card-header bg-transparent">
+                <h5 class="fw-semi-bold text-primary mb-0">Live Preview</h5>
+            </div>
+            <div class="card-body p-2">
+                <iframe id="cardPreview" style="width:100%; height:260px; border:0;" title="Live Preview"></iframe>
+            </div>
+        </div>
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
                 <h5 class="fw-semi-bold text-primary mb-0">ID Card Template List</h5>
@@ -140,6 +160,7 @@
                             <td>Design {{ $template->design }}</td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-outline-secondary viewBtn"
+    data-id="{{ $template->id }}"
     data-img="{{ $template->design_type === 'vertical'
         ? asset('uploads/id-card-images/student-id-card-template-vertical.jpg')
         : asset('uploads/id-card-images/student-id-card-template-horizontal.jpg') }}">
@@ -167,14 +188,16 @@
     </div>
 </div>
 <div class="modal fade" id="cardPreviewModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  {{-- old: <div class="modal-dialog modal-dialog-centered"> (T338: modal-lg so the front + back pair is readable) --}}
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">ID Card Preview</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body text-center">
-        <img id="previewImg" src="" class="img-fluid rounded">
+        {{-- old: <img id="previewImg" src="" class="img-fluid rounded"> (fixed screenshot) --}}
+        <iframe id="previewFrame" class="rounded" style="width:100%; height:260px; border:0;" title="ID Card Preview"></iframe>
       </div>
     </div>
   </div>
@@ -209,6 +232,7 @@ $(function() {
         $('#school_name').val(t.school_name);
         $('#address_phone_email').val(t.address_phone_email);
         $('#header_color').val(t.header_color ?? '#4b3bdb');
+        $('#accent_color').val(t.accent_color ?? '#ffb020');
         $('#design_type').val(t.design_type);
         $('#design').val(t.design);
 
@@ -217,6 +241,7 @@ $(function() {
             $(this).prop('checked', !!t[name]);
         });
 
+        refreshPreview();
         $('html, body').animate({ scrollTop: 0 }, 300);
     });
 
@@ -227,6 +252,8 @@ $(function() {
         $('#templateForm').attr('action', "{{ route('id_card_template.save') }}");
         $('#submitBtn').text('Save');
         $(this).hide();
+        $('#template_id').val('');
+        setTimeout(refreshPreview, 0); // after the form reset has applied
     });
 
     $('.deleteBtn').on('click', function(e) {
@@ -247,10 +274,67 @@ $(function() {
         });
     });
 
+    // old: $('.viewBtn') copied data-img (fixed screenshot) into #previewImg
+    // T338: eye button shows that template's real card (saved values -> same livePreview route)
     $('.viewBtn').on('click', function() {
-        $('#previewImg').attr('src', $(this).data('img'));
+        const t = templates[$(this).data('id')];
+        const payload = {
+            _token: $('#templateForm [name=_token]').val(), template_id: t.id,
+            school_name: t.school_name, address_phone_email: t.address_phone_email,
+            header_color: t.header_color, accent_color: t.accent_color, design_type: t.design_type, design: t.design
+        };
+        $('.toggle-field').each(function() { const n = $(this).attr('name'); if (t[n]) payload[n] = 1; });
+        $('#previewFrame').removeAttr('srcdoc');
         new bootstrap.Modal(document.getElementById('cardPreviewModal')).show();
+        renderCard('#previewFrame', payload);
     });
+
+    // ---- T338: colour presets (Main / Accent), JS only ----
+    const PRESETS = [
+        ['Indigo Amber', '#4b3bdb', '#ffb020'], ['Royal Gold', '#1e3a8a', '#f5b700'],
+        ['Emerald Lime', '#047857', '#a3e635'], ['Maroon Gold', '#7f1d1d', '#d4a017'],
+        ['Navy Sky', '#0f172a', '#38bdf8'], ['Teal Coral', '#0f766e', '#fb7185'],
+        ['Purple Pink', '#6d28d9', '#f472b6'], ['Sunflower Charcoal', '#facc15', '#1f2937']
+    ];
+    PRESETS.forEach(function(p) {
+        $('<button type="button" class="btn p-0 border" style="width:34px;height:34px;overflow:hidden;"></button>')
+            .attr('title', p[0])
+            .css('background', 'linear-gradient(135deg, ' + p[1] + ' 50%, ' + p[2] + ' 50%)')
+            .on('click', function() {
+                $('#header_color').val(p[1]);
+                $('#accent_color').val(p[2]).trigger('change');
+            })
+            .appendTo('#colorPresets');
+    });
+
+    // ---- T338: live preview = the real card view rendered by the server with sample data ----
+    function renderCard(frameSel, payload) {
+        const frame = $(frameSel)[0];
+        $.post("{{ route('id_card_template.live_preview') }}", payload).done(function(html) {
+            frame.onload = function() {
+                const doc = frame.contentDocument;
+                const pair = doc.querySelector('.card-pair');
+                if (!pair) return;
+                const zoom = Math.min(1, frame.clientWidth / (pair.offsetWidth + 60));
+                doc.body.style.zoom = zoom;
+                frame.style.height = Math.ceil(pair.offsetHeight * zoom + 70) + 'px';
+            };
+            frame.srcdoc = html;
+        });
+    }
+
+    let previewTimer = null;
+    function refreshPreview() {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(function() {
+            const payload = {};
+            $('#templateForm').serializeArray().forEach(function(f) { if (f.name !== '_method') payload[f.name] = f.value; });
+            payload.template_id = $('#template_id').val();
+            renderCard('#cardPreview', payload);
+        }, 350);
+    }
+    $('#templateForm').on('input change', 'input:not([type=file]), select', refreshPreview);
+    refreshPreview();
 });
 </script>
 @endpush
