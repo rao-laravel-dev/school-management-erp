@@ -3,6 +3,7 @@
 
 <head>
     <title>Staff ID Cards</title>
+    <link rel="icon" href="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/favicon-32x32.png')) }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}" />
     <style>
         :root {
             --card-w: {{ $template->design_type === 'vertical' ? '54mm' : '85.6mm' }};
