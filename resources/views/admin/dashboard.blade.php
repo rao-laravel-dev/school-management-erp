@@ -1,6 +1,57 @@
 @extends('admin.layout.app')
 @section('content')
 
+{{-- T339: Setup checklist (admin/superadmin; hides when all required steps are done) --}}
+@if(!empty($setupChecklist) && !$setupChecklist['complete'])
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Finish setting up your school</h5>
+            <span class="text-secondary">{{ $setupChecklist['done'] }} of {{ $setupChecklist['total'] }} done</span>
+        </div>
+        <div class="progress mb-3" style="height: 8px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $setupChecklist['percent'] }}%;" aria-valuenow="{{ $setupChecklist['percent'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-2">
+            @foreach($setupChecklist['required'] as $step)
+                <div class="col">
+                    @if($step['done'])
+                        <span class="text-success"><i class="bx bxs-check-circle align-middle"></i></span>
+                        <span class="text-decoration-line-through text-secondary">{{ $step['label'] }}</span>
+                    @else
+                        <i class="bx bx-circle align-middle text-secondary"></i>
+                        @if($step['url'])
+                            <a href="{{ $step['url'] }}">{{ $step['label'] }}</a>
+                        @else
+                            <span>{{ $step['label'] }}</span>
+                        @endif
+                    @endif
+                </div>
+            @endforeach
+        </div>
+        <hr class="my-3">
+        <div class="text-secondary font-13 mb-2">Recommended (optional)</div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-2 font-13">
+            @foreach($setupChecklist['recommended'] as $step)
+                <div class="col">
+                    @if($step['done'])
+                        <span class="text-success"><i class="bx bxs-check-circle align-middle"></i></span>
+                        <span class="text-decoration-line-through text-secondary">{{ $step['label'] }}</span>
+                    @else
+                        <i class="bx bx-circle align-middle text-secondary"></i>
+                        @if($step['url'])
+                            <a href="{{ $step['url'] }}" class="text-secondary">{{ $step['label'] }}</a>
+                        @else
+                            <span class="text-secondary">{{ $step['label'] }}</span>
+                        @endif
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
 
 <!-- Cards Row 1: Revenue / Expense / Users / Session -->
 @php

@@ -11,6 +11,7 @@ use App\Models\StaffAttendance;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\SetupChecklistService;
 use App\Services\StaffSelfProfileService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -187,7 +188,13 @@ class AdminController extends Controller
         }
     }
 
+    // T339: setup checklist card (admin/superadmin only; card hides itself when all required steps are done)
+    $setupChecklist = auth()->user()->hasAnyRole(['superadmin', 'admin'])
+        ? app(SetupChecklistService::class)->summary(auth()->user())
+        : null;
+
     return view('admin.dashboard', compact(
+        'setupChecklist',
         'activeUsersCount', 'newUsersThisMonth',
         'finance', 'staffCards',
         'monthLabels', 'revenueSeries', 'expenseSeries', 'usersSeries',
