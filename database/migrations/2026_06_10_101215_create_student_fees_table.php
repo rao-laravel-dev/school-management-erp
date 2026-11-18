@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             $table->foreignId('fee_type_id')->constrained()->onDelete('cascade');
-            $table->foreignId('fee_structure_id')->nullable()->constrained()->onDelete('cascade');
+            // $table->foreignId('fee_structure_id')->nullable()->constrained()->onDelete('cascade');
+            // FK create_fee_structures mein hai, kyun ke fee_structures table is se baad mein banta hai (same as fee_assignment_id)
+            $table->foreignId('fee_structure_id')->nullable();
             // FK create_fee_assignments mein hai, kyun ke fee_assignments table is se baad mein banta hai
             $table->unsignedBigInteger('fee_assignment_id')->nullable();
             $table->decimal('amount', 12, 2);

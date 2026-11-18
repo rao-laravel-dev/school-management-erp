@@ -22,6 +22,11 @@ return new class extends Migration
             $table->timestamp('last_generated_at')->nullable();     // 🔥 naya column
             $table->timestamps();
         });
+
+        // student_fees.fee_structure_id FK yahan hai: student_fees (2026_06_10) is table se pehle banta hai
+        Schema::table('student_fees', function (Blueprint $table) {
+            $table->foreign('fee_structure_id')->references('id')->on('fee_structures')->onDelete('cascade');
+        });
     }
 
     /**
@@ -29,6 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('student_fees', function (Blueprint $table) {
+            $table->dropForeign(['fee_structure_id']);
+        });
+
         Schema::dropIfExists('fee_structures');
     }
 };

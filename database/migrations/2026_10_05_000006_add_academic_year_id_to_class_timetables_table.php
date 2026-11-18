@@ -15,7 +15,8 @@ return new class extends Migration
         // Existing rows current year ki maani jayengi: is liye exactly ek current year zaroori. Data khud theek nahi karte.
         $current = DB::table('academic_years')->where('is_current', 1)->pluck('id');
 
-        if ($current->count() !== 1) {
+        // Fresh install: timetable khaali ho to current year zaroori nahi
+        if (DB::table('class_timetables')->exists() && $current->count() !== 1) {
             throw new RuntimeException("academic_years: exactly one is_current=1 row required, found {$current->count()}. Pehle ek session current mark karein.");
         }
 
