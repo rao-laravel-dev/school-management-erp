@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('name'); // Class 10
             $table->boolean('has_subjects')->default(1); // Name ke foran baad rakh diya hai
             $table->string('class_code')->unique(); // CLS-10
+            // Admin-entered prefix for class-wise subject codes (NR, K1, 01, 10)
+            $table->string('subject_prefix', 4)->nullable()->unique();
             $table->integer('numeric_name')->nullable(); // 10
             $table->string('slug')->unique();
             $table->text('description')->nullable();

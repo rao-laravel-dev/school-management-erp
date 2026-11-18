@@ -17,7 +17,9 @@ return new class extends Migration
             $table->foreignId('class_id')->constrained('school_class')->cascadeOnDelete();
             $table->foreignId('section_id')->constrained('sections')->cascadeOnDelete();
             $table->foreignId('subject_id')->constrained('subjects')->cascadeOnDelete();
-            $table->foreignId('teacher_id')->constrained('users')->cascadeOnDelete();
+            /* old: $table->foreignId('teacher_id')->constrained('users')->cascadeOnDelete(); */
+            // value teachers.id hai (users nahi)
+            $table->foreignId('teacher_id')->constrained('teachers')->restrictOnDelete();
             $table->foreignId('class_timetable_id')->nullable()->constrained('class_timetables')->nullOnDelete();
             $table->foreignId('lesson_id')->constrained('lessons')->cascadeOnDelete();
             $table->foreignId('topic_id')->nullable()->constrained('topics')->nullOnDelete();

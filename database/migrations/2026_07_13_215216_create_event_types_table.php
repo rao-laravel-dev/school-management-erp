@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');           // Holiday, Exam, Meeting...
             $table->string('color', 20)->default('#0d6efd');
+            // 1 = is type ki calendar dates timetable mein off (Eid, Ashura, leaves...)
+            $table->boolean('is_off_day')->default(false);
             $table->boolean('status')->default(true);
             $table->timestamps();
         });
