@@ -4,7 +4,7 @@
 @php
     $isClassTeacher = $myClasses->isNotEmpty();
     $classLabel = $myClasses->map(fn($a) => optional($a->schoolClass)->name . '-' . optional($a->section)->name)->implode(', ');
-    $attBadges = ['Present' => 'bg-success', 'Late' => 'bg-warning text-dark', 'Half Day' => 'bg-info text-dark', 'Absent' => 'bg-danger', 'Leave' => 'bg-primary'];
+    $attBadges = ['Present' => 'bg-success', 'Late' => 'bg-warning text-dark', 'Half Day' => 'bg-info text-dark', 'Absent' => 'bg-danger', 'Leave' => 'text-white']; /* old: 'Leave' => 'bg-primary' (followed the theme colour); Leave keeps fixed #008cff via inline style on the badge */
     // Card progress: aaj ke periods (khatam / total) aur class ki present %
     $periodsTotal = $offDayLabel ? 0 : $todayPeriods->count();
     $periodsPercent = $periodsTotal > 0 ? round($periodsDone / $periodsTotal * 100) : 0;
@@ -106,7 +106,7 @@
                 </div>
                 <ul class="list-group list-group-flush">
                     @foreach($classCounts as $attLabel => $attCount)
-                    <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center{{ $loop->first ? ' border-top' : '' }}">{{ $attLabel }} <span class="badge {{ $attBadges[$attLabel] }} rounded-pill">{{ $attCount }}</span></li>
+                    <li class="list-group-item d-flex bg-transparent justify-content-between align-items-center{{ $loop->first ? ' border-top' : '' }}">{{ $attLabel }} <span class="badge {{ $attBadges[$attLabel] }} rounded-pill"{!! $attLabel === 'Leave' ? ' style="background-color:#008cff"' : '' !!}>{{ $attCount }}</span></li>
                     @endforeach
                 </ul>
                 <div class="card-body d-flex gap-2">

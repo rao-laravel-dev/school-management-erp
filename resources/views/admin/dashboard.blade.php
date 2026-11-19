@@ -176,11 +176,11 @@
 							  </div>
 						   </div>
 						   @php
-						       $attBadges = ['Present' => 'bg-success', 'Late' => 'bg-warning text-dark', 'Half Day' => 'bg-info text-dark', 'Absent' => 'bg-danger', 'Leave' => 'bg-primary'];
+						       $attBadges = ['Present' => 'bg-success', 'Late' => 'bg-warning text-dark', 'Half Day' => 'bg-info text-dark', 'Absent' => 'bg-danger', 'Leave' => 'text-white']; /* old: 'Leave' => 'bg-primary' (followed the theme colour); Leave keeps fixed #008cff via inline style on the badge */
 						   @endphp
 						   <ul class="list-group list-group-flush">
 							@foreach($attendanceCounts as $attLabel => $attCount)
-							<li class="list-group-item d-flex bg-transparent justify-content-between align-items-center{{ $loop->first ? ' border-top' : '' }}">{{ $attLabel }} <span class="badge {{ $attBadges[$attLabel] }} rounded-pill">{{ $attCount }}</span>
+							<li class="list-group-item d-flex bg-transparent justify-content-between align-items-center{{ $loop->first ? ' border-top' : '' }}">{{ $attLabel }} <span class="badge {{ $attBadges[$attLabel] }} rounded-pill"{!! $attLabel === 'Leave' ? ' style="background-color:#008cff"' : '' !!}>{{ $attCount }}</span>
 							</li>
 							@endforeach
 						</ul>

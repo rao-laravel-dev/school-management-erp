@@ -18,9 +18,10 @@
 	<!-- Bootstrap CSS -->
 	<link href="assets/css/bootstrap.min.css" rel="stylesheet">
 	<link href="assets/css/bootstrap-extended.css" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+	{{-- old: <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> --}}
 	<link href="assets/css/app.css" rel="stylesheet">
 	<link href="assets/css/icons.css" rel="stylesheet">
+	@include('partials.site_theme')
 	{{-- <title>Rocker - Bootstrap 5 Admin Dashboard Template</title> --}}
 	<title>Reset Password</title>
 </head>
@@ -44,7 +45,7 @@
             <div class="">
                 <div class="mb-4 text-center">
                     {{-- <img src="{{ asset('backend/assets/images/logo-icon.png') }}" width="60" alt="" /> --}}
-                    <img src="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/logo-icon.png')) }}" width="60" alt="" />
+                    <img class="login-school-icon" src="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/logo-icon.png')) }}" width="60" alt="" />
                 </div>
                 <div class="text-start mb-4">
                     <h5 class="">Generate New Password</h5>

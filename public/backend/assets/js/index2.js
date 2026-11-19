@@ -157,7 +157,7 @@ $(function() {
     value: 20
   }],
   resize: true,
-  colors:['#008cff', '#15ca20', '#fd3550']
+  colors:[/* old: '#008cff' */ (getComputedStyle(document.documentElement).getPropertyValue('--ss-primary').trim() || '#008cff'), '#15ca20', '#fd3550']
 });
 
 
@@ -171,7 +171,7 @@ $(function() {
     barWidth: '2',
     resize: true,
     barSpacing: '2',
-    barColor: '#008cff'
+    barColor: /* old: '#008cff' */ (getComputedStyle(document.documentElement).getPropertyValue('--ss-primary').trim() || '#008cff')
 });
 
 
@@ -437,7 +437,7 @@ jQuery('#dashboard-map').vectorMap(
       color: '#009efb',
       regionStyle : {
           initial : {
-            fill : '#008cff'
+            fill : /* old: '#008cff' */ (getComputedStyle(document.documentElement).getPropertyValue('--ss-primary').trim() || '#008cff')
           }
         },
       markerStyle: {

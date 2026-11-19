@@ -30,11 +30,13 @@ $(function() {
 
 			if($(".dark-mode-icon i").attr("class") == 'bx bx-sun') {
 				$(".dark-mode-icon i").attr("class", "bx bx-moon");
-				$("html").attr("class", "light-theme");
+				// old: $("html").attr("class", "light-theme");
+				$("html").removeClass("dark-theme").addClass("light-theme");
 				try { localStorage.setItem('smartschool-theme', 'light-theme'); } catch (e) {}
 			} else {
 				$(".dark-mode-icon i").attr("class", "bx bx-sun");
-				$("html").attr("class", "dark-theme");
+				// old: $("html").attr("class", "dark-theme");
+				$("html").removeClass("light-theme").addClass("dark-theme");
 				try { localStorage.setItem('smartschool-theme', 'dark-theme'); } catch (e) {}
 			}
 

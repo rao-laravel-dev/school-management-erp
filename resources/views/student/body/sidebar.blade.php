@@ -4,7 +4,7 @@
             <img src="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/logo-icon.png')) }}" class="logo-icon{{ ($schoolBrand->icon_url || $mssIcon) ? ' school-icon' : '' }}" alt="logo icon">
         </div>
         <div>
-            <h4 class="logo-text">Student</h4>
+            <h4 class="logo-text">Student @if (($ssSub = trim((string) $schoolBrand->school_name) ?: trim((string) $schoolBrand->tagline)) !== '')<span class="logo-sub">{{ $ssSub }}</span>@endif</h4>
         </div>
         <div class="toggle-icon ms-auto"><i class='bx bx-arrow-back'></i></div>
     </div>

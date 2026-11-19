@@ -80,6 +80,7 @@ class AppServiceProvider extends ServiceProvider
             'auth.reset-password', 'auth.register', 'auth.forgot-password', 'layouts.app',
             'card_verify.public', 'card_verify.salary_slip',
             'admin.auth.admin_reset_password', 'admin.auth.admin_forgot_password',
+            'partials.site_theme', // T340a Round 2: same single SiteSetting read feeds the theme partial
         ], function ($view) use (&$schoolBrand, &$mssBrand) {
             if (!$schoolBrand) {
                 $schoolBrand = \App\Models\SiteSetting::current();

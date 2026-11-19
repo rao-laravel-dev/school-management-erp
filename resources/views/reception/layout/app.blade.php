@@ -17,7 +17,7 @@
 	<link rel="icon" href="{{ $schoolBrand->icon_url ?: ($mssIcon ?: asset('backend/assets/images/favicon-32x32.png')) }}" type="{{ $schoolBrand->icon_url ? 'image/webp' : 'image/png' }}"/>
 
 	<!-- Google Fonts -->
-	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+	{{-- old: <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> --}}
 
 	<!-- Plugins CSS -->
 	<link href="{{ asset('backend/assets/plugins/vectormap/jquery-jvectormap-2.0.2.css') }}" rel="stylesheet"/>
@@ -41,6 +41,7 @@
 	<link href="{{ asset('backend/assets/css/dark-theme.css') }}" rel="stylesheet"/>
 	<link href="{{ asset('backend/assets/css/semi-dark.css') }}" rel="stylesheet"/>
 	<link href="{{ asset('backend/assets/css/header-colors.css') }}" rel="stylesheet"/>
+	@include('partials.site_theme')
 
 	<!-- 🔥 Toastr CSS -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>

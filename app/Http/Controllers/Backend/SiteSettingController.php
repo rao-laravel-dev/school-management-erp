@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\SchoolClass;
+use App\Models\SchoolTiming;
 use App\Models\SiteSetting;
+use App\Models\User;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SiteSettingController extends Controller
 {
@@ -19,7 +23,63 @@ class SiteSettingController extends Controller
     public function edit()
     {
         $setting = SiteSetting::current();
-        return view('admin.site_setting.edit', compact('setting'));
+
+        // T340a: header card counts (same "active" rules as the dashboard cards)
+        $counts = [
+            'students' => User::role('student')->where('status', 1)->count(),
+            'staff'    => User::role(['teacher', 'receptionist', 'accountant', 'librarian'])->where('status', 1)->count(),
+            'classes'  => SchoolClass::count(),
+            'users'    => User::whereHas('roles', fn($q) => $q->whereIn('name', ['admin', 'teacher', 'staff', 'parent', 'student', 'receptionist', 'accountant', 'librarian']))
+                ->where('status', 1)->withoutSuperadmin()->count(),
+        ];
+        $timing = SchoolTiming::active(); // "School at a glance" card
+        $tab = in_array(request('tab'), ['profile', 'theme', 'checklist'], true) ? request('tab') : 'profile';
+
+        /* old: return view('admin.site_setting.edit', compact('setting')); */
+        return view('admin.site_setting.edit', compact('setting', 'counts', 'timing', 'tab'));
+    }
+
+    // T340a: save the Appearance & theme tab (own route; the profile form has other required fields)
+    public function updateTheme(Request $request)
+    {
+        $request->validate([
+            'theme_palette' => ['required', Rule::in(array_merge(array_keys(SiteSetting::PALETTES), ['custom']))],
+            'font_family'   => ['required', Rule::in(array_keys(SiteSetting::FONTS))],
+            'sidebar_style' => ['required', Rule::in(array_keys(SiteSetting::SIDEBAR_STYLES))],
+            'primary_color' => ['required_if:theme_palette,custom', 'nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'accent_color'  => ['required_if:theme_palette,custom', 'nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+        ], [
+            'primary_color.regex' => 'Primary colour must be a full hex value like #4b3bdb.',
+            'accent_color.regex'  => 'Accent colour must be a full hex value like #ffb020.',
+            'primary_color.required_if' => 'Pick a primary colour for the Custom palette.',
+            'accent_color.required_if'  => 'Pick an accent colour for the Custom palette.',
+        ]);
+
+        $palette = $request->theme_palette;
+        if ($palette === 'custom') {
+            $primary = strtolower($request->primary_color);
+            $accent  = strtolower($request->accent_color);
+        } else {
+            // named palette: colours come from the server list, posted colours are ignored
+            [, $primary, $accent] = SiteSetting::PALETTES[$palette];
+        }
+
+        SiteSetting::current()->update([
+            'theme_palette' => $palette,
+            'primary_color' => $primary,
+            'accent_color'  => $accent,
+            'font_family'   => $request->font_family,
+            'sidebar_style' => $request->sidebar_style,
+        ]);
+
+        return redirect()->route('site_setting.edit', ['tab' => 'theme'])->with('toastr-success', 'Theme saved. It applies to every user.');
+    }
+
+    public function resetTheme()
+    {
+        SiteSetting::current()->update(SiteSetting::THEME_DEFAULTS);
+
+        return redirect()->route('site_setting.edit', ['tab' => 'theme'])->with('toastr-success', 'Theme reset to default.');
     }
 
     public function update(Request $request)
@@ -35,6 +95,7 @@ class SiteSettingController extends Controller
             'established_year' => 'nullable|digits:4|max:10',
             'header_note' => 'nullable|string|max:255',
             'footer_note' => 'nullable|string|max:255',
+            'tagline' => 'nullable|string|max:150', // T340a
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'icon' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'principal_signature' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -59,6 +120,7 @@ class SiteSettingController extends Controller
             'established_year',
             'header_note',
             'footer_note',
+            'tagline',            // T340a
         ]);
 
         $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
@@ -83,6 +145,6 @@ class SiteSettingController extends Controller
             $this->imageService->delete($oldFile, 'uploads/site_setting');
         }
 
-        return redirect()->route('site_setting.edit')->with('toastr-success', 'Site Settings updated successfully.');
+        return redirect()->route('site_setting.edit', ['tab' => 'profile'])->with('toastr-success', 'Site Settings updated successfully.');
     }
 }

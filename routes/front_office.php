@@ -969,6 +969,8 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('can:manage-site-settings')->group(function () {
             Route::controller(SiteSettingController::class)->group(function () {
                 Route::post('/', 'update')->name('update');
+                Route::post('/theme', 'updateTheme')->name('theme.update');
+                Route::post('/theme/reset', 'resetTheme')->name('theme.reset');
             });
         });
     });
