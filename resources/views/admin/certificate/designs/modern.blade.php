@@ -1,6 +1,7 @@
 {{-- Modern design: solid colour band with the school name, clean sans-serif body. Band colour = theme primary (fallback #0e3b78). --}}
 @php
     $mdPrimary = (is_array($schoolBrand->theme ?? null) && !empty($schoolBrand->theme['primary'])) ? $schoolBrand->theme['primary'] : '#0e3b78';
+    $mdAccent = (is_array($schoolBrand->theme ?? null) && !empty($schoolBrand->theme['accent'])) ? $schoolBrand->theme['accent'] : '#ffb020';
     // old: $mdOn = theme['on_primary'] (picked black on the default blue). White text unless white has less than 3:1 contrast (same rule as --ss-on-solid)
     $mdLum = function ($hex) {
         $h = ltrim($hex, '#');
@@ -14,13 +15,17 @@
 @endphp
 <style>
     .cert-modern { position: absolute; inset: 0; font-family: "Segoe UI", Arial, Helvetica, sans-serif; color: #1f2937; background: #fff; display: flex; flex-direction: column; }
-    .cert-modern .md-band { background: {{ $mdPrimary }}; color: {{ $mdOn }}; padding: 9mm 14mm 7mm; display: flex; align-items: center; gap: 6mm; }
-    .cert-modern .md-logo-box { background: #fff; border-radius: 2mm; padding: 1.5mm; display: flex; align-items: center; }
-    .cert-modern .md-logo { max-height: 18mm; max-width: 45mm; display: block; }
-    .cert-modern .md-band-text { flex: 1; }
+    .cert-modern .md-band { background: {{ $mdPrimary }}; color: {{ $mdOn }}; padding: 9mm 14mm 7mm; display: grid; grid-template-columns: 45mm minmax(0, 1fr) 45mm; align-items: center; gap: 6mm; } /* old: display: flex */
+    .cert-modern .md-slot { display: flex; align-items: center; justify-content: flex-start; }
+    .cert-page.landscape .cert-modern .md-band { grid-template-columns: 60mm minmax(0, 1fr) 60mm; }
+    /* old: .md-logo-box padding 1.5mm; .md-logo max-height 18mm, max-width 45mm (landscape 13mm) */
+    .cert-modern .md-logo-box { background: #fff; border-radius: 2mm; padding: .5mm; display: flex; align-items: center; }
+    .cert-modern .md-logo { max-height: 30mm; max-width: 44mm; display: block; } /* old: max-width 70mm (landscape 60mm); now fits the 45mm (landscape 60mm) slot */
+    .cert-modern .md-band-text { flex: 1; min-width: 0; text-align: center; } /* old: flex: 1 only; min-width 0 lets the one-line school name shrink instead of pushing the band */
     .cert-modern .md-school { margin: 0; font-size: 22pt; font-weight: 700; letter-spacing: .3pt; color: {{ $mdOn }}; }
     .cert-modern .md-address { margin: 1mm 0 0; font-size: 9.5pt; opacity: .9; color: {{ $mdOn }}; }
-    .cert-modern .md-stripe { height: 1.6mm; background: {{ $mdPrimary }}; opacity: .35; }
+    /* old: .md-stripe background {{ $mdPrimary }}, opacity .35 (faint line in the main colour). Now the school accent (gold by default), same as the marksheet Modern */
+    .cert-modern .md-stripe { height: 1.6mm; background: {{ $mdAccent }}; }
 
     .cert-modern .md-main { flex: 1; display: flex; flex-direction: column; padding: 8mm 16mm 0; min-height: 0; }
     .cert-modern .md-title { margin: 0 0 3mm; padding-left: 4mm; border-left: 1.8mm solid {{ $mdPrimary }}; font-size: 22pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1pt; color: {{ $mdPrimary }}; }
@@ -28,7 +33,7 @@
     .cert-modern .md-body { flex: 1; font-size: 14.5pt; line-height: 1.95; text-align: left; overflow: hidden; }
 
     .cert-page.landscape .cert-modern .md-band { padding: 5mm 14mm 4mm; }
-    .cert-page.landscape .cert-modern .md-logo { max-height: 13mm; }
+    .cert-page.landscape .cert-modern .md-logo { max-height: 22mm; max-width: 60mm; } /* old: max-height 13mm */
     .cert-page.landscape .cert-modern .md-school { font-size: 18pt; }
     .cert-page.landscape .cert-modern .md-main { padding: 4mm 16mm 0; }
     .cert-page.landscape .cert-modern .md-title { font-size: 18pt; margin-bottom: 2mm; }
@@ -55,9 +60,12 @@
 
 <div class="cert-modern">
     <div class="md-band">
+        {{-- equal left / right slots: logo (or empty) on the left, empty spacer on the right, name block centred on the page --}}
+        <div class="md-slot">
         @if($schoolBrand->logo_url)
         <div class="md-logo-box"><img class="md-logo" src="{{ $schoolBrand->logo_url }}" alt=""></div>
         @endif
+        </div>
         <div class="md-band-text">
             <h1 class="md-school">{{ $schoolBrand->school_name }}</h1>
             @php
@@ -67,6 +75,7 @@
             <p class="md-address">{{ $contact }}</p>
             @endif
         </div>
+        <div class="md-slot"></div>
     </div>
     <div class="md-stripe"></div>
 

@@ -68,6 +68,31 @@
         @include('admin.certificate.designs.' . (array_key_exists($certificate->design, \App\Models\Certificate::DESIGNS) ? $certificate->design : 'classic'))
     </div>
 
+    {{-- School name stays on ONE line: font shrinks (min 14pt) until it fits its box --}}
+    <script>
+        (function() {
+            function fit() {
+                document.querySelectorAll('.cc-school, .el-school, .fm-school, .md-school, .ry-school').forEach(function(el) {
+                    el.style.whiteSpace = 'nowrap';
+                    el.style.overflow = 'hidden';
+                    el.style.textOverflow = 'ellipsis'; // only if the name is still too long at 14pt
+                    el.style.fontSize = '';
+                    var size = parseFloat(getComputedStyle(el).fontSize) * 0.75; // px -> pt
+                    // old: while (el.scrollWidth > el.clientWidth + 1 && size > 14) { (scrollWidth did not report the clipped text reliably)
+                    var range = document.createRange();
+                    range.selectNodeContents(el);
+                    while (range.getBoundingClientRect().width > el.clientWidth && size > 12) { // old: size > 14
+                        size -= 0.5;
+                        el.style.fontSize = size + 'pt';
+                    }
+                });
+            }
+            fit();
+            window.addEventListener('load', fit);
+            if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
+        })();
+    </script>
+
     {{-- Saved certificate opens the print dialog only right after Save (?autoprint=1), never in the preview --}}
     @if(empty($isPreview) && !empty($autoPrint))
     <script>

@@ -154,7 +154,7 @@
 
     {{-- Right: live preview (the real print page for an unsaved certificate) --}}
     <div class="col-lg-7">
-        <div class="card radius-10">
+        <div class="card radius-10" style="position: sticky; top: 70px; z-index: 2;">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
                 <h5 class="mb-0 text-primary">Preview</h5>
                 <small class="text-muted">Sample student until a student is selected</small>
@@ -232,6 +232,21 @@ $(document).ready(function() {
     $('#certificateClass').on('change', function() { loadSections(); });
     $('#certificateSection, #certificateSession').on('change', function() { loadStudents(); });
 
+    // ---- preview size: whole page visible, fits the card width and the window height (aspect ratio kept) ----
+    function fitCertPreview() {
+        const frame = $('#certificatePreview')[0];
+        const doc = frame.contentDocument;
+        const page = doc && doc.querySelector('.cert-page');
+        if (!page) { return; }
+        doc.body.style.zoom = 1; // measure at full size first
+        const pw = page.offsetWidth + 40, ph = page.offsetHeight + 40;
+        const maxH = Math.max(300, window.innerHeight - 160);
+        const zoom = Math.min(1, frame.clientWidth / pw, maxH / ph);
+        doc.body.style.zoom = zoom;
+        frame.style.height = (Math.ceil(ph * zoom) + 6) + 'px';
+    }
+    $(window).on('resize', fitCertPreview);
+
     // ---- live preview: server renders the real print page for an unsaved certificate ----
     let previewToken = 0, previewTimer = null;
     function refreshPreview() {
@@ -244,14 +259,8 @@ $(document).ready(function() {
             const frame = $('#certificatePreview')[0];
             $.post(PREVIEW_URL, payload).done(function(html) {
                 if (token !== previewToken) { return; }
-                frame.onload = function() {
-                    const doc = frame.contentDocument;
-                    const page = doc.querySelector('.cert-page');
-                    if (!page) { return; }
-                    const zoom = Math.min(1, frame.clientWidth / (page.offsetWidth + 40));
-                    doc.body.style.zoom = zoom;
-                    frame.style.height = Math.ceil(page.offsetHeight * zoom + 50) + 'px';
-                };
+                // old: zoom by width only (page height could be taller than the screen); now fitCertPreview() fits width AND window height
+                frame.onload = fitCertPreview;
                 frame.srcdoc = html;
             }).fail(function() { /* silent: validation of the form shows the real errors on Save */ });
         }, 350);

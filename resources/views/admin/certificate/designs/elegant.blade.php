@@ -18,7 +18,8 @@
 
     .cert-elegant .el-content { position: absolute; inset: 13mm 16mm; display: flex; flex-direction: column; }
     .cert-elegant .el-head { text-align: center; }
-    .cert-elegant .el-logo { max-height: 20mm; max-width: 70mm; margin-bottom: 2mm; }
+    /* old: .el-logo max-height 20mm, max-width 70mm (landscape 13mm) */
+    .cert-elegant .el-logo { max-height: 30mm; max-width: 90mm; margin-bottom: 2mm; }
     .cert-elegant .el-school { margin: 0; font-size: 21pt; font-weight: bold; letter-spacing: .5pt; color: #5b4421; }
     .cert-elegant .el-address { margin: 1mm 0 0; font-size: 10pt; color: #6b5a40; }
     .cert-elegant .el-divider { display: flex; align-items: center; justify-content: center; gap: 3mm; margin: 4mm auto 0; width: 55%; }
@@ -32,7 +33,7 @@
     .cert-page.landscape .cert-elegant .el-content { inset: 11mm 16mm; }
     .cert-page.landscape .cert-elegant .el-body { font-size: 13.5pt; line-height: 1.75; }
     .cert-page.landscape .cert-elegant .el-title { margin: 2mm 0 1mm; font-size: 20pt; }
-    .cert-page.landscape .cert-elegant .el-logo { max-height: 13mm; margin-bottom: 1mm; }
+    .cert-page.landscape .cert-elegant .el-logo { max-height: 22mm; max-width: 70mm; margin-bottom: 1mm; } /* old: max-height 13mm */
     .cert-page.landscape .cert-elegant .el-school { font-size: 18pt; }
     .cert-page.landscape .cert-elegant .el-divider { margin-top: 2mm; }
     .cert-page.landscape .cert-elegant .el-meta { margin-bottom: 2mm; }

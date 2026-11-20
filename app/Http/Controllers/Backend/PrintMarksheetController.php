@@ -7,11 +7,13 @@ use App\Models\Enrollment;
 use App\Models\Exam;
 use App\Models\ExamSchedule;
 use App\Models\MarkSheet;
+use App\Models\MarksGrade;
 use App\Models\MarksheetTemplate;
 use App\Models\PrintMarksheet;
 use App\Models\Result;
 use App\Models\SchoolClass;
 use App\Models\SiteSetting;
+use App\Services\PrintDesignService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -104,7 +106,13 @@ class PrintMarksheetController extends Controller
             ->get()
             ->keyBy('subject_id');
 
-        $sheets = collect($request->enrollment_ids)->map(function ($enrollmentId) use ($exam, $request, $examSchedules, $template) {
+        // Grade scale + class-section size only when a Modern/Formal extra needs them (Classic and old templates: no extra queries)
+        $grades = ($template->show_subject_details || $template->show_grade_scale)
+            ? MarksGrade::where('exam_id', $exam->id)->orderBy('min_percentage', 'desc')->get()
+            : collect();
+        $sizes = [];
+
+        $sheets = collect($request->enrollment_ids)->map(function ($enrollmentId) use ($exam, $request, $examSchedules, $template, $grades, &$sizes) {
             $enrollment = Enrollment::with(['student.parent', 'schoolClass', 'section'])->whereHas('student')->findOrFail($enrollmentId); // soft-deleted student = 404 (500 nahi)
             $student    = $enrollment->student;
 
@@ -137,22 +145,16 @@ class PrintMarksheetController extends Controller
             ]);
 
             // Replace [placeholder] tokens in body_text with real data for this student
-            $tokens = [
-                '[name]'          => $student->full_name ?? '-',
-                '[father_name]'   => $student->father_name ?? '-',
-                '[mother_name]'   => $student->mother_name ?? '-',
-                '[admission_no]'  => $student->admission_no ?? '-',
-                '[roll_number]'   => $enrollment->roll_no ?? '-',
-                '[roll_no]'       => $enrollment->roll_no ?? '-',
-                '[dob]'           => $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('d-m-Y') : '-',
-                '[class]'         => $enrollment->schoolClass->name ?? '-',
-                '[section]'       => $enrollment->section->name ?? '-',
-                '[exam_name]'     => $exam->name ?? '-',
-            ];
+            // old: '[father_name]' => $student->father_name, '[mother_name]' => $student->mother_name (students table mein ye columns nahi; ab parent profile se)
+            $bodyText = PrintDesignService::marksheetBody($template->body_text, $student, $enrollment, $exam);
 
-            $bodyText = $template->body_text
-                ? str_replace(array_keys($tokens), array_values($tokens), $template->body_text)
-                : null;
+            // Position is "rank / students with a result in the same class-section for this exam"
+            $totalStudents = null;
+            if ($template->show_summary_boxes && $result) {
+                $key = $result->class_id . '-' . $result->section_id;
+                $sizes[$key] ??= Result::where('exam_id', $exam->id)->where('class_id', $result->class_id)->where('section_id', $result->section_id)->count();
+                $totalStudents = $sizes[$key];
+            }
 
             return [
                 'enrollment' => $enrollment,
@@ -160,6 +162,8 @@ class PrintMarksheetController extends Controller
                 'result'     => $result,
                 'subjects'   => $subjectMarks,
                 'body_text'  => $bodyText,
+                'grades'     => $grades,
+                'total_students' => $totalStudents,
             ];
         });
 
@@ -168,6 +172,8 @@ class PrintMarksheetController extends Controller
             'template'    => $template,
             'sheets'      => $sheets,
             'siteSetting' => $siteSetting,
+            'branding'    => PrintDesignService::branding($siteSetting, $template),
+            'isPreview'   => false,
         ]);
     }
 }

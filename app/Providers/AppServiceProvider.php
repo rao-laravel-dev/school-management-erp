@@ -77,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
             'parent.body.sidebar', 'reception.body.sidebar', 'accountant.body.sidebar', 'admin.librarian.body.sidebar',
             'admin.id_card_template.card', 'admin.staff_id_card_template.card',
             'admin.certificate.print', // certificates: logo, icon, signature, stamp, head name
+            'admin.print_marksheet.print', // marksheet print: school icon for the tab
             'frontend.home.body.footer',
             'auth.reset-password', 'auth.register', 'auth.forgot-password', 'layouts.app',
             'card_verify.public', 'card_verify.salary_slip',

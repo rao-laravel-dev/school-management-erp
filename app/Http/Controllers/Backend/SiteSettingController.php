@@ -162,7 +162,8 @@ class SiteSettingController extends Controller
         $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
         if ($request->hasFile('logo')) {
             $oldFiles[] = $setting->logo;
-            $data['logo'] = $this->imageService->upload($request->file('logo'), 'uploads/site_setting', 800, 300);
+            // old: ->upload($request->file('logo'), 'uploads/site_setting', 800, 300); (shrank every logo to 800x300 max)
+            $data['logo'] = $this->imageService->upload($request->file('logo'), 'uploads/site_setting', 2000, 2000, 90, true);
         }
 
         if ($request->hasFile('icon')) {

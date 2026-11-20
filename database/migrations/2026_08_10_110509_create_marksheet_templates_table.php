@@ -47,6 +47,21 @@ return new class extends Migration
             $table->boolean('show_dob')->default(false);
             $table->boolean('show_remark')->default(true);
 
+            // Print design: design + orientation, own colours (null = school theme colour), school branding from Site Settings (off for old rows)
+            $table->string('design', 20)->default('classic');
+            $table->string('orientation', 10)->default('portrait');
+            $table->string('primary_color', 7)->nullable();
+            $table->string('accent_color', 7)->nullable();
+            $table->boolean('show_school_logo')->default(false);
+            $table->boolean('show_head_signature')->default(false);
+            $table->boolean('show_stamp')->default(false);
+
+            // Modern/Formal marksheet extras (off for old rows; the template form ticks them for a new template)
+            $table->boolean('show_subject_details')->default(false); // Pass Marks, %, Grade, Pass/Fail per subject
+            $table->boolean('show_summary_boxes')->default(false);   // Percentage, Grade, Result, Position boxes
+            $table->boolean('show_grade_scale')->default(false);     // grade scale table (marks_grades of the exam)
+            $table->boolean('show_parent_sign')->default(false);     // 4th signature slot "Parent / Guardian"
+
             $table->timestamps();
         });
     }

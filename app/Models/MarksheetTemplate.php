@@ -36,9 +36,27 @@ class MarksheetTemplate extends Model
         'show_section',
         'show_dob',
         'show_remark',
+        'design',
+        'orientation',
+        'primary_color',
+        'accent_color',
+        'show_school_logo',
+        'show_head_signature',
+        'show_stamp',
+        'show_subject_details',
+        'show_summary_boxes',
+        'show_grade_scale',
+        'show_parent_sign',
     ];
 
     protected $casts = [
+        'show_subject_details' => 'boolean',
+        'show_summary_boxes' => 'boolean',
+        'show_grade_scale' => 'boolean',
+        'show_parent_sign' => 'boolean',
+        'show_school_logo' => 'boolean',
+        'show_head_signature' => 'boolean',
+        'show_stamp' => 'boolean',
         'printing_date' => 'date',
         'show_name' => 'boolean',
         'show_father_name' => 'boolean',
@@ -54,4 +72,19 @@ class MarksheetTemplate extends Model
         'show_dob' => 'boolean',
         'show_remark' => 'boolean',
     ];
+
+    // Image URL (null = not set). '__pending__' = live preview of a picture that is picked but not saved yet (browser replaces it)
+    public function imageUrl(string $field): ?string
+    {
+        $file = $this->{$field};
+
+        if (!$file) {
+            return null;
+        }
+        if ($file === '__pending__') {
+            return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        }
+
+        return asset('uploads/marksheet_template/' . $file);
+    }
 }

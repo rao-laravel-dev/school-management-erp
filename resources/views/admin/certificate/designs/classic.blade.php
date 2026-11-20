@@ -12,7 +12,8 @@
     .cert-classic .cc-corner.br { bottom: -5mm; right: -5mm; }
 
     .cert-classic .cc-head { text-align: center; }
-    .cert-classic .cc-logo { max-height: 22mm; max-width: 70mm; margin-bottom: 2mm; }
+    /* old: .cc-logo max-height 22mm, max-width 70mm (landscape 16mm) */
+    .cert-classic .cc-logo { max-height: 30mm; max-width: 90mm; margin-bottom: 2mm; }
     .cert-classic .cc-school { margin: 0; font-size: 22pt; font-weight: bold; letter-spacing: .5pt; color: #1e3a5f; }
     .cert-classic .cc-address { margin: 1mm 0 0; font-size: 10pt; color: #4b5563; }
     .cert-classic .cc-rule { height: .6mm; background: #b8860b; margin: 4mm auto 0; width: 40%; }
@@ -23,7 +24,7 @@
     .cert-classic .cc-body { flex: 1; font-size: 15pt; line-height: 2; text-align: justify; padding: 0 4mm; overflow: hidden; }
     .cert-page.landscape .cert-classic .cc-body { font-size: 14pt; line-height: 1.8; }
     .cert-page.landscape .cert-classic .cc-title { margin: 3mm 0 2mm; font-size: 21pt; }
-    .cert-page.landscape .cert-classic .cc-logo { max-height: 16mm; }
+    .cert-page.landscape .cert-classic .cc-logo { max-height: 22mm; max-width: 70mm; } /* old: max-height 16mm */
     .cert-page.landscape .cert-classic .cc-inner { padding: 5mm 12mm; }
     .cert-page.landscape .cert-classic .cc-meta { margin-bottom: 3mm; }
 

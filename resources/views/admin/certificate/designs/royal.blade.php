@@ -5,7 +5,8 @@
     .cert-royal .ry-frame { position: relative; height: 100%; border: 3mm solid #c9a227; box-shadow: inset 0 0 0 .8mm #fffdf5, inset 0 0 0 1.5mm #1b2a5c, inset 0 0 0 2.3mm #fffdf5, inset 0 0 0 2.8mm #c9a227; padding: 10mm 14mm; display: flex; flex-direction: column; }
 
     .cert-royal .ry-head { text-align: center; }
-    .cert-royal .ry-logo { max-height: 20mm; max-width: 70mm; margin-bottom: 2mm; }
+    /* old: .ry-logo max-height 20mm, max-width 70mm (landscape 13mm) */
+    .cert-royal .ry-logo { max-height: 30mm; max-width: 90mm; margin-bottom: 2mm; }
     .cert-royal .ry-school { margin: 0; font-size: 22pt; font-weight: bold; letter-spacing: .6pt; color: #1b2a5c; }
     .cert-royal .ry-address { margin: 1mm 0 0; font-size: 10pt; color: #4b5563; }
     .cert-royal .ry-rule { height: .8mm; background: #c9a227; margin: 4mm auto 0; width: 45%; }
@@ -17,7 +18,7 @@
     .cert-page.landscape .cert-royal .ry-frame { padding: 6mm 14mm; }
     .cert-page.landscape .cert-royal .ry-body { font-size: 13.5pt; line-height: 1.75; }
     .cert-page.landscape .cert-royal .ry-title { margin: 2mm 0 1mm; font-size: 20pt; }
-    .cert-page.landscape .cert-royal .ry-logo { max-height: 13mm; margin-bottom: 1mm; }
+    .cert-page.landscape .cert-royal .ry-logo { max-height: 22mm; max-width: 70mm; margin-bottom: 1mm; } /* old: max-height 13mm */
     .cert-page.landscape .cert-royal .ry-school { font-size: 18pt; }
     .cert-page.landscape .cert-royal .ry-rule { margin-top: 2mm; }
     .cert-page.landscape .cert-royal .ry-meta { margin-bottom: 2mm; }

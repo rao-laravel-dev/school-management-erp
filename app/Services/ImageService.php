@@ -40,7 +40,8 @@ class ImageService
      * Image upload + automatic webp encoding, public/uploads/<folder> mein (storage:link ki zaroorat nahi).
      * $folder e.g. 'teacher_images' ya 'uploads/teacher_images' (dono same folder banate hain)
      */
-    public function upload($file, $folder = 'students', $width = 300, $height = 300, $quality = 85)
+    // $keepLarge (default false = old behaviour): long side stays at least 1000px, no upscaling, no crop (school logo only)
+    public function upload($file, $folder = 'students', $width = 300, $height = 300, $quality = 85, $keepLarge = false)
     {
         $folder = self::normalizeFolder($folder);
 
@@ -65,7 +66,9 @@ class ImageService
 
         // 5. Resize + encode (Intervention se), phir public/uploads pe likhein
         $image = $this->manager->read($realPath);
-        $image = $image->scale($width, $height);
+        // old (all uploads): $image = $image->scale($width, $height);
+        // School logo ($keepLarge): only shrink if bigger than 2000px (ratio kept, never enlarged); webp keeps PNG transparency
+        $image = $keepLarge ? $image->scaleDown(2000, 2000) : $image->scale($width, $height);
         $encoded = $image->toWebp($quality);
 
         File::put($directory . '/' . $filename, (string) $encoded);

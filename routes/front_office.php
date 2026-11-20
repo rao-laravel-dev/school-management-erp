@@ -916,6 +916,7 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(MarksheetTemplateController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::post('/live-preview', 'livePreview')->name('live_preview'); // NEW 20-11-26
             });
         });
         Route::middleware('can:manage-marksheet-templates')->group(function () {

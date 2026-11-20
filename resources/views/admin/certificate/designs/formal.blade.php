@@ -4,7 +4,8 @@
     .cert-formal .fm-frame { height: 100%; border: .4mm solid #000; padding: 9mm 14mm; display: flex; flex-direction: column; }
 
     .cert-formal .fm-head { text-align: center; }
-    .cert-formal .fm-logo { max-height: 20mm; max-width: 70mm; margin-bottom: 2mm; }
+    /* old: .fm-logo max-height 20mm, max-width 70mm (landscape 13mm) */
+    .cert-formal .fm-logo { max-height: 30mm; max-width: 90mm; margin-bottom: 2mm; }
     .cert-formal .fm-school { margin: 0; font-size: 20pt; font-weight: bold; text-transform: uppercase; }
     .cert-formal .fm-address { margin: 1mm 0 0; font-size: 10pt; }
     .cert-formal .fm-rule { border-top: .4mm solid #000; margin-top: 4mm; }
@@ -16,7 +17,7 @@
     .cert-page.landscape .cert-formal .fm-frame { padding: 6mm 14mm; }
     .cert-page.landscape .cert-formal .fm-body { font-size: 13pt; line-height: 1.75; }
     .cert-page.landscape .cert-formal .fm-title { margin: 3mm 0 2mm; font-size: 17pt; }
-    .cert-page.landscape .cert-formal .fm-logo { max-height: 13mm; margin-bottom: 1mm; }
+    .cert-page.landscape .cert-formal .fm-logo { max-height: 22mm; max-width: 70mm; margin-bottom: 1mm; } /* old: max-height 13mm */
     .cert-page.landscape .cert-formal .fm-school { font-size: 17pt; }
     .cert-page.landscape .cert-formal .fm-rule { margin-top: 2mm; }
     .cert-page.landscape .cert-formal .fm-meta { margin-bottom: 3mm; }
