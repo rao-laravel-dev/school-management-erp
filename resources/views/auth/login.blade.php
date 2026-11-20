@@ -62,6 +62,7 @@
 										<!-- <h5 class="">Rocker Admin</h5> -->
 										<p class="mb-0">Please log in to your account</p>
 									</div>
+									@include('partials.login_custom', ['part' => 'text'])
 									<div class="form-body">
 										<form method="POST" action="{{ route('login') }}" class="row g-1">
 											@csrf

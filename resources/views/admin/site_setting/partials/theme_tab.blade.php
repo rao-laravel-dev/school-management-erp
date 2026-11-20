@@ -31,7 +31,8 @@
 @endphp
 
 {{-- autocomplete off: a plain reload must show the saved theme, not browser-restored radio state --}}
-<form action="{{ route('site_setting.theme.update') }}" method="POST" id="themeForm" autocomplete="off">
+{{-- old: <form action="{{ route('site_setting.theme.update') }}" method="POST" id="themeForm" autocomplete="off"> --}}
+<form action="{{ route('site_setting.theme.update') }}" method="POST" id="themeForm" autocomplete="off" enctype="multipart/form-data">
     @csrf
     <div class="row">
         <div class="col-lg-8">
@@ -133,6 +134,53 @@
                         </div>
                         @endforeach
                     </div>
+                </div>
+            </div>
+
+            {{-- T340b: Login page (heading, message, background picture; saved with Save theme) --}}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="fw-semi-bold text-primary mb-0">Login page</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="login_heading" class="form-label">Heading</label>
+                            <input type="text" name="login_heading" id="login_heading" maxlength="150"
+                                placeholder="e.g. Welcome to Mount Carmel School"
+                                class="form-control form-control-sm @error('login_heading') is-invalid @enderror"
+                                value="{{ old('login_heading', $setting->login_heading) }}" {{ $canManage ? '' : 'disabled' }}>
+                            @error('login_heading')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-12">
+                            <label for="login_message" class="form-label">Message</label>
+                            <textarea name="login_message" id="login_message" rows="2" maxlength="255"
+                                placeholder="e.g. Log in to see attendance, results and fee updates."
+                                class="form-control form-control-sm @error('login_message') is-invalid @enderror" {{ $canManage ? '' : 'disabled' }}>{{ old('login_message', $setting->login_message) }}</textarea>
+                            @error('login_message')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-12">
+                            <label for="login_background" class="form-label">Background picture</label>
+                            <input type="file" name="login_background" id="login_background" accept="image/*"
+                                class="form-control form-control-sm @error('login_background') is-invalid @enderror" {{ $canManage ? '' : 'disabled' }}>
+                            <small class="text-muted d-block">Wide picture, recommended 1600x1200. JPG, PNG or WebP, max 2MB. Shown on the left side of the role login pages.</small>
+                            @error('login_background')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <img id="loginBgPreview" src="{{ $setting->login_background_url }}" class="img-fluid rounded border mt-2 {{ $setting->login_background_url ? '' : 'd-none' }}" style="max-height: 160px;" alt="Login background">
+                            @if($setting->login_background_url && $canManage)
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="remove_login_background" id="remove_login_background" value="1">
+                                <label class="form-check-label" for="remove_login_background">Remove background</label>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-3">If these are empty, the login pages keep the default look. Saved with the Save theme button.</small>
                 </div>
             </div>
         </div>
@@ -360,6 +408,41 @@
             });
         });
         refresh();
+
+        // T340b: preview the picked login background before saving
+        var bgInput = document.getElementById('login_background');
+        var bgPrev = document.getElementById('loginBgPreview');
+        if (bgInput && bgPrev) {
+            // remember the saved preview so it can be restored when a non-image is picked
+            var bgOrigSrc = bgPrev.getAttribute('src') || '';
+            var bgOrigHidden = bgPrev.classList.contains('d-none');
+            bgInput.addEventListener('change', function () {
+                var f = bgInput.files && bgInput.files[0];
+                if (!f) { return; }
+                // only FileReader-preview real images; otherwise keep/restore the current preview
+                if (!f.type || f.type.indexOf('image/') !== 0) {
+                    if (bgOrigSrc && !bgOrigHidden) {
+                        bgPrev.src = bgOrigSrc;
+                        bgPrev.classList.remove('d-none');
+                    } else {
+                        bgPrev.removeAttribute('src');
+                        bgPrev.classList.add('d-none');
+                    }
+                    return;
+                }
+                var rd = new FileReader();
+                rd.onload = function (e) { bgPrev.src = e.target.result; bgPrev.classList.remove('d-none'); };
+                rd.readAsDataURL(f);
+            });
+            // old (T340b first version):
+            // bgInput.addEventListener('change', function () {
+            //     var f = bgInput.files && bgInput.files[0];
+            //     if (!f) { return; }
+            //     var rd = new FileReader();
+            //     rd.onload = function (e) { bgPrev.src = e.target.result; bgPrev.classList.remove('d-none'); };
+            //     rd.readAsDataURL(f);
+            // });
+        }
 
         var resetBtn = document.getElementById('themeResetBtn');
         if (resetBtn) {

@@ -48,6 +48,11 @@ class SiteSettingController extends Controller
             'sidebar_style' => ['required', Rule::in(array_keys(SiteSetting::SIDEBAR_STYLES))],
             'primary_color' => ['required_if:theme_palette,custom', 'nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'accent_color'  => ['required_if:theme_palette,custom', 'nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            // T340b: login page (column sizes: heading 150, message 255)
+            'login_heading' => ['nullable', 'string', 'max:150'],
+            'login_message' => ['nullable', 'string', 'max:255'],
+            'login_background' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_login_background' => ['nullable', 'boolean'],
         ], [
             'primary_color.regex' => 'Primary colour must be a full hex value like #4b3bdb.',
             'accent_color.regex'  => 'Accent colour must be a full hex value like #ffb020.',
@@ -64,13 +69,35 @@ class SiteSettingController extends Controller
             [, $primary, $accent] = SiteSetting::PALETTES[$palette];
         }
 
-        SiteSetting::current()->update([
+        $setting = SiteSetting::current();
+        $data = [
             'theme_palette' => $palette,
             'primary_color' => $primary,
             'accent_color'  => $accent,
             'font_family'   => $request->font_family,
             'sidebar_style' => $request->sidebar_style,
-        ]);
+            'login_heading' => trim((string) $request->login_heading) ?: null, // T340b
+            'login_message' => trim((string) $request->login_message) ?: null,
+        ];
+
+        // T340b: login background (same upload pattern as logo/icon); old file deleted after the save
+        $oldFiles = [];
+        if ($request->hasFile('login_background')) {
+            $oldFiles[] = $setting->login_background;
+            $data['login_background'] = $this->imageService->upload($request->file('login_background'), 'uploads/site_setting', 1600, 1200);
+        } elseif ($request->boolean('remove_login_background')) {
+            $oldFiles[] = $setting->login_background;
+            $data['login_background'] = null;
+        }
+
+        /* old: SiteSetting::current()->update([ theme_palette, primary_color, accent_color, font_family, sidebar_style ]); */
+        $setting->update($data);
+
+        foreach ($oldFiles as $oldFile) {
+            if ($oldFile) {
+                $this->imageService->delete($oldFile, 'uploads/site_setting');
+            }
+        }
 
         return redirect()->route('site_setting.edit', ['tab' => 'theme'])->with('toastr-success', 'Theme saved. It applies to every user.');
     }

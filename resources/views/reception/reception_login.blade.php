@@ -22,6 +22,7 @@
     <link href="{{ asset('backend/assets/css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/assets/css/icons.css') }}" rel="stylesheet">
     @include('partials.site_theme')
+    @include('partials.login_custom', ['part' => 'style'])
     <!-- 🔥 Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
     {{-- <title>SmartSchool</title> --}}
@@ -59,6 +60,7 @@
                                         <h5 class="">Receptionist Login</h5>
                                         <p class="mb-0">Please log in to your account</p>
                                     </div>
+                                    @include('partials.login_custom', ['part' => 'text'])
                                     <div class="form-body">
                                         <form class="row g-3" name="" id="" method="POST"
                                             action="{{ route('login') }}">

@@ -86,6 +86,12 @@ class SiteSetting extends Model
         return ImageService::url($this->icon, 'site_setting');
     }
 
+    // T340b: login page background picture (left side of the role login pages): URL or null
+    public function getLoginBackgroundUrlAttribute(): ?string
+    {
+        return ImageService::url($this->login_background, 'site_setting');
+    }
+
     // T340a: safe theme values (bad / empty column values fall back to today's look). Round 2 prints these in <head>.
     public function getThemeAttribute(): array
     {
