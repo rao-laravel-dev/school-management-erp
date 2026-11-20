@@ -560,7 +560,8 @@
 @endif
 
 {{-- Certificates --}}
-@php $checks = [['certificate_issue', 'manage-certificates']]; @endphp
+{{-- old: $checks = [['certificate_issue', 'manage-certificates']] --}}
+@php $checks = [['certificate_issue', 'manage-certificates'], ['certificate_list', 'access-certificates'], ['certificate_types', 'manage-certificates']]; @endphp
 @if($any($checks))
 @php $open = request()->routeIs('certificate.*'); @endphp
 <li class="{{ $open ? 'mm-active' : '' }}">
@@ -571,6 +572,12 @@
     <ul class="{{ $open ? 'mm-show' : '' }}">
         @if($show('certificate_issue', 'manage-certificates'))
         <li class="{{ request()->routeIs('certificate.create') ? 'mm-active' : '' }}"><a href="{{ route('certificate.create') }}"><i class='bx bx-radio-circle'></i>Issue Certificate</a></li>
+        @endif
+        @if($show('certificate_list', 'access-certificates'))
+        <li class="{{ request()->routeIs('certificate.index', 'certificate.print') ? 'mm-active' : '' }}"><a href="{{ route('certificate.index') }}"><i class='bx bx-radio-circle'></i>Issued Certificates</a></li>
+        @endif
+        @if($show('certificate_types', 'manage-certificates'))
+        <li class="{{ request()->routeIs('certificate.types') ? 'mm-active' : '' }}"><a href="{{ route('certificate.types') }}"><i class='bx bx-radio-circle'></i>Certificate Types</a></li>
         @endif
     </ul>
 </li>

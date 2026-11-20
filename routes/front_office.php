@@ -1092,6 +1092,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('certificate')->name('certificate.')->group(function () {
         Route::middleware('can:access-certificates')->group(function () {
             Route::controller(CertificateController::class)->group(function () {
+                Route::get('/', 'index')->name('index'); // NEW 20-11-26
                 Route::get('/{certificate}/print', 'print')->whereNumber('certificate')->name('print');
             });
         });
@@ -1103,6 +1104,11 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/live-preview', 'livePreview')->name('live_preview');
                 Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
                 Route::get('/get-students', 'getStudents')->name('get_students');
+                // Cancel + Certificate Types (manage-only) // NEW 20-11-26
+                Route::post('/{certificate}/cancel', 'cancel')->whereNumber('certificate')->name('cancel');
+                Route::get('/types', 'types')->name('types');
+                Route::post('/types', 'saveType')->name('types.save');
+                Route::post('/types/{key}/reset', 'resetType')->name('types.reset');
             });
         });
     });

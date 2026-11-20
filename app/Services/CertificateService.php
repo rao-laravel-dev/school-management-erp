@@ -35,6 +35,7 @@ class CertificateService
                 'body' => ($o['body'] ?? '') !== '' ? $o['body'] : $t['body'],
                 'active' => (bool) ($o['active'] ?? true),
                 'custom' => false,
+                'edited' => isset($overrides[$key]), // Certificate Types page: "Edited" badge + Reset button
             ];
         }
         foreach ($custom as $key => $t) {
@@ -47,6 +48,7 @@ class CertificateService
                 'body' => $t['body'] ?? '',
                 'active' => (bool) ($t['active'] ?? true),
                 'custom' => true,
+                'edited' => false,
             ];
         }
 

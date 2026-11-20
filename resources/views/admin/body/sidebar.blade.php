@@ -596,7 +596,8 @@
         @endcanany
 
         {{-- Certificates Menu --}}
-        @can('manage-certificates')
+        {{-- old: @can('manage-certificates') (only Issue Certificate existed) --}}
+        @canany(['access-certificates', 'manage-certificates'])
         @php $open = request()->routeIs('certificate.*'); @endphp
         <li class="{{ $open ? 'mm-active' : '' }}">
             <a href="javascript:;" class="has-arrow">
@@ -604,10 +605,18 @@
                 <div class="menu-title">Certificates</div>
             </a>
             <ul class="{{ $open ? 'mm-show' : '' }}">
+                @can('manage-certificates')
                 <li class="{{ request()->routeIs('certificate.create') ? 'mm-active' : '' }}"><a href="{{ route('certificate.create') }}"><i class='bx bx-radio-circle'></i>Issue Certificate</a></li>
+                @endcan
+                @can('access-certificates')
+                <li class="{{ request()->routeIs('certificate.index', 'certificate.print') ? 'mm-active' : '' }}"><a href="{{ route('certificate.index') }}"><i class='bx bx-radio-circle'></i>Issued Certificates</a></li>
+                @endcan
+                @can('manage-certificates')
+                <li class="{{ request()->routeIs('certificate.types') ? 'mm-active' : '' }}"><a href="{{ route('certificate.types') }}"><i class='bx bx-radio-circle'></i>Certificate Types</a></li>
+                @endcan
             </ul>
         </li>
-        @endcan
+        @endcanany
 
         {{-- Logout (hamesha last) --}}
         <li>
