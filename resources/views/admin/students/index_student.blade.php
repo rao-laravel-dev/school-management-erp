@@ -6,7 +6,8 @@
     ['label' => 'All Students', 'url' => route('students.index')],
 ]" />
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 mb-3 align-items-center">
+{{-- old: row-cols-xl-4 (School Left card added, 5 columns) --}}
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 mb-3 align-items-center">
 
     <div class="col">
         <div class="card radius-10 border-start border-0 border-3 border-primary shadow-sm mb-0">
@@ -50,6 +51,22 @@
                     </div>
                     <div class="widgets-icons-2 rounded-circle bg-light-danger text-danger ms-auto" style="width: 45px; height: 45px; line-height: 45px;">
                         <i class='bx bxs-x-circle'></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-dark shadow-sm mb-0">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary small">School Left</p>
+                        <h5 class="my-0 fw-bold" id="left-count">{{ $leftCount }}</h5>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-light text-dark ms-auto" style="width: 45px; height: 45px; line-height: 45px;">
+                        <i class='bx bx-log-out'></i>
                     </div>
                 </div>
             </div>
@@ -139,7 +156,17 @@
                             @endif
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 mt-2">
+                        <label class="form-label">Status</label>
+                        <select id="filter-status" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending</option>
+                            <option value="left">School Left</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mt-2">
                         <label class="form-label">Search</label>
                         <input type="text" id="filter-keyword" class="form-control form-control-sm"
                             placeholder="Name, Admission No...">
@@ -242,6 +269,7 @@
                 class_id: $('#filter-class').val(),
                 section_id: $('#filter-section').val(),
                 group_id: $('#filter-group').val(),
+                status: $('#filter-status').val(),
                 keyword: $('#filter-keyword').val() // 👈 naya field
             };
 
@@ -284,6 +312,7 @@
                 class_id: $('#filter-class').val(),
                 section_id: $('#filter-section').val(),
                 group_id: $('#filter-group').val(),
+                status: $('#filter-status').val(),
                 keyword: $('#filter-keyword').val()
             });
         }
@@ -339,6 +368,7 @@
         }
 
         // --- 2. EVENTS: TEENO DROPDOWNS PAR LISTENER ---
+        $('#filter-status').change(function() { fetchStudents(); });
         $('#filter-class, #filter-section, #filter-group').change(function() {
             let id = $(this).attr('id');
 
@@ -402,6 +432,7 @@
                     if (res.activeCount !== undefined) $('#active-count').text(res.activeCount);
                     if (res.inactiveCount !== undefined) $('#inactive-count').text(res.inactiveCount);
                     if (res.pendingCount !== undefined) $('#pending-count').text(res.pendingCount);
+                    if (res.leftCount !== undefined) $('#left-count').text(res.leftCount);
 
                     let tdContainer = btn.parent();
                     let toggleRoute = "{{ route('students.status', ':id') }}".replace(':id', btn.data('id'));
@@ -440,6 +471,7 @@
                     if (res.activeCount !== undefined) $('#active-count').text(res.activeCount);
                     if (res.inactiveCount !== undefined) $('#inactive-count').text(res.inactiveCount);
                     if (res.pendingCount !== undefined) $('#pending-count').text(res.pendingCount);
+                    if (res.leftCount !== undefined) $('#left-count').text(res.leftCount);
 
                     // Button UI Update
                     if (res.status == 1) {

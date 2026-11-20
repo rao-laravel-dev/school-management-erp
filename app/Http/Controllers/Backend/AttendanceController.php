@@ -872,6 +872,18 @@ class AttendanceController extends Controller
             ], 403);
         }
 
+        // School Left student ki card scan par attendance nahi lagti (kuch save nahi hota)
+        if ($enrollment && (int) $enrollment->enroll_status === Enrollment::STATUS_LEFT) {
+            $data = [
+                'status'  => 'error',
+                'message' => "{$student->first_name} has left the school. Attendance not saved.",
+            ];
+            $data['scan_id'] = now()->format('YmdHisv') . '-' . uniqid();
+            if ($scope === null) { Cache::put('kiosk_latest_scan', $data, now()->addMinutes(2)); } // teacher scan gate screen par publish nahi hota
+
+            return response()->json($data, 403);
+        }
+
         if (!$enrollment) {
             $data = [
                 'status'  => 'error',

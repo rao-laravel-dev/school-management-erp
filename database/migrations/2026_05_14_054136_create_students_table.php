@@ -54,6 +54,7 @@ return new class extends Migration
             // 1 = Active
             // 2 = Pending Approval
             // 3 = Passed Out
+            // 4 = School Left (School Leaving Certificate issued)
             $table->tinyInteger('status')->default(2);
 
             $table->text('remarks')->nullable();

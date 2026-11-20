@@ -19,11 +19,13 @@ class EnsureUserIsActive
             return $next($request);
         }
 
+        // Message logout se pehle (logout ke baad user nahi milta)
+        // old: $message = 'Your account is inactive or pending approval.';
+        $message = $user->loginBlockedMessage();
+
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        $message = 'Your account is inactive or pending approval.';
 
         // AJAX (DataTables, kiosk polling) ko HTML redirect ki jagah JSON
         if ($request->expectsJson()) {

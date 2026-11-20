@@ -3048,3 +3048,8 @@ html.dark-theme .notification-bell-unread { background-color: rgb(0 140 255 / 14
     .login-brand-credits .brand-part { display: block; }
     .login-brand-credits .brand-sep { display: none; }
 }
+
+/* School Left badge: solid red with white text in light and dark theme */
+/* old: .badge-school-left { background-color: #212529; color: #fff; border: 1px solid transparent; } */
+.badge-school-left { background-color: #dc3545; color: #fff; }
+/* old: html.dark-theme .badge-school-left { background-color: #6c757d; color: #fff; border-color: rgb(255 255 255 / 45%); } */

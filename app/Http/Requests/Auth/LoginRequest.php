@@ -55,10 +55,13 @@ class LoginRequest extends FormRequest
         // Inactive (0) / pending (2) user ko login na karne do (superadmin exempt)
         // Trashed staff (users row ya profile soft-deleted) bhi login na kare
         if (Auth::user()->isLoginBlocked() || Auth::user()->isStaffTrashed()) {
+            // Message logout se pehle (logout ke baad user nahi milta); School Left student ko alag message
+            $message = Auth::user()->loginBlockedMessage();
             Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([
-                'email' => 'Your account is inactive or pending approval.',
+                // old: 'email' => 'Your account is inactive or pending approval.',
+                'email' => $message,
             ]);
         }
     }

@@ -41,7 +41,14 @@
                 <hr class="my-1">
                 <div class="row mt-1 small">
                     <div class="col-6">Monthly Fee: <strong class="text-primary">{{ number_format($student->fee_structure ?? 0, 0) }}</strong></div>
-                    <div class="col-6">Status: <strong class="text-success">{{ ucfirst($student->status ?? 'Active') }}</strong></div>
+                    {{-- old: <div class="col-6">Status: <strong class="text-success">{{ ucfirst($student->status ?? 'Active') }}</strong></div> --}}
+                    <div class="col-6">Status:
+                        @if((int) $student->status === \App\Models\Student::STATUS_LEFT)
+                        <span class="badge badge-school-left">School Left</span>
+                        @else
+                        <strong class="{{ (int) $student->status === 1 ? 'text-success' : 'text-danger' }}">{{ \App\Models\Student::STATUS_LABELS[(int) $student->status] ?? 'Active' }}</strong>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

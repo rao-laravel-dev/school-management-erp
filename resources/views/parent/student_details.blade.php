@@ -68,6 +68,9 @@
 
 <div class="row mb-4">
     <div class="col-12 col-md-8 col-lg-6 mx-auto">
+        @if((int) $student->status === \App\Models\Student::STATUS_LEFT)
+        <div class="alert alert-warning">This student has left the school (SLC issued).</div>
+        @endif
         <div class="card custom-dashboard-card">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center">
@@ -80,7 +83,12 @@
                         
                         <div class="d-flex align-items-start">
                             <span class="text-label-custom me-3">Class & Sec:</span> 
+                            {{-- old: <span class="text-value-custom">{{ $student->currentEnrollment->schoolClass->name ?? 'N/A' }} - {{ $student->currentEnrollment->section->name ?? 'N/A' }}</span> --}}
+                            @if((int) $student->status === \App\Models\Student::STATUS_LEFT)
+                            <span class="text-value-custom">School Left</span>
+                            @else
                             <span class="text-value-custom">{{ $student->currentEnrollment->schoolClass->name ?? 'N/A' }} - {{ $student->currentEnrollment->section->name ?? 'N/A' }}</span>
+                            @endif
                         </div>
                         <hr class="profile-hr">
 

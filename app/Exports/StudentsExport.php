@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\AcademicYear;
 use App\Models\Enrollment;
 use App\Models\SiteSetting;
+use App\Models\Student;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -27,12 +28,14 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
     protected ?string $keyword;
     protected $siteSetting;
     protected ?string $logoPath;
+    protected ?string $status;
 
     // Header block ke liye kitni rows insert karni hain (logo/school-info)
     const HEADER_ROWS = 4;
 
-    public function __construct($classId = null, $sectionId = null, $groupId = null, $keyword = null, $siteSetting = null, $logoPath = null)
+    public function __construct($classId = null, $sectionId = null, $groupId = null, $keyword = null, $siteSetting = null, $logoPath = null, $status = null)
     {
+        $this->status      = $status;
         $this->classId     = $classId;
         $this->sectionId   = $sectionId;
         $this->groupId     = $groupId;
@@ -63,6 +66,10 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
         }
         if ($this->groupId) {
             $query->where('group_id', $this->groupId);
+        }
+        // Status filter (list jaisa): active / inactive / pending / left
+        if ($this->status !== null && isset(Student::STATUS_FILTERS[$this->status])) {
+            $query->whereHas('student', fn($q) => $q->where('status', Student::STATUS_FILTERS[$this->status]));
         }
         if ($this->keyword) {
             $keyword = $this->keyword;
@@ -121,7 +128,8 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, WithC
             $parent->guardian_phone ?? '-',
             $parent->guardian_email ?? '-',
             $parent->guardian_address ?? '-',
-            optional($student->user)->status == 1 ? 'Active' : 'Inactive',
+            // old: optional($student->user)->status == 1 ? 'Active' : 'Inactive',
+            Student::STATUS_LABELS[(int) $student->status] ?? 'Inactive',
         ];
     }
 

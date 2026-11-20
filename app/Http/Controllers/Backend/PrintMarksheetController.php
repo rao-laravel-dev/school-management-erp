@@ -64,7 +64,7 @@ class PrintMarksheetController extends Controller
             ->where('section_id', $sectionId)
             ->when($examYearId, function ($q) use ($examYearId) {
                 $q->where('academic_year_id', $examYearId)
-                  ->whereIn('enroll_status', [1, 2, 3, 5]); // Active + Promoted / Detained / Passed Out
+                  ->whereIn('enroll_status', [1, 2, 3, 5, Enrollment::STATUS_LEFT]); // Active + Promoted / Detained / Passed Out + School Left (old: [1, 2, 3, 5])
             }, function ($q) {
                 $q->where('enroll_status', 1); // exam ka saal nahi: purana behaviour
             })

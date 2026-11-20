@@ -374,6 +374,22 @@ class User extends Authenticatable
         return in_array((int) $this->status, [0, 2], true) || $allRolesDisabled;
     }
 
+    // Student jisne school chhod diya (SLC, students.status 4): login block ka message alag dikhane ke liye
+    public function hasLeftSchool(): bool
+    {
+        return $this->studentProfile()->where('status', Student::STATUS_LEFT)->exists();
+    }
+
+    // Login / live session block par dikhne wala message; sirf School Left student ko alag, baqi sab ko purana
+    public function loginBlockedMessage(): string
+    {
+        if ($this->hasLeftSchool()) {
+            return 'You have left the school (School Leaving Certificate issued). Please contact the school office.';
+        }
+
+        return 'Your account is inactive or pending approval.';
+    }
+
     // Enabled roles ke naam (roles.is_active); Switch Role / layout / dashboard sirf inhi se
     public function enabledRoleNames()
     {

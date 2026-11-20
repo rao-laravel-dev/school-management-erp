@@ -9,8 +9,11 @@
 @php
     // Same status mapping as the admin student list
     $stStatus = $student->status;
-    $stClass = $stStatus == 1 ? 'success' : ($stStatus == 2 ? 'warning' : 'danger');
-    $stText = $stStatus == 1 ? 'Active' : ($stStatus == 2 ? 'Pending' : 'Inactive');
+    // old: $stClass = $stStatus == 1 ? 'success' : ($stStatus == 2 ? 'warning' : 'danger');
+    // old: $stText = $stStatus == 1 ? 'Active' : ($stStatus == 2 ? 'Pending' : 'Inactive');
+    $stLeft = (int) $stStatus === \App\Models\Student::STATUS_LEFT;
+    $stClass = $stLeft ? 'school-left' : ($stStatus == 1 ? 'success' : ($stStatus == 2 ? 'warning' : 'danger'));
+    $stText = $stLeft ? 'School Left' : ($stStatus == 1 ? 'Active' : ($stStatus == 2 ? 'Pending' : 'Inactive'));
 
     $enrollStatusMap = [
         0 => ['Inactive', 'danger'],
@@ -18,6 +21,8 @@
         2 => ['Promoted', 'primary'],
         3 => ['Detained', 'warning'],
         4 => ['Pending Approval', 'secondary'],
+        5 => ['Passed Out', 'info'],
+        6 => ['School Left', 'school-left'],
     ];
     $enrollmentsById = $enrollments->keyBy('id');
 @endphp
@@ -47,7 +52,7 @@
             </div>
             <div class="col-md-3 col-6">
                 <span class="text-muted small d-block">Status</span>
-                <span class="badge bg-{{ $stClass }}">{{ $stText }}</span>
+                <span class="badge {{ $stLeft ? 'badge-school-left' : 'bg-' . $stClass }}">{{ $stText }}</span>
             </div>
         </div>
     </div>
@@ -85,7 +90,7 @@
                             <td>{{ optional($enrollment->section)->name ?: '-' }}</td>
                             <td>{{ optional($enrollment->group)->name ?: '-' }}</td>
                             <td>{{ $enrollment->roll_no ?: '-' }}</td>
-                            <td><span class="badge bg-{{ $es[1] }}-subtle text-{{ $es[1] }}">{{ $es[0] }}</span></td>
+                            <td><span class="badge {{ $es[1] === 'school-left' ? 'badge-school-left' : 'bg-' . $es[1] . '-subtle text-' . $es[1] }}">{{ $es[0] }}</span></td>
                         </tr>
                         @endforeach
                     </tbody>

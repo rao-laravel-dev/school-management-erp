@@ -109,7 +109,12 @@
                         <td>{{ $student->enrollments->first()->section->name ?? '-' }}</td>
                         <td>{{ $student->admission_no }}</td>
                         <td>{{ $student->enrollments->first()->roll_no ?? '-' }}</td>
-                        <td>{{ $student->full_name }}</td>
+                        {{-- old: <td>{{ $student->full_name }}</td> --}}
+                        <td>{{ $student->full_name }}
+                            @if((int) $student->status === \App\Models\Student::STATUS_LEFT)
+                            <span class="badge badge-school-left ms-1">School Left</span>
+                            @endif
+                        </td>
                         <td>{{ $student->parent->father_name ?? '-' }}</td>
                         <td>{{ $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth)->format('d-m-Y') : '-' }}</td>
                         <td>{{ $student->parent->father_phone ?? $student->parent->guardian_phone ?? '-' }}</td>

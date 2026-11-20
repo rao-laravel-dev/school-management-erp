@@ -44,6 +44,7 @@ class PrintIdCardController extends Controller
             ->where('class_id', $classId)
             ->where('section_id', $sectionId)
             ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // promote ke baad purane saal ki row na aaye
+            ->where('enroll_status', '!=', Enrollment::STATUS_LEFT) // School Left student ka ID card nahi
             ->whereHas('student') // soft-deleted student wali enrollment skip (warna null crash)
             ->orderByDesc('student_id') // naya registered student sab se upar (students.id = registration order)
             ->get();
@@ -78,6 +79,7 @@ class PrintIdCardController extends Controller
         $enrollments = Enrollment::with(['student.parent', 'student.house', 'schoolClass', 'section'])
             ->whereIn('id', $request->enrollment_ids)
             ->when($sessionId, fn($q) => $q->where('academic_year_id', $sessionId)) // purane saal ki enrollment ka card nahi banta
+            ->where('enroll_status', '!=', Enrollment::STATUS_LEFT) // School Left student ka card nahi banta
             ->whereHas('student') // soft-deleted student ka card nahi banta
             ->orderByDesc('student_id') // print order = list order (newest registered first)
             ->get();

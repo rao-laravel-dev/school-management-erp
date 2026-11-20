@@ -37,9 +37,12 @@
                                 @endforeach
                             </select>
                             @error('type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            <div id="certificateSlcNote" class="small text-warning mt-1" style="display:none;">
-                                Printing only: the student's status does not change yet.
+                            {{-- old: <div id="certificateSlcNote" class="small text-warning mt-1">Printing only: the student's status does not change yet.</div> --}}
+                            <div id="certificateSlcNote" class="small mt-1" style="display:none;">
+                                <div class="text-warning">Issuing this certificate marks an active student as School Left (login blocked).</div>
+                                <div id="certificateSlcBox" class="mt-1"></div>
                             </div>
+                            <input type="hidden" name="confirm_left" id="certificateConfirmLeft" value="0">
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -172,6 +175,7 @@ $(document).ready(function() {
     const SECTIONS_URL = "{{ route('certificate.get_sections', ':id') }}";
     const STUDENTS_URL = "{{ route('certificate.get_students') }}";
     const PREVIEW_URL = "{{ route('certificate.live_preview') }}";
+    const SLC_URL = "{{ route('certificate.slc_check') }}";
     const OLD_ENROLLMENT = @json(old('enrollment_id'));
     const OLD_SECTION = @json(old('section_id'));
     const OLD_TYPE = @json(old('type'));
@@ -221,6 +225,7 @@ $(document).ready(function() {
             if (token !== stuToken) { return; }
             rows.forEach(function(r) { $stu.append($('<option>').val(r.id).text(r.text)); });
             if (selected) { $stu.val(String(selected)); }
+            checkSlc();
             refreshPreview();
         }).fail(function() { toastr.error('Could not load students.'); });
     }
@@ -251,7 +256,34 @@ $(document).ready(function() {
             }).fail(function() { /* silent: validation of the form shows the real errors on Save */ });
         }, 350);
     }
-    $('#certificateType').on('change', function() { applyType(false); refreshPreview(); });
+    // ---- SLC: student School Left hoga? unpaid fees? (warning only, server decides again on save) ----
+    let slcState = null, slcToken = 0;
+    function checkSlc() {
+        slcState = null;
+        $('#certificateConfirmLeft').val('0');
+        const $box = $('#certificateSlcBox').empty();
+        const enrollmentId = $('#certificateStudent').val();
+        if ($('#certificateType').val() !== 'school_leaving' || !enrollmentId) { return; }
+        const token = ++slcToken;
+        $.get(SLC_URL, { enrollment_id: enrollmentId }).done(function(res) {
+            if (token !== slcToken || !res.success) { return; }
+            slcState = res;
+            if (res.already_left) {
+                // old: $('<div class="text-secondary">')
+                $box.append($('<div class="text-danger fw-bold">').css('font-size', '1rem').text('Already School Left: the status will not change.'));
+            } else if (!res.will_mark_left) {
+                $box.append($('<div class="text-secondary">').text('This student is not active: the status will not change.'));
+            } else {
+                $box.append($('<div class="text-danger fw-bold">').css('font-size', '1rem').text('This student will be marked School Left.'));
+            }
+            if (res.unpaid_total > 0) {
+                $box.append($('<div class="text-warning">').text('Rs. ' + res.unpaid_label + ' unpaid in ' + res.unpaid_count + ' fee row(s) (warning only).'));
+            }
+        }).fail(function() { toastr.error('Could not check the student status.'); });
+    }
+    $('#certificateStudent').on('change', checkSlc);
+
+    $('#certificateType').on('change', function() { applyType(false); checkSlc(); refreshPreview(); });
     $form.on('input change', 'input, select, textarea', refreshPreview);
 
     // ---- submit check (UX only, the server validates again) ----
@@ -271,6 +303,31 @@ $(document).ready(function() {
             toastr.clear();
             toastr.error(missing[0].msg);
             missing[0].$el.trigger('focus');
+            return;
+        }
+
+        // SLC: active student School Left hone se pehle confirm (server bhi confirm_left check karta hai)
+        if ($('#certificateType').val() === 'school_leaving' && slcState && slcState.will_mark_left && $('#certificateConfirmLeft').val() !== '1') {
+            e.preventDefault();
+            const name = $('<div>').text($('#certificateStudent option:selected').text()).html();
+            let html = '<b>' + name + '</b><br>This student will be marked School Left. Their login will be blocked.';
+            if (slcState.unpaid_total > 0) {
+                html += '<br><span class="text-warning">Warning: Rs. ' + $('<div>').text(slcState.unpaid_label).html() + ' unpaid fees.</span>';
+            }
+            Swal.fire({
+                title: 'Issue School Leaving Certificate?',
+                html: html,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, issue SLC',
+                cancelButtonText: 'Cancel',
+                buttonsStyling: false,
+                customClass: { popup: 'fee-assignment-swal', confirmButton: 'btn btn-danger btn-sm', cancelButton: 'btn btn-secondary btn-sm' }
+            }).then(function(result) {
+                if (!result.isConfirmed) { return; }
+                $('#certificateConfirmLeft').val('1');
+                $form[0].submit(); // native submit: yeh handler dobara nahi chalta
+            });
         }
     });
     $form.on('input change', '.is-invalid', function() { $(this).removeClass('is-invalid').next('.invalid-feedback').remove(); });

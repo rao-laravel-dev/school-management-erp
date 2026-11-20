@@ -15,6 +15,22 @@ class Student extends Model
 {
     use SoftDeletes; // 👈 Soft Delete trait active ki
 
+    // students.status: 0 Inactive, 1 Active, 2 Pending, 3 Passed Out (sirf comment, kabhi likha nahi jata), 4 School Left (SLC se)
+    public const STATUS_INACTIVE = 0;
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_PENDING = 2;
+    public const STATUS_LEFT = 4; // NEW 20-11-26
+    public const STATUS_LABELS = [
+        0 => 'Inactive',
+        1 => 'Active',
+        2 => 'Pending',
+        3 => 'Passed Out',
+        4 => 'School Left',
+    ];
+
+    // Student list / export ka Status filter: request value => students.status
+    public const STATUS_FILTERS = ['active' => 1, 'inactive' => 0, 'pending' => 2, 'left' => 4];
+
     protected $dates = ['deleted_at'];
     protected $appends = ['photo_url'];
 

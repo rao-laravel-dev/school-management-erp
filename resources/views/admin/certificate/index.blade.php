@@ -114,6 +114,11 @@
                             @else
                             <span class="badge bg-success">Issued</span>
                             @endif
+                            {{-- SLC jisne student ko School Left kiya --}}
+                            {{-- old: @if(!empty(($certificate->fields ?: [])['status_change'])) --}}
+                            @if(!$certificate->isCancelled() && !empty(($certificate->fields ?: [])['status_change']))
+                            <div><span class="badge badge-school-left mt-1" title="This certificate marked the student School Left">Marked Left</span></div>
+                            @endif
                         </td>
                         <td class="text-nowrap">
                             <a href="{{ route('certificate.print', $certificate->id) }}" target="_blank" class="btn btn-outline-primary btn-sm" title="Print" aria-label="Print">
@@ -122,7 +127,8 @@
                             @can('manage-certificates')
                             @if(!$certificate->isCancelled())
                             <button type="button" class="btn btn-outline-danger btn-sm certificate-cancel-btn" title="Cancel" aria-label="Cancel"
-                                data-id="{{ $certificate->id }}" data-no="{{ $certificate->certificate_no }}">
+                                data-id="{{ $certificate->id }}" data-no="{{ $certificate->certificate_no }}"
+                                data-restores="{{ !empty(($certificate->fields ?: [])['status_change']) ? 1 : 0 }}">
                                 <i class="bx bx-x-circle"></i>
                             </button>
                             @endif
@@ -165,10 +171,12 @@ $(document).ready(function() {
         const $btn = $(this);
         const id = $btn.data('id');
         const no = $('<div>').text($btn.data('no')).html();
+        const restores = String($btn.data('restores')) === '1';
 
         Swal.fire({
             title: 'Cancel ' + no + '?',
-            html: 'The certificate stays in the register as <b>Cancelled</b> and prints with a CANCELLED mark.',
+            html: 'The certificate stays in the register as <b>Cancelled</b> and prints with a CANCELLED mark.'
+                + (restores ? '<br><b>The student will be restored to their previous status.</b>' : ''),
             icon: 'warning',
             input: 'textarea',
             inputLabel: 'Reason *',

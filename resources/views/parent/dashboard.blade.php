@@ -92,6 +92,10 @@
                          width="110" height="110" class="rounded-circle shadow border border-3 border-white" alt="Student Photo">
                     
                     <h5 class="mt-4 mb-0 font-weight-bold">{{ $child->full_name }}</h5>
+                    {{-- School Left child (SLC issued): badge, pages stay open for fee / result history --}}
+                    @if((int) $child->status === \App\Models\Student::STATUS_LEFT)
+                    <div class="mt-1"><span class="badge badge-school-left">School Left</span></div>
+                    @endif
                     <p class="text-secondary mb-3">
                         Class: {{ $className }} | Section: {{ $sectionName }}
                     </p>

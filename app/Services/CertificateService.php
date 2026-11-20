@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\Certificate;
 use App\Models\Enrollment;
 use App\Models\SiteSetting;
+use App\Models\Student;
+use App\Models\StudentFees;
+use App\Models\User;
 use Carbon\Carbon;
 
 // Certificates: types (built-in + custom), [bracket] placeholders, serial number
@@ -135,6 +138,106 @@ class CertificateService
         $serial = (int) Certificate::where('type', $typeKey)->where('serial_year', $year)->lockForUpdate()->max('serial') + 1;
 
         return [$serial, sprintf('%s-%d-%04d', $prefix, $year, $serial)];
+    }
+
+    // ---- School Leaving Certificate: student ko School Left karna / wapas lana ---- // NEW 20-11-26
+
+    /**
+     * SLC se pehle ki halat (sirf padhta hai, kuch likhta nahi).
+     * active = latest enroll_status 1 wali enrollment (None = passed out / inactive / pending), left = students.status 4,
+     * unpaid = student_fees unpaid/partial (Collect Fees wala formula: amount - discount - paid_amount).
+     */
+    public static function slcState(int $studentId): array
+    {
+        $student = Student::find($studentId);
+        $active = Enrollment::where('student_id', $studentId)
+            ->where('enroll_status', 1)
+            ->latest('id')
+            ->first();
+
+        $unpaid = StudentFees::where('student_id', $studentId)
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(amount - discount - paid_amount), 0) as total')
+            ->first();
+        $total = (float) ($unpaid->total ?? 0);
+
+        return [
+            'active' => $active,
+            'left' => $student && (int) $student->status === Student::STATUS_LEFT,
+            'unpaid_count' => $total > 0 ? (int) ($unpaid->cnt ?? 0) : 0,
+            'unpaid_total' => $total > 0 ? $total : 0.0,
+        ];
+    }
+
+    /**
+     * Student ko School Left karo aur purani values certificate.fields['status_change'] mein rakho.
+     * Sirf DB::transaction ke andar bulao. Student row lock hoti hai (do admin ek saath: sirf ek jeetta hai).
+     * Null = kuch nahi badla (already left ya active enrollment nahi).
+     */
+    public static function markLeft(Certificate $certificate, int $studentId): ?array
+    {
+        $student = Student::lockForUpdate()->find($studentId);
+        if (!$student || (int) $student->status === Student::STATUS_LEFT) {
+            return null;
+        }
+        // Target hamesha active enrollment hai, chahe print ke liye purane session ki row chuni ho
+        $enrollment = Enrollment::where('student_id', $studentId)
+            ->where('enroll_status', 1)
+            ->latest('id')
+            ->first();
+        if (!$enrollment) {
+            return null;
+        }
+
+        $user = $student->user;
+        $old = [
+            'enrollment_id' => $enrollment->id,
+            'enroll_status' => (int) $enrollment->enroll_status,
+            'student_status' => (int) $student->status,
+            'user_id' => $user ? $user->id : null,
+            'user_status' => $user ? (int) $user->status : null,
+            'at' => now()->toDateTimeString(),
+        ];
+
+        $enrollment->update(['enroll_status' => Enrollment::STATUS_LEFT]);
+        $student->update(['status' => Student::STATUS_LEFT]);
+        if ($user) {
+            $user->update(['status' => 0]); // model update: login block + API tokens revoke
+        }
+
+        $certificate->update(['fields' => ($certificate->fields ?: []) + ['status_change' => $old]]);
+
+        return $old;
+    }
+
+    /**
+     * SLC cancel par purani values wapas. Har row tabhi badalti hai jab abhi bhi "left" halat mein ho
+     * (beech mein kisi ne kuch badla ho to us par overwrite nahi). Sirf DB::transaction ke andar bulao.
+     */
+    public static function restoreLeft(Certificate $certificate): bool
+    {
+        $old = ($certificate->fields ?: [])['status_change'] ?? null;
+        if (!$old) {
+            return false;
+        }
+
+        Enrollment::where('id', $old['enrollment_id'])
+            ->where('enroll_status', Enrollment::STATUS_LEFT)
+            ->update(['enroll_status' => $old['enroll_status']]);
+
+        $student = Student::where('id', $certificate->student_id)->where('status', Student::STATUS_LEFT)->first();
+        if ($student) {
+            $student->update(['status' => $old['student_status']]);
+        }
+
+        if (!empty($old['user_id'])) {
+            $user = User::where('id', $old['user_id'])->where('status', 0)->first();
+            if ($user && $old['user_status'] !== null) {
+                $user->update(['status' => $old['user_status']]);
+            }
+        }
+
+        return true;
     }
 
     // 12-03-2015 -> "Twelfth March Two Thousand Fifteen"

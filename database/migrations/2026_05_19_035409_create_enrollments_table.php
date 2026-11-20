@@ -26,6 +26,7 @@ return new class extends Migration
 
             // ⚙️ Enrollment Status (0 = Inactive, 1 = Active, 2 = Promoted, 3 = Detained, 4 = Pending Approval)
             // Default 4 hai (Pending Approval) jab tak admin. accept na kare
+            // 0 Inactive, 1 Active, 2 Promoted, 3 Detained, 4 Pending, 5 Passed Out, 6 School Left
             $table->tinyInteger('enroll_status')->default(4);
 
             $table->timestamps();

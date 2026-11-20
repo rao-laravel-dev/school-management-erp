@@ -31,7 +31,9 @@
 
 @include('parent.partials.child_switcher')
 
-@if(!$enrollment)
+@if((int) $student->status === \App\Models\Student::STATUS_LEFT)
+    <div class="alert alert-warning mt-3">This student has left the school (SLC issued).</div>
+@elseif(!$enrollment)
     <div class="alert alert-warning mt-3">Not enrolled in the current session.</div>
 @endif
 

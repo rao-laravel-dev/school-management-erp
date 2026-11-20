@@ -63,7 +63,8 @@
                 <td>{{ $e->group->name ?? '-' }}</td>
                 <td>{{ $e->roll_no }}</td>
                 <td>{{ $e->student->parent->father_phone ?? '' }}</td>
-                <td>{{ optional($e->student->user)->status == 1 ? 'Active' : 'Inactive' }}</td>
+                {{-- old: <td>{{ optional($e->student->user)->status == 1 ? 'Active' : 'Inactive' }}</td> --}}
+                <td>{{ \App\Models\Student::STATUS_LABELS[(int) $e->student->status] ?? 'Inactive' }}</td>
             </tr>
             @endforeach
         </tbody>

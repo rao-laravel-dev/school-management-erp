@@ -50,7 +50,7 @@ class FeeCollectionController extends Controller
         if ($keyword) {
             // Keyword search: poori school, class/section filter ignore
             $studentsQuery = Student::query()
-                ->where('status', 1) // 👈 sirf approved students
+                ->whereIn('status', [1, Student::STATUS_LEFT]) // School Left bhi: baqi dues collect ho sakein; old: ->where('status', 1) // 👈 sirf approved students
                 ->with(['enrollments' => function ($q) use ($sessionScope) {
                     $sessionScope($q);
                     $q->with(['schoolClass', 'section']);
@@ -78,7 +78,7 @@ class FeeCollectionController extends Controller
         } elseif ($classId) {
             // Class/Section filter: sirf selected class pe
             $studentsQuery = Student::query()
-                ->where('status', 1) // 👈 sirf approved students
+                ->whereIn('status', [1, Student::STATUS_LEFT]) // School Left bhi: baqi dues collect ho sakein; old: ->where('status', 1) // 👈 sirf approved students
                 ->whereHas('enrollments', function ($q) use ($classId, $sectionId, $sessionScope) {
                     $sessionScope($q);
                     $q->where('class_id', $classId);

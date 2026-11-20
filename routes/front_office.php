@@ -1104,6 +1104,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/live-preview', 'livePreview')->name('live_preview');
                 Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
                 Route::get('/get-students', 'getStudents')->name('get_students');
+                Route::get('/slc-check', 'slcCheck')->name('slc_check'); // NEW 20-11-26
                 // Cancel + Certificate Types (manage-only) // NEW 20-11-26
                 Route::post('/{certificate}/cancel', 'cancel')->whereNumber('certificate')->name('cancel');
                 Route::get('/types', 'types')->name('types');

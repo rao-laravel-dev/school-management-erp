@@ -11,6 +11,9 @@ class Enrollment extends Model
 {
     use SoftDeletes; // 👈 2. Soft Delete trait active ki
 
+    // enroll_status 6 = School Left (SLC se); baqi codes upar fillable ke comment mein
+    public const STATUS_LEFT = 6; // NEW 20-11-26
+
     protected $dates = ['deleted_at'];
 
     // Mass assignment se bachne aur data insertion ke liye fields
@@ -21,7 +24,7 @@ class Enrollment extends Model
         'section_id',
         'group_id',
         'roll_no',
-        'enroll_status' // ⚙️ (0=Inactive, 1=Active, 2=Promoted, 3=Detained, 4=Pending Approval, 5=Passed Out)
+        'enroll_status' // ⚙️ (0=Inactive, 1=Active, 2=Promoted, 3=Detained, 4=Pending Approval, 5=Passed Out, 6=School Left)
     ];
 
     // --- Relationships ---

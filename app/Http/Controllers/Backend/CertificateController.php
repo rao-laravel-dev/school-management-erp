@@ -153,13 +153,21 @@ class CertificateController extends Controller
         $fields = $this->typeFields($request, $type);
         $year = (int) $issueDate->format('Y');
 
-        // SLC / Transfer: abhi sirf print hota hai. School Left status change baad mein (alag kaam)
+        // old: SLC / Transfer: abhi sirf print hota hai. School Left status change baad mein (alag kaam)
+        // SLC par active student School Left hota hai (confirm zaroori); already left / active enrollment nahi to sirf certificate banta hai
+        $isSlc = $type['key'] === 'school_leaving';
+        $state = $isSlc ? CertificateService::slcState($enrollment->student_id) : null;
+        if ($isSlc && $state['active'] && !$state['left'] && !$request->boolean('confirm_left')) {
+            return redirect()->back()->withInput()->with('error', 'Please confirm that this student will be marked School Left.');
+        }
+
+        $statusChange = null;
         try {
-            $certificate = DB::transaction(function () use ($request, $type, $enrollment, $issueDate, $fields, $year) {
+            $certificate = DB::transaction(function () use ($request, $type, $enrollment, $issueDate, $fields, $year, $isSlc, &$statusChange) {
                 [$serial, $number] = CertificateService::nextSerial($type['key'], $type['prefix'], $year);
                 $tokens = CertificateService::placeholders($enrollment, $fields, $issueDate, $number);
 
-                return Certificate::create([
+                $certificate = Certificate::create([
                     'certificate_no' => $number,
                     'type' => $type['key'],
                     'serial_year' => $year,
@@ -176,13 +184,53 @@ class CertificateController extends Controller
                     'status' => Certificate::STATUS_ISSUED,
                     'issued_by' => auth()->id(),
                 ]);
+
+                // Certificate aur status change ek hi transaction mein
+                if ($isSlc) {
+                    $statusChange = CertificateService::markLeft($certificate, $enrollment->student_id);
+                }
+
+                return $certificate;
             });
         } catch (UniqueConstraintViolationException $e) {
             return redirect()->back()->withInput()->with('error', 'Another certificate was saved at the same time. Click Save again.');
         }
 
+        $message = 'Certificate ' . $certificate->certificate_no . ' issued.';
+        if ($isSlc) {
+            $message .= $statusChange
+                ? ' Student marked School Left.'
+                : ($state['left'] ? ' Student is already School Left: status not changed.' : ' Student is not active: status not changed.');
+            if ($state['unpaid_total'] > 0) {
+                $message .= ' Warning: Rs. ' . number_format($state['unpaid_total']) . ' unpaid fees.';
+            }
+        }
+
         return redirect()->route('certificate.print', ['certificate' => $certificate->id, 'autoprint' => 1])
-            ->with('success', 'Certificate ' . $certificate->certificate_no . ' issued.');
+            ->with('success', $message);
+    } // End Method
+
+    // AJAX: SLC se pehle check (sirf padhta hai): status badlega? unpaid fees? (warning, block nahi)
+    public function slcCheck(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'enrollment_id' => ['required', 'integer', Rule::exists('enrollments', 'id')],
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $studentId = Enrollment::whereKey($request->enrollment_id)->value('student_id');
+        $state = CertificateService::slcState((int) $studentId);
+
+        return response()->json([
+            'success' => true,
+            'will_mark_left' => (bool) ($state['active'] && !$state['left']),
+            'already_left' => (bool) $state['left'],
+            'unpaid_count' => $state['unpaid_count'],
+            'unpaid_total' => $state['unpaid_total'],
+            'unpaid_label' => number_format($state['unpaid_total']),
+        ]);
     } // End Method
 
     public function print(Request $request, Certificate $certificate)
@@ -257,20 +305,43 @@ class CertificateController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        // Ek hi query mein status check + update: do admin ek saath cancel karein to sirf ek jeete
-        $changed = Certificate::where('id', $certificate->id)
-            ->where('status', Certificate::STATUS_ISSUED)
-            ->update([
-                'status' => Certificate::STATUS_CANCELLED,
-                'cancel_reason' => trim($request->cancel_reason),
-                'cancelled_at' => now(),
-                'cancelled_by' => auth()->id(),
-            ]);
-        if (!$changed) {
-            return response()->json(['success' => false, 'message' => 'This certificate is already cancelled.'], 422);
+        // Cancel + (SLC ho to) student ki purani halat ek transaction mein
+        $result = DB::transaction(function () use ($certificate, $request) {
+            $cert = Certificate::lockForUpdate()->find($certificate->id);
+            $hasChange = $cert->type === 'school_leaving' && !empty(($cert->fields ?: [])['status_change']);
+
+            // Duplicate SLC issued ho to pehle wo cancel ho, warna Active student ke paas SLC reh jata
+            if ($hasChange) {
+                $other = Certificate::where('student_id', $cert->student_id)
+                    ->where('type', 'school_leaving')
+                    ->where('status', Certificate::STATUS_ISSUED)
+                    ->where('id', '!=', $cert->id)
+                    ->first();
+                if ($other) {
+                    return ['error' => 'Cancel ' . $other->certificate_no . ' first: it was issued while this student was School Left.'];
+                }
+            }
+
+            // Ek hi query mein status check + update: do admin ek saath cancel karein to sirf ek jeete
+            $changed = Certificate::where('id', $cert->id)
+                ->where('status', Certificate::STATUS_ISSUED)
+                ->update([
+                    'status' => Certificate::STATUS_CANCELLED,
+                    'cancel_reason' => trim($request->cancel_reason),
+                    'cancelled_at' => now(),
+                    'cancelled_by' => auth()->id(),
+                ]);
+            if (!$changed) {
+                return ['error' => 'This certificate is already cancelled.'];
+            }
+
+            return ['restored' => $hasChange && CertificateService::restoreLeft($cert)];
+        });
+        if (isset($result['error'])) {
+            return response()->json(['success' => false, 'message' => $result['error']], 422);
         }
 
-        return response()->json(['success' => true, 'message' => 'Certificate ' . $certificate->certificate_no . ' cancelled.']);
+        return response()->json(['success' => true, 'message' => 'Certificate ' . $certificate->certificate_no . ' cancelled.' . ($result['restored'] ? ' Student restored.' : '')]);
     } // End Method
 
     // Certificate Types page: built-in + custom, edit wording / active, add custom

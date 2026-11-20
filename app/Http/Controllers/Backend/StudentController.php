@@ -54,13 +54,14 @@ class StudentController extends Controller
     public function AllStudent()
     {
         // 1. Dashboard Counters (Direct database se live aur sahi count)
-        $totalCount = User::whereHas('studentProfile')->count();
-
-        // Active Count (Sirf status 1)
-        $activeCount = User::where('status', 1)->whereHas('studentProfile')->count();
-
-        // Inactive Count (Status 0 aur Pending Status 2 ko plus kar diya taake dono isi card me dikhein)
-        $inactiveCount = User::whereIn('status', [0, 2])->whereHas('studentProfile')->count();
+        // old: $totalCount = User::whereHas('studentProfile')->count();
+        // old: $activeCount = User::where('status', 1)->whereHas('studentProfile')->count();
+        // old: $inactiveCount = User::whereIn('status', [0, 2])->whereHas('studentProfile')->count();
+        $counts = $this->studentCounts();
+        $totalCount = $counts['total'];
+        $activeCount = $counts['active'];
+        $inactiveCount = $counts['inactive']; // 0 aur Pending 2 (School Left alag card)
+        $leftCount = $counts['left'];
 
         // 2. Aapka purana Enrollment data fetch karne ka logic
         $sessionId = $this->getActiveSessionId();
@@ -87,10 +88,35 @@ class StudentController extends Controller
             'groups',
             'totalCount',
             'activeCount',
-            'inactiveCount'
+            'inactiveCount',
+            'leftCount'
         ));
     }
 // End Method
+
+    // Student cards ke counts: page load, StudentStatus aur ApproveAdmission teeno yahi use karte hain (users.status par, School Left students.status 4)
+    private function studentCounts(): array
+    {
+        $notLeft = fn($q) => $q->where('status', '!=', Student::STATUS_LEFT);
+
+        return [
+            'total' => User::whereHas('studentProfile')->count(),
+            'active' => User::where('status', 1)->whereHas('studentProfile', $notLeft)->count(),
+            'inactive' => User::whereIn('status', [0, 2])->whereHas('studentProfile', $notLeft)->count(),
+            'pending' => User::where('status', 2)->whereHas('studentProfile', $notLeft)->count(),
+            'left' => User::whereHas('studentProfile', fn($q) => $q->where('status', Student::STATUS_LEFT))->count(),
+        ];
+    }
+
+    // Status filter (active / inactive / pending / left) students.status par; khali ya galat value = sab
+    private function applyStatusFilter($query, $status)
+    {
+        if ($status !== null && isset(Student::STATUS_FILTERS[$status])) {
+            $query->whereHas('student', fn($q) => $q->where('status', Student::STATUS_FILTERS[$status]));
+        }
+
+        return $query;
+    }
 
     /**
      * 3. CREATE VIEW: Render Form Payload Components
@@ -209,6 +235,7 @@ class StudentController extends Controller
         if ($request->filled('group_id')) {
             $query->where('group_id', $request->group_id);
         }
+        $this->applyStatusFilter($query, $request->input('status'));
 
         // 👈 NAYA: Keyword search (Student ke first_name, last_name, admission_no par)
         if ($request->filled('keyword')) {
@@ -261,7 +288,8 @@ class StudentController extends Controller
                 $request->group_id,
                 $request->keyword,
                 $siteSetting,
-                $logoPath
+                $logoPath,
+                $request->input('status')
             ),
             'students_' . now()->format('Y-m-d_His') . '.xlsx'
         );
@@ -286,6 +314,7 @@ class StudentController extends Controller
         if ($request->filled('group_id')) {
             $query->where('group_id', $request->group_id);
         }
+        $this->applyStatusFilter($query, $request->input('status'));
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
             $query->whereHas('student', function ($q) use ($keyword) {
@@ -1149,6 +1178,8 @@ class StudentController extends Controller
             // =================================================================
             // TRACK LAYER D: SYNCHRONIZE ACTIVE ENROLLMENT HISTORY ENTRY
             // =================================================================
+            // School Left enrollment edit se wapas Active na ho (SLC cancel hi wapas laata hai)
+            $keepLeft = $currentEnrollment && (int) $currentEnrollment->enroll_status === Enrollment::STATUS_LEFT;
             if (!empty($classId)) {
                 Enrollment::updateOrCreate(
                     [
@@ -1160,7 +1191,8 @@ class StudentController extends Controller
                         'section_id'    => $sectionId,
                         'group_id'      => $groupId,
                         'roll_no'       => $customNumericRollNo,
-                        'enroll_status' => 1,
+                        // old: 'enroll_status' => 1,
+                        'enroll_status' => $keepLeft ? Enrollment::STATUS_LEFT : 1,
                     ]
                 );
             }
@@ -1202,6 +1234,12 @@ class StudentController extends Controller
         try {
             $student = Student::findOrFail($id);
             $action = $request->input('action');
+
+            // School Left student ka status yahan se nahi badalta (SLC cancel se wapas aata hai)
+            if ((int) $student->status === Student::STATUS_LEFT) {
+                DB::rollback();
+                return response()->json(['success' => false, 'message' => 'This student has left the school (SLC issued). Cancel the SLC to restore the student.'], 422);
+            }
 
             // Live enrollment (history rows 2/3 kabhi nahi); Passed Out ya enrollment na mile to kuch write na ho
             $enrollment = $this->liveEnrollment($student->id);
@@ -1277,12 +1315,15 @@ class StudentController extends Controller
             $msg = ($action === 'approve') ? 'Account Activated Successfully.' : 'Account Deactivated.';
 
             DB::commit();
+            $counts = $this->studentCounts();
             return response()->json([
                 'status' => ($action === 'approve' ? 1 : 0),
                 'message' => $msg,
-                'activeCount' => \App\Models\User::where('status', 1)->whereHas('studentProfile')->count(),
-                'inactiveCount' => \App\Models\User::where('status', 0)->whereHas('studentProfile')->count(),
-                'pendingCount' => \App\Models\User::where('status', 2)->whereHas('studentProfile')->count()
+                // old: 'activeCount' / 'inactiveCount' (sirf 0) / 'pendingCount' alag alag queries; ab page jaisi ek hi gintee
+                'activeCount' => $counts['active'],
+                'inactiveCount' => $counts['inactive'],
+                'pendingCount' => $counts['pending'],
+                'leftCount' => $counts['left'],
             ]);
         } catch (Exception $e) {
             DB::rollback();
@@ -1293,6 +1334,11 @@ class StudentController extends Controller
     public function StudentStatus($id)
     {
         $student = Student::findOrFail($id);
+
+        // School Left student ka status yahan se nahi badalta (SLC cancel se wapas aata hai)
+        if ((int) $student->status === Student::STATUS_LEFT) {
+            return response()->json(['success' => false, 'message' => 'This student has left the school (SLC issued). Cancel the SLC to restore the student.'], 422);
+        }
 
         // Live enrollment (history rows 2/3 kabhi nahi); Passed Out ya enrollment na mile to kuch write na ho
         $enrollment = $this->liveEnrollment($student->id);
@@ -1320,12 +1366,15 @@ class StudentController extends Controller
             $enrollment->update(['enroll_status' => $newStatus]);
         }
 
+        $counts = $this->studentCounts();
         return response()->json([
             'status' => $newStatus,
             'message' => 'Status Updated & Synchronized Successfully!',
-            'activeCount' => \App\Models\User::where('status', 1)->whereHas('studentProfile')->count(),
-            'inactiveCount' => \App\Models\User::where('status', 0)->whereHas('studentProfile')->count(),
-            'pendingCount' => \App\Models\User::where('status', 2)->whereHas('studentProfile')->count()
+            // old: 'inactiveCount' sirf status 0 (page 0+2 dikhata tha); ab page jaisi ek hi gintee
+            'activeCount' => $counts['active'],
+            'inactiveCount' => $counts['inactive'],
+            'pendingCount' => $counts['pending'],
+            'leftCount' => $counts['left'],
         ]);
     }
     // Live enrollment: class ki session (gap = pichla) ya current/agla session; Promoted/Detained (2/3) history kabhi nahi

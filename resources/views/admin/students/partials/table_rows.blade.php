@@ -48,9 +48,14 @@
         $status = $enrollment->student->status;
         $colorClass = ($status == 1) ? 'success' : (($status == 2) ? 'warning' : 'danger');
         $statusText = ($status == 1) ? 'Active' : (($status == 2) ? 'Pending' : 'Inactive');
+        // School Left (SLC se): dark badge, toggle nahi (wapas lene ke liye SLC cancel karein)
+        $isLeft = (int) $status === \App\Models\Student::STATUS_LEFT;
         @endphp
 
         {{-- Admin (ya jiske paas permission hai) ko button dikhega --}}
+        @if($isLeft)
+        <span class="badge badge-school-left" title="School Leaving Certificate issued">School Left</span>
+        @else
         @can('manage-students')
         @if($status == 2)
         <button type="button" class="btn btn-sm btn-outline-{{ $colorClass }} toggle-status-pending" data-id="{{ $enrollment->student->id }}" data-url="{{ route('students.approve', $enrollment->student->id) }}">
@@ -68,6 +73,7 @@
             {{ $statusText }}
         </span>
         @endcan
+        @endif
     </td>
 
     <td class="text-center align-middle">
