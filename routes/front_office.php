@@ -5,6 +5,7 @@ use App\Http\Controllers\Backend\BillingSettingController;
 use App\Http\Controllers\Backend\BookCategoryController;
 use App\Http\Controllers\Backend\BookController;
 use App\Http\Controllers\Backend\BookIssueController;
+use App\Http\Controllers\Backend\CertificateController; // NEW 20-11-26
 use App\Http\Controllers\Backend\ClassTimetableController;
 use App\Http\Controllers\Backend\CopyOldLessonController;
 use App\Http\Controllers\Backend\DiscountPolicyController;
@@ -1081,6 +1082,27 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/get-staff/{role}', 'getStaffByRole')->name('get_staff');
                 Route::post('/generate', 'generate')->name('generate');
+            });
+        });
+    });
+
+    // ==========================================
+    // CERTIFICATES // NEW 20-11-26
+    // ==========================================
+    Route::prefix('certificate')->name('certificate.')->group(function () {
+        Route::middleware('can:access-certificates')->group(function () {
+            Route::controller(CertificateController::class)->group(function () {
+                Route::get('/{certificate}/print', 'print')->whereNumber('certificate')->name('print');
+            });
+        });
+        // Issue page + its AJAX helpers + live preview are manage-only (else silent 403)
+        Route::middleware('can:manage-certificates')->group(function () {
+            Route::controller(CertificateController::class)->group(function () {
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::post('/live-preview', 'livePreview')->name('live_preview');
+                Route::get('/get-sections/{classId}', 'getSectionsByClass')->name('get_sections');
+                Route::get('/get-students', 'getStudents')->name('get_students');
             });
         });
     });

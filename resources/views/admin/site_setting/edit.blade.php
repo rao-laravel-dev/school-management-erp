@@ -243,6 +243,39 @@
                                     <div><img src="{{ asset('uploads/site_setting/' . $setting->principal_signature) }}" class="mt-2" style="max-height:60px;" alt="Current Signature"></div>
                                     @endif
                                 </div>
+
+                                {{-- Certificates: head of institution (printed under the signature) + school stamp --}}
+                                <div class="col-md-6">
+                                    <label for="head_name" class="form-label">Head Name <span class="text-muted">(optional)</span></label>
+                                    <input type="text" name="head_name" id="head_name" maxlength="100" placeholder="e.g. Muhammad Aslam"
+                                        class="form-control form-control-sm @error('head_name') is-invalid @enderror" value="{{ old('head_name', $setting->head_name) }}">
+                                    <small class="text-muted">Printed under the signature on certificates</small>
+                                    @error('head_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="head_title" class="form-label">Head Title <span class="text-muted">(optional)</span></label>
+                                    <input type="text" name="head_title" id="head_title" maxlength="60" placeholder="e.g. Principal or Headmaster"
+                                        class="form-control form-control-sm @error('head_title') is-invalid @enderror" value="{{ old('head_title', $setting->head_title) }}">
+                                    @error('head_title')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="school_stamp" class="form-label">School Stamp <span class="text-muted">(optional)</span></label>
+                                    <input type="file" name="school_stamp" id="school_stamp" accept="image/*"
+                                        class="form-control form-control-sm @error('school_stamp') is-invalid @enderror">
+                                    <small class="text-muted d-block">Round or square stamp, PNG with transparent background works best. JPG, PNG or WebP — max 2MB</small>
+                                    @error('school_stamp')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    @if($setting->school_stamp_url)
+                                    <div><img src="{{ $setting->school_stamp_url }}" class="mt-2" style="max-height:60px;" alt="Current Stamp"></div>
+                                    @endif
+                                </div>
                             </div>
 
                             @can('manage-site-settings')

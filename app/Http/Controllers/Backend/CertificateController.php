@@ -1,0 +1,277 @@
+<?php
+
+namespace App\Http\Controllers\Backend;
+
+use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
+use App\Models\Certificate;
+use App\Models\Enrollment;
+use App\Models\ParentProfile;
+use App\Models\SchoolClass;
+use App\Models\Section;
+use App\Models\SiteSetting;
+use App\Models\Student;
+use App\Services\CertificateService;
+use Carbon\Carbon;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+
+class CertificateController extends Controller
+{
+    private const RELATIONS = ['student.parent', 'schoolClass', 'section', 'academicYear'];
+
+    // Issue form: type, student, wording + live preview
+    public function create()
+    {
+        $types = CertificateService::activeTypes();
+        $sessions = AcademicYear::orderByDesc('id')->get(['id', 'name', 'is_current']);
+        // old: $classes = SchoolClass::where('status', 1)->orderBy('name')->get(['id', 'name']);
+        // Baqi class dropdowns jaisa: numeric_name phir name (warna Class 1, Class 10, Class 2...)
+        $classes = SchoolClass::where('status', 1)->orderBy('numeric_name')->orderBy('name')->get(['id', 'name']);
+        $setting = SiteSetting::current();
+
+        // JS ke liye: type key => title, fields, required, body
+        $typesJs = collect($types)->map(fn ($t) => [
+            'title' => $t['title'],
+            'fields' => $t['fields'],
+            'required' => $t['required'],
+            'body' => $t['body'],
+        ]);
+
+        return view('admin.certificate.create', [
+            'types' => $types,
+            'typesJs' => $typesJs,
+            'sessions' => $sessions,
+            'classes' => $classes,
+            'fieldMeta' => Certificate::FIELDS,
+            'conductOptions' => Certificate::CONDUCT_OPTIONS,
+            'orientations' => Certificate::ORIENTATIONS,
+            'designs' => Certificate::DESIGNS,
+            'missingHead' => !$setting->principal_signature || !$setting->head_name,
+        ]);
+    } // End Method
+
+    // AJAX: class select hone par uske sections (apna route, kisi aur module ki permission par nirbhar nahi)
+    public function getSectionsByClass($classId)
+    {
+        $sections = Section::join('school_class_section', 'school_class_section.section_id', '=', 'sections.id')
+            ->where('school_class_section.school_class_id', $classId)
+            ->where('school_class_section.status', 1)
+            ->select('sections.id', 'sections.name')
+            ->orderBy('sections.name')
+            ->get();
+
+        return response()->json($sections);
+    } // End Method
+
+    // AJAX: session + class + section ke students (sab enroll_status, taake passed-out ko bhi SLC mil sake)
+    public function getStudents(Request $request)
+    {
+        $v = $request->validate([
+            'session_id' => ['required', 'integer', Rule::exists('academic_years', 'id')],
+            'class_id' => ['required', 'integer', Rule::exists((new SchoolClass)->getTable(), 'id')],
+            'section_id' => ['required', 'integer', Rule::exists('sections', 'id')],
+        ]);
+
+        $students = Enrollment::with('student')
+            ->where('academic_year_id', $v['session_id'])
+            ->where('class_id', $v['class_id'])
+            ->where('section_id', $v['section_id'])
+            ->whereHas('student') // soft-deleted student skip
+            ->orderBy('roll_no')
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id, // enrollment id
+                'text' => $e->student->full_name . ' (' . $e->student->admission_no . ')',
+            ])
+            ->values();
+
+        return response()->json($students);
+    } // End Method
+
+    // Live preview: unsaved Certificate -> asli print blade (ID card ke livePreview jaisa), DB mein kuch nahi likhta
+    public function livePreview(Request $request)
+    {
+        $typeKeys = array_keys(CertificateService::activeTypes());
+        $request->validate([
+            'type' => ['required', Rule::in($typeKeys)],
+            'enrollment_id' => ['nullable', 'integer', Rule::exists('enrollments', 'id')],
+            'orientation' => ['nullable', Rule::in(array_keys(Certificate::ORIENTATIONS))],
+            'design' => ['nullable', Rule::in(array_keys(Certificate::DESIGNS))],
+            'issue_date' => 'nullable|date',
+            'title' => 'nullable|string|max:150',
+            'body' => 'nullable|string|max:5000',
+        ]);
+
+        $type = CertificateService::type($request->type);
+        $issueDate = $request->filled('issue_date') ? Carbon::parse($request->issue_date) : Carbon::today();
+        $enrollment = $request->filled('enrollment_id')
+            ? Enrollment::with(self::RELATIONS)->find($request->enrollment_id)
+            : null;
+        if (!$enrollment || !$enrollment->student) {
+            $enrollment = $this->sampleEnrollment();
+        }
+
+        $fields = $this->typeFields($request, $type);
+        $body = $request->filled('body') ? $request->body : $type['body'];
+        $tokens = CertificateService::placeholders($enrollment, $fields, $issueDate, 'Given on save');
+
+        $certificate = new Certificate();
+        $certificate->forceFill([
+            'certificate_no' => 'Given on save',
+            'type' => $type['key'],
+            'title' => $request->filled('title') ? $request->title : $type['title'],
+            'body' => CertificateService::render($body, $tokens),
+            // old: 'design' => 'classic',
+            'design' => $request->input('design', 'classic') ?: 'classic',
+            'orientation' => $request->input('orientation', 'portrait'),
+            'issue_date' => $issueDate,
+            'status' => Certificate::STATUS_ISSUED,
+        ]);
+        $isPreview = true;
+
+        return view('admin.certificate.print', compact('certificate', 'isPreview'));
+    } // End Method
+
+    public function store(Request $request)
+    {
+        $type = CertificateService::type((string) $request->input('type'));
+        $request->validate($this->rules($type), $this->messages($type));
+
+        $type = CertificateService::type($request->type);
+        $enrollment = Enrollment::with(self::RELATIONS)->findOrFail($request->enrollment_id);
+        if (!$enrollment->student) {
+            return redirect()->back()->withInput()->with('error', 'This student record no longer exists.');
+        }
+
+        $issueDate = Carbon::parse($request->issue_date);
+        $fields = $this->typeFields($request, $type);
+        $year = (int) $issueDate->format('Y');
+
+        // SLC / Transfer: abhi sirf print hota hai. School Left status change baad mein (alag kaam)
+        try {
+            $certificate = DB::transaction(function () use ($request, $type, $enrollment, $issueDate, $fields, $year) {
+                [$serial, $number] = CertificateService::nextSerial($type['key'], $type['prefix'], $year);
+                $tokens = CertificateService::placeholders($enrollment, $fields, $issueDate, $number);
+
+                return Certificate::create([
+                    'certificate_no' => $number,
+                    'type' => $type['key'],
+                    'serial_year' => $year,
+                    'serial' => $serial,
+                    'student_id' => $enrollment->student_id,
+                    'enrollment_id' => $enrollment->id,
+                    'title' => $request->title,
+                    'body' => CertificateService::render($request->body, $tokens),
+                    'fields' => $fields + ['template' => $request->body], // original wording bhi mehfooz
+                    // old: 'design' => 'classic',
+                    'design' => $request->design,
+                    'orientation' => $request->orientation,
+                    'issue_date' => $issueDate->toDateString(),
+                    'status' => Certificate::STATUS_ISSUED,
+                    'issued_by' => auth()->id(),
+                ]);
+            });
+        } catch (UniqueConstraintViolationException $e) {
+            return redirect()->back()->withInput()->with('error', 'Another certificate was saved at the same time. Click Save again.');
+        }
+
+        return redirect()->route('certificate.print', ['certificate' => $certificate->id, 'autoprint' => 1])
+            ->with('success', 'Certificate ' . $certificate->certificate_no . ' issued.');
+    } // End Method
+
+    public function print(Request $request, Certificate $certificate)
+    {
+        $isPreview = false;
+        $autoPrint = $request->boolean('autoprint');
+
+        return view('admin.certificate.print', compact('certificate', 'isPreview', 'autoPrint'));
+    } // End Method
+
+    // Type ke apne fields hi lete hain (baqi input ignore)
+    private function typeFields(Request $request, array $type): array
+    {
+        $fields = [];
+        foreach ($type['fields'] as $key) {
+            $fields[$key] = trim((string) $request->input($key, ''));
+        }
+
+        return $fields;
+    }
+
+    private function rules(?array $type): array
+    {
+        $rules = [
+            'type' => ['required', Rule::in(array_keys(CertificateService::activeTypes()))],
+            'enrollment_id' => ['required', 'integer', Rule::exists('enrollments', 'id')],
+            'title' => 'required|string|max:150',
+            'body' => 'required|string|max:5000',
+            'orientation' => ['required', Rule::in(array_keys(Certificate::ORIENTATIONS))],
+            'design' => ['required', Rule::in(array_keys(Certificate::DESIGNS))],
+            'issue_date' => 'required|date',
+        ];
+
+        // Type ke fields: required wale required, baqi optional
+        foreach (($type['fields'] ?? []) as $key) {
+            $meta = Certificate::FIELDS[$key];
+            $r = [in_array($key, $type['required'], true) ? 'required' : 'nullable'];
+            $r[] = $meta[1] === 'date' ? 'date' : 'string';
+            if ($meta[2] > 0) {
+                $r[] = 'max:' . $meta[2];
+            }
+            $rules[$key] = $r;
+        }
+
+        return $rules;
+    }
+
+    private function messages(?array $type): array
+    {
+        $m = [
+            'type.required' => 'Certificate Type is required',
+            'type.in' => 'Selected Certificate Type is not available',
+            'enrollment_id.required' => 'Student is required',
+            'enrollment_id.exists' => 'Selected Student is invalid',
+            'title.required' => 'Title is required',
+            'body.required' => 'Wording is required',
+            'orientation.required' => 'Orientation is required',
+            'design.required' => 'Design is required',
+            'design.in' => 'Selected Design is not available',
+            'issue_date.required' => 'Issue Date is required',
+        ];
+        foreach (($type['fields'] ?? []) as $key) {
+            $m[$key . '.required'] = Certificate::FIELDS[$key][0] . ' is required';
+        }
+
+        return $m;
+    }
+
+    // Student choose na ho to preview ke liye nakli (unsaved) student, kuch DB mein nahi jata
+    private function sampleEnrollment(): Enrollment
+    {
+        $student = (new Student)->forceFill([
+            'id' => 1,
+            'first_name' => 'Ali',
+            'last_name' => 'Raza',
+            'gender' => 'male',
+            'admission_no' => 'GR-0001',
+            'date_of_birth' => '2012-03-12',
+            'admission_date' => '2020-04-01',
+        ]);
+        $student->setRelation('parent', (new ParentProfile)->forceFill([
+            'father_name' => 'Muhammad Raza',
+            'mother_name' => 'Ayesha Raza',
+        ]));
+
+        $enrollment = (new Enrollment)->forceFill(['roll_no' => '12']);
+        $enrollment->setRelation('student', $student);
+        $enrollment->setRelation('schoolClass', (new SchoolClass)->forceFill(['name' => 'Class 5']));
+        $enrollment->setRelation('section', (new Section)->forceFill(['name' => 'A']));
+        $year = AcademicYear::where('is_current', 1)->first() ?: (new AcademicYear)->forceFill(['name' => '2026-27']);
+        $enrollment->setRelation('academicYear', $year);
+
+        return $enrollment;
+    }
+}

@@ -558,3 +558,20 @@
     </ul>
 </li>
 @endif
+
+{{-- Certificates --}}
+@php $checks = [['certificate_issue', 'manage-certificates']]; @endphp
+@if($any($checks))
+@php $open = request()->routeIs('certificate.*'); @endphp
+<li class="{{ $open ? 'mm-active' : '' }}">
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class='bx bx-award'></i></div>
+        <div class="menu-title">Certificates</div>
+    </a>
+    <ul class="{{ $open ? 'mm-show' : '' }}">
+        @if($show('certificate_issue', 'manage-certificates'))
+        <li class="{{ request()->routeIs('certificate.create') ? 'mm-active' : '' }}"><a href="{{ route('certificate.create') }}"><i class='bx bx-radio-circle'></i>Issue Certificate</a></li>
+        @endif
+    </ul>
+</li>
+@endif

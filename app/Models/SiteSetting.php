@@ -34,7 +34,15 @@ class SiteSetting extends Model
         'login_heading',
         'login_message',
         'login_background',
+        // Certificates: head of institution + stamp + custom types / edited wording
+        'head_name',
+        'head_title',
+        'school_stamp',
+        'certificate_types',
     ];
+
+    // certificate_types JSON <-> array
+    protected $casts = ['certificate_types' => 'array'];
 
     // T340a: palette key => [label, primary, accent]. 'default' = today's look. 'custom' = the 2 colour pickers.
     public const PALETTES = [
@@ -84,6 +92,17 @@ class SiteSetting extends Model
     public function getIconUrlAttribute(): ?string
     {
         return ImageService::url($this->icon, 'site_setting');
+    }
+
+    // Certificates: signature image (webp file name -> URL) and school stamp, URL ya null
+    public function getPrincipalSignatureUrlAttribute(): ?string
+    {
+        return ImageService::url($this->principal_signature, 'site_setting');
+    }
+
+    public function getSchoolStampUrlAttribute(): ?string
+    {
+        return ImageService::url($this->school_stamp, 'site_setting');
     }
 
     // T340b: login page background picture (left side of the role login pages): URL or null

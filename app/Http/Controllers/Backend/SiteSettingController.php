@@ -130,6 +130,9 @@ class SiteSettingController extends Controller
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'icon' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'principal_signature' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'head_name' => 'nullable|string|max:100', // certificates
+            'head_title' => 'nullable|string|max:60',
+            'school_stamp' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'phone.regex' => 'Phone number format is invalid.',
             'website.url' => 'Website must be a valid URL (e.g. https://example.com).',
@@ -152,6 +155,8 @@ class SiteSettingController extends Controller
             'header_note',
             'footer_note',
             'tagline',            // T340a
+            'head_name',          // certificates
+            'head_title',
         ]);
 
         $oldFiles = []; // purani files naya save hone ke BAAD delete hongi
@@ -168,6 +173,12 @@ class SiteSettingController extends Controller
         if ($request->hasFile('principal_signature')) {
             $oldFiles[] = $setting->principal_signature;
             $data['principal_signature'] = $this->imageService->upload($request->file('principal_signature'), 'uploads/site_setting', 300, 150);
+        }
+
+        // Stamp: signature jaisa hi flow
+        if ($request->hasFile('school_stamp')) {
+            $oldFiles[] = $setting->school_stamp;
+            $data['school_stamp'] = $this->imageService->upload($request->file('school_stamp'), 'uploads/site_setting', 300, 300);
         }
 
         $setting->update($data);

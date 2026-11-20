@@ -595,6 +595,20 @@
         </li>
         @endcanany
 
+        {{-- Certificates Menu --}}
+        @can('manage-certificates')
+        @php $open = request()->routeIs('certificate.*'); @endphp
+        <li class="{{ $open ? 'mm-active' : '' }}">
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class='bx bx-award'></i></div>
+                <div class="menu-title">Certificates</div>
+            </a>
+            <ul class="{{ $open ? 'mm-show' : '' }}">
+                <li class="{{ request()->routeIs('certificate.create') ? 'mm-active' : '' }}"><a href="{{ route('certificate.create') }}"><i class='bx bx-radio-circle'></i>Issue Certificate</a></li>
+            </ul>
+        </li>
+        @endcan
+
         {{-- Logout (hamesha last) --}}
         <li>
             <a href="{{ route('admin.logout') }}">

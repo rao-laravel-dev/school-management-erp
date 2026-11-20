@@ -151,6 +151,8 @@ class RoleSeeder extends Seeder
             'access-id-card-design-1',      // ID card designs (student + staff templates)
             'access-id-card-design-2',
             'access-id-card-design-3',
+            'access-certificates',          // certificates (issue, list, print)
+            'manage-certificates',
             'access-library-members',
             'manage-library-members',
             'access-book-issues',
@@ -195,6 +197,8 @@ class RoleSeeder extends Seeder
             // 'manage-id-card-templates',      // sidebar only prints ID cards, no design
             'access-staff-id-card-templates',
             'access-id-card-design-1',          // print dropdown only lists designs the user holds
+            'access-certificates',              // front desk issues certificates
+            'manage-certificates',
             'access-teacher',
             'access-teacher',
             'access-teacher-assignment',

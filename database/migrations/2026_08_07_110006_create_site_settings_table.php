@@ -36,6 +36,11 @@ return new class extends Migration
             $table->string('login_heading', 150)->nullable();
             $table->string('login_message', 255)->nullable();
             $table->string('login_background')->nullable();
+            // Certificates: head of institution (name/title under the signature), stamp image, custom types + edited wording (JSON)
+            $table->string('head_name', 100)->nullable();
+            $table->string('head_title', 60)->nullable()->default('Principal');
+            $table->string('school_stamp')->nullable();
+            $table->json('certificate_types')->nullable();
             $table->timestamps();
         });
     }
