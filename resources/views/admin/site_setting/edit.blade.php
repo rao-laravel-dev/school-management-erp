@@ -291,14 +291,10 @@
         @include('admin.site_setting.partials.theme_tab')
     </div>
 
-    {{-- ================= Tab 3: Setup checklist (placeholder, T340b) ================= --}}
+    {{-- ================= Tab 3: Setup checklist (T340b) ================= --}}
     <div class="tab-pane fade {{ $tab === 'checklist' ? 'show active' : '' }}" id="tab-checklist" role="tabpanel">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="fw-semi-bold text-primary mb-0">Setup checklist</h5>
-            </div>
-            <div class="card-body text-muted">Coming in the next update.</div>
-        </div>
+        {{-- old: <div class="card"><div class="card-header"><h5 ...>Setup checklist</h5></div><div class="card-body text-muted">Coming in the next update.</div></div> --}}
+        @include('admin.site_setting.partials.checklist_tab')
     </div>
 </div>
 @endsection

@@ -8,6 +8,7 @@ use App\Models\SchoolTiming;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Services\SetupChecklistService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -35,8 +36,11 @@ class SiteSettingController extends Controller
         $timing = SchoolTiming::active(); // "School at a glance" card
         $tab = in_array(request('tab'), ['profile', 'theme', 'checklist'], true) ? request('tab') : 'profile';
 
+        $checklist = app(SetupChecklistService::class)->summary(auth()->user()); // T340b: Setup checklist tab
+
         /* old: return view('admin.site_setting.edit', compact('setting')); */
-        return view('admin.site_setting.edit', compact('setting', 'counts', 'timing', 'tab'));
+        /* old: return view('admin.site_setting.edit', compact('setting', 'counts', 'timing', 'tab')); */
+        return view('admin.site_setting.edit', compact('setting', 'counts', 'timing', 'tab', 'checklist'));
     }
 
     // T340a: save the Appearance & theme tab (own route; the profile form has other required fields)
